@@ -1,0 +1,329 @@
+# Task: Módulo database (centralização Prisma — @digimon/database)
+## Agente: `agente-backend`
+## Módulo: `packages/database` (escopo `@digimon`)
+## Escopo (arquivos que esta task vai tocar):
+- `packages/database/**`
+- `packages/modules/auth/**`
+- `packages/modules/users/**`
+- `packages/modules/content/**`
+- `packages/modules/comments/**`
+- `apps/web/**`
+- `prisma/**` (remover schema raiz — mover para packages/database)
+- `package.json` (raiz: scripts db:* movem para o database)
+- `pnpm-lock.yaml`
+- `context/modules/database/**`
+## Depende de: [ ] `01-monorepo-contracts.md`, `02-module-auth-users.md`, `03-module-content.md`, `04-module-comments.md`
+## Contexto para ler: context/modules/database/context.md, context/project/stack.md, context/project/adr/ADR-001.md, ADR-003.md, ADR-005.md
+## Skills a carregar: codegen.md + backend.md + data.md
+## O que já existe: `prisma/schema.prisma` na raiz (Prisma 6, `prisma-client-js`), singletons PrismaClient duplicados em comments/web, 4 módulos importando `@prisma/client` direto, scripts `db:*` no package.json raiz
+## O que criar:
+- Pacote `packages/database` (`@digimon/database`) com **Prisma 7.10.0**:
+  - `prisma.config.ts` (config nova do Prisma 7)
+  - `prisma/schema.prisma` (movido da raiz) com generator `prisma-client` (output local `src/generated/`)
+  - Datasource via **driver adapter** `@prisma/adapter-pg`
+  - `src/client.ts` — singleton PrismaClient único (usa adapter-pg)
+  - `src/index.ts` — barrel público (`@digimon/database`)
+  - `prisma/migrations/` — primeira migration versionada a partir do schema atual
+  - `prisma/seed.ts` — seed do administrator inicial
+- Refatorar **auth, users, content, comments**: trocar imports `@prisma/client` → `@digimon/database` (barrel/generated); remover dep `@prisma/client` dos package.json
+- Refatorar **apps/web**: remover singletons duplicados (`src/lib/server/prisma.ts`, `api/posts/_lib/db.ts`); usar o singleton do `@digimon/database`
+- Remover `prisma/` da raiz e os scripts `db:*` do package.json raiz (movem para o database)
+- `pnpm install` + `prisma generate` + `prisma migrate dev` (aprovação já concedida pelo usuário)
+## Especificação:
+- **Prisma 7**: generator `prisma-client` com output em `packages/database/src/generated/` (não mais `node_modules/@prisma/client`)
+- Driver adapter `@prisma/adapter-pg` — inicialização explícita do client (mudança do Prisma 7)
+- `prisma.config.ts` substitui a config antiga; migrations versionadas em `packages/database/prisma/migrations/`
+- Fronteira de módulo: nenhum módulo importa `@prisma/client`; todos importam `@digimon/database`
+- Singleton único de PrismaClient no database (sem duplicação em módulos/web)
+- Seed: cria administrator inicial (email/senha via env) + papéis padrão se necessário
+- Barrel `src/index.ts` exporta só o público
+## Critério de conclusão:
+- [ ] `@digimon/database` com Prisma 7, output local `src/generated/`, adapter-pg, `prisma.config.ts`
+- [ ] Migration inicial criada e aplicável (`prisma migrate dev` ok)
+- [ ] Zero imports `@prisma/client` fora de packages/database (grep)
+- [ ] Singletons duplicados removidos (grep por `new PrismaClient` fora do database)
+- [ ] Seed do administrator executável
+- [ ] Barrel export atualizado
+- [ ] Typecheck passando: `pnpm turbo typecheck`
+- [ ] Lint passando
+- [ ] Testes dos 4 módulos seguem passando: `pnpm turbo test`
+## Ao terminar: atualizar status.md, rodar `pnpm harness finish 08` e registrar handoff
+## Complexidade: alta
+## Baseline (git)
+- .github/workflows/ci.yml
+- .gitignore
+- AGENTS.md
+- apps/api/package.json
+- apps/api/src/cache.ts
+- apps/api/src/server.spec.ts
+- apps/api/src/server.ts
+- apps/api/tsconfig.json
+- apps/web/next.config.ts
+- apps/web/package.json
+- apps/web/src/app/globals.css
+- apps/web/src/app/layout.tsx
+- apps/web/src/app/page.tsx
+- apps/web/tsconfig.json
+- context/agents/queue/01-module-tenancy.md
+- context/agents/queue/02-module-authorization.md
+- context/agents/queue/03-module-auth.md
+- context/agents/queue/04-module-audit.md
+- context/modules/audit/context.md
+- context/modules/audit/status.md
+- context/modules/auth/context.md
+- context/modules/auth/status.md
+- context/modules/authorization/context.md
+- context/modules/authorization/status.md
+- context/modules/tenancy/context.md
+- context/modules/tenancy/status.md
+- context/project/overview.md
+- context/project/stack.md
+- package.json
+- packages/api-client/package.json
+- packages/contracts/package.json
+- packages/contracts/src/index.ts
+- pnpm-lock.yaml
+- scripts/harness/src/init.js
+- scripts/harness/src/lib/git.js
+- scripts/harness/src/lib/tasks.js
+- scripts/harness/src/module.js
+- scripts/harness/src/task.js
+- scripts/harness/templates/module/context/context.md.tpl
+- scripts/harness/templates/module/context/status.md.tpl
+- scripts/harness/templates/module/package.json.tpl
+- scripts/harness/templates/module/src/index.ts.tpl
+- scripts/harness/templates/prisma/packages/prisma/package.json
+- scripts/harness/templates/prisma/packages/prisma/src/index.ts
+- scripts/harness/templates/project/.github/workflows/ci.yml
+- scripts/harness/templates/project/apps/api/package.json
+- scripts/harness/templates/project/apps/web/package.json
+- scripts/harness/templates/project/context/agents/queue/01-module-tenancy.md
+- scripts/harness/templates/project/context/agents/queue/02-module-authorization.md
+- scripts/harness/templates/project/context/agents/queue/03-module-auth.md
+- scripts/harness/templates/project/context/agents/queue/04-module-audit.md
+- scripts/harness/templates/project/context/modules/audit/context.md
+- scripts/harness/templates/project/context/modules/audit/status.md
+- scripts/harness/templates/project/context/modules/auth/context.md
+- scripts/harness/templates/project/context/modules/auth/status.md
+- scripts/harness/templates/project/context/modules/authorization/context.md
+- scripts/harness/templates/project/context/modules/authorization/status.md
+- scripts/harness/templates/project/context/modules/tenancy/context.md
+- scripts/harness/templates/project/context/modules/tenancy/status.md
+- scripts/harness/templates/project/packages/api-client/package.json
+- scripts/harness/templates/project/packages/contracts/package.json
+- apps/web/components.json
+- apps/web/next-env.d.ts
+- apps/web/postcss.config.mjs
+- apps/web/src/app/api/auth/forgot-password/route.ts
+- apps/web/src/app/api/auth/login/route.ts
+- apps/web/src/app/api/auth/logout/route.ts
+- apps/web/src/app/api/auth/refresh/route.ts
+- apps/web/src/app/api/auth/register/route.ts
+- apps/web/src/app/api/auth/reset-password/route.ts
+- apps/web/src/app/api/comments/[id]/moderate/route.ts
+- apps/web/src/app/api/comments/[id]/route.ts
+- apps/web/src/app/api/comments/_lib/container.ts
+- apps/web/src/app/api/comments/_lib/http.ts
+- apps/web/src/app/api/comments/_lib/session.ts
+- apps/web/src/app/api/comments/route.ts
+- apps/web/src/app/api/posts/[slug]/route.ts
+- apps/web/src/app/api/posts/_lib/db.ts
+- apps/web/src/app/api/posts/_lib/handlers.ts
+- apps/web/src/app/api/posts/_lib/serialize.ts
+- apps/web/src/app/api/posts/_lib/session.ts
+- apps/web/src/app/api/posts/_lib/use-cases.ts
+- apps/web/src/app/api/posts/admin/[id]/archive/route.ts
+- apps/web/src/app/api/posts/admin/[id]/publish/route.ts
+- apps/web/src/app/api/posts/admin/[id]/route.ts
+- apps/web/src/app/api/posts/admin/[id]/submit/route.ts
+- apps/web/src/app/api/posts/admin/route.ts
+- apps/web/src/app/api/posts/route.ts
+- apps/web/src/app/api/users/[id]/role/route.ts
+- apps/web/src/app/api/users/[id]/status/route.ts
+- apps/web/src/app/api/users/me/route.ts
+- apps/web/src/app/api/users/route.ts
+- apps/web/src/features/auth/model/auth-api.ts
+- apps/web/src/features/auth/model/types.ts
+- apps/web/src/features/auth/viewmodel/use-forgot-password-view-model.ts
+- apps/web/src/features/auth/viewmodel/use-login-view-model.ts
+- apps/web/src/features/auth/viewmodel/use-register-view-model.ts
+- apps/web/src/features/auth/viewmodel/use-reset-password-view-model.ts
+- apps/web/src/features/auth/views/forgot-password-view.tsx
+- apps/web/src/features/auth/views/login-view.tsx
+- apps/web/src/features/auth/views/register-view.tsx
+- apps/web/src/features/auth/views/reset-password-view.tsx
+- apps/web/src/features/cards/.gitkeep
+- apps/web/src/features/comments/model/comments-api.ts
+- apps/web/src/features/comments/viewmodels/use-comments.ts
+- apps/web/src/features/comments/views/comment-form.tsx
+- apps/web/src/features/comments/views/comment-item.tsx
+- apps/web/src/features/comments/views/comment-section.tsx
+- apps/web/src/features/content/.gitkeep
+- apps/web/src/features/content/model/api.ts
+- apps/web/src/features/content/model/types.ts
+- apps/web/src/features/content/viewmodels/use-create-post.ts
+- apps/web/src/features/content/viewmodels/use-post-actions.ts
+- apps/web/src/features/content/viewmodels/use-post-form.ts
+- apps/web/src/features/content/viewmodels/use-post-list.ts
+- apps/web/src/features/content/viewmodels/use-post.ts
+- apps/web/src/features/content/viewmodels/use-update-post.ts
+- apps/web/src/features/content/views/admin/post-form.tsx
+- apps/web/src/features/content/views/post-card.tsx
+- apps/web/src/features/content/views/post-detail.tsx
+- apps/web/src/features/content/views/post-list.tsx
+- apps/web/src/features/decks/.gitkeep
+- apps/web/src/features/tournaments/.gitkeep
+- apps/web/src/features/users/model/types.ts
+- apps/web/src/features/users/model/users-api.ts
+- apps/web/src/features/users/viewmodel/use-admin-users-view-model.ts
+- apps/web/src/features/users/viewmodel/use-profile-view-model.ts
+- apps/web/src/features/users/views/admin-users-view.tsx
+- apps/web/src/features/users/views/profile-view.tsx
+- apps/web/src/lib/server/container.ts
+- apps/web/src/lib/server/http.ts
+- apps/web/src/lib/server/prisma.ts
+- apps/web/src/lib/server/user-account-adapter.ts
+- apps/web/src/lib/utils.ts
+- context/agents/_archived/01-module-tenancy.md
+- context/agents/_archived/02-module-authorization.md
+- context/agents/_archived/03-module-auth.md
+- context/agents/_archived/04-module-audit.md
+- context/agents/done/01-monorepo-contracts.md
+- context/agents/done/02-module-auth-users.md
+- context/agents/done/03-module-content.md
+- context/agents/done/04-module-comments.md
+- context/agents/queue/05-module-cards.md
+- context/agents/queue/06-module-decks.md
+- context/agents/queue/07-module-tournaments.md
+- context/agents/queue/08-module-database.md
+- context/modules/_archived/audit/context.md
+- context/modules/_archived/audit/status.md
+- context/modules/_archived/auth/context.md
+- context/modules/_archived/auth/status.md
+- context/modules/_archived/authorization/context.md
+- context/modules/_archived/authorization/status.md
+- context/modules/_archived/tenancy/context.md
+- context/modules/_archived/tenancy/status.md
+- context/modules/cards/context.md
+- context/modules/cards/status.md
+- context/modules/comments/context.md
+- context/modules/comments/status.md
+- context/modules/content/context.md
+- context/modules/content/status.md
+- context/modules/contracts/context.md
+- context/modules/contracts/status.md
+- context/modules/database/context.md
+- context/modules/database/status.md
+- context/modules/decks/context.md
+- context/modules/decks/status.md
+- context/modules/tournaments/context.md
+- context/modules/tournaments/status.md
+- context/modules/users/context.md
+- context/modules/users/status.md
+- context/project/adr/ADR-001-portal-unico-nextjs.md
+- context/project/adr/ADR-002-auth-propria-jwt.md
+- context/project/adr/ADR-003-busca-fulltext-postgres.md
+- context/project/adr/ADR-004-sem-multitenancy-papeis-globais.md
+- context/project/adr/ADR-005-sem-redis-v1.md
+- context/project/domain-model.md
+- packages/contracts/src/errors.ts
+- packages/contracts/src/events.ts
+- packages/contracts/src/types.ts
+- packages/modules/auth/package.json
+- packages/modules/auth/src/domain/constants.ts
+- packages/modules/auth/src/domain/entities/password-reset-token.ts
+- packages/modules/auth/src/domain/entities/refresh-token.ts
+- packages/modules/auth/src/domain/events/auth-events.ts
+- packages/modules/auth/src/domain/repositories/password-reset-token-repository.ts
+- packages/modules/auth/src/domain/repositories/refresh-token-repository.ts
+- packages/modules/auth/src/domain/repositories/user-account-repository.ts
+- packages/modules/auth/src/domain/services/password-hasher.ts
+- packages/modules/auth/src/domain/services/token-service.ts
+- packages/modules/auth/src/index.ts
+- packages/modules/auth/src/infra/http/rate-limit.spec.ts
+- packages/modules/auth/src/infra/http/rate-limit.ts
+- packages/modules/auth/src/infra/http/verify-jwt.spec.ts
+- packages/modules/auth/src/infra/http/verify-jwt.ts
+- packages/modules/auth/src/infra/repositories/prisma-password-reset-token-repository.ts
+- packages/modules/auth/src/infra/repositories/prisma-refresh-token-repository.ts
+- packages/modules/auth/src/infra/services/jwt-token-service.ts
+- packages/modules/auth/src/infra/services/scrypt-password-hasher.ts
+- packages/modules/auth/src/testing/fakes.ts
+- packages/modules/auth/src/use-cases/forgot-password/forgot-password-use-case.ts
+- packages/modules/auth/src/use-cases/login/login-use-case.spec.ts
+- packages/modules/auth/src/use-cases/login/login-use-case.ts
+- packages/modules/auth/src/use-cases/logout/logout-use-case.ts
+- packages/modules/auth/src/use-cases/parse-or-throw.ts
+- packages/modules/auth/src/use-cases/refresh-token/refresh-token-use-case.spec.ts
+- packages/modules/auth/src/use-cases/refresh-token/refresh-token-use-case.ts
+- packages/modules/auth/src/use-cases/register/register-use-case.spec.ts
+- packages/modules/auth/src/use-cases/register/register-use-case.ts
+- packages/modules/auth/src/use-cases/reset-password/reset-password-use-case.spec.ts
+- packages/modules/auth/src/use-cases/reset-password/reset-password-use-case.ts
+- packages/modules/auth/src/use-cases/schemas.ts
+- packages/modules/auth/src/use-cases/user-view.ts
+- packages/modules/auth/tsconfig.json
+- packages/modules/auth/vitest.config.ts
+- packages/modules/comments/package.json
+- packages/modules/comments/src/domain/actor.ts
+- packages/modules/comments/src/domain/entities/comment.ts
+- packages/modules/comments/src/domain/events/comment-events.ts
+- packages/modules/comments/src/domain/repositories/comment-repository.ts
+- packages/modules/comments/src/index.ts
+- packages/modules/comments/src/infra/prisma.ts
+- packages/modules/comments/src/infra/repositories/prisma-comment-repository.ts
+- packages/modules/comments/src/test/memory-comment-repository.ts
+- packages/modules/comments/src/use-cases/create-comment/create-comment.spec.ts
+- packages/modules/comments/src/use-cases/create-comment/create-comment.ts
+- packages/modules/comments/src/use-cases/delete-comment/delete-comment.spec.ts
+- packages/modules/comments/src/use-cases/delete-comment/delete-comment.ts
+- packages/modules/comments/src/use-cases/list-comments/list-comments.spec.ts
+- packages/modules/comments/src/use-cases/list-comments/list-comments.ts
+- packages/modules/comments/src/use-cases/moderate-comment/moderate-comment.spec.ts
+- packages/modules/comments/src/use-cases/moderate-comment/moderate-comment.ts
+- packages/modules/comments/src/use-cases/update-comment/update-comment.spec.ts
+- packages/modules/comments/src/use-cases/update-comment/update-comment.ts
+- packages/modules/comments/tsconfig.json
+- packages/modules/content/package.json
+- packages/modules/content/src/domain/actor.ts
+- packages/modules/content/src/domain/entities/category.ts
+- packages/modules/content/src/domain/entities/post.ts
+- packages/modules/content/src/domain/events/post-events.ts
+- packages/modules/content/src/domain/repositories/category-repository.ts
+- packages/modules/content/src/domain/repositories/post-repository.ts
+- packages/modules/content/src/index.ts
+- packages/modules/content/src/infra/repositories/prisma-category-repository.ts
+- packages/modules/content/src/infra/repositories/prisma-post-repository.ts
+- packages/modules/content/src/use-cases/archive-post.ts
+- packages/modules/content/src/use-cases/create-post.ts
+- packages/modules/content/src/use-cases/get-post.ts
+- packages/modules/content/src/use-cases/get-simulators-page.ts
+- packages/modules/content/src/use-cases/list-posts.ts
+- packages/modules/content/src/use-cases/post-reading.spec.ts
+- packages/modules/content/src/use-cases/post-workflow.spec.ts
+- packages/modules/content/src/use-cases/publish-post.ts
+- packages/modules/content/src/use-cases/schemas.ts
+- packages/modules/content/src/use-cases/submit-for-review.ts
+- packages/modules/content/src/use-cases/update-post.ts
+- packages/modules/content/tsconfig.json
+- packages/modules/content/vitest.config.ts
+- packages/modules/users/package.json
+- packages/modules/users/src/domain/entities/user.ts
+- packages/modules/users/src/domain/events/user-events.ts
+- packages/modules/users/src/domain/repositories/user-repository.ts
+- packages/modules/users/src/index.ts
+- packages/modules/users/src/infra/repositories/prisma-user-repository.ts
+- packages/modules/users/src/testing/fakes.ts
+- packages/modules/users/src/use-cases/activate-user/activate-user-use-case.ts
+- packages/modules/users/src/use-cases/assign-role/assign-role-use-case.spec.ts
+- packages/modules/users/src/use-cases/assign-role/assign-role-use-case.ts
+- packages/modules/users/src/use-cases/deactivate-user/deactivate-user-use-case.ts
+- packages/modules/users/src/use-cases/get-profile/get-profile-use-case.ts
+- packages/modules/users/src/use-cases/list-users/list-users-use-case.ts
+- packages/modules/users/src/use-cases/parse-or-throw.ts
+- packages/modules/users/src/use-cases/schemas.ts
+- packages/modules/users/src/use-cases/update-profile/update-profile-use-case.ts
+- packages/modules/users/src/use-cases/user-view.ts
+- packages/modules/users/tsconfig.json
+- packages/modules/users/vitest.config.ts
+- prisma/schema.prisma

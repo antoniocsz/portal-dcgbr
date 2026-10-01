@@ -1,0 +1,159 @@
+# Task: Módulo auth + users (autenticação e papéis — @digimon/auth + @digimon/users)
+## Agente: `agente-backend`
+## Módulo: `packages/modules/auth` + `packages/modules/users` (escopo `@digimon`)
+## Escopo (arquivos que esta task vai tocar):
+- `packages/modules/auth/**`
+- `packages/modules/users/**`
+- `context/modules/auth/context.md`
+- `context/modules/auth/status.md`
+- `context/modules/users/context.md`
+- `context/modules/users/status.md`
+- `apps/web/src/app/api/auth/**` + `apps/web/src/app/api/users/**` (route handlers)
+- `apps/web/src/features/auth/**` + `apps/web/src/features/users/**` (UI/MVVM)
+## Depende de: [ ] `01-monorepo-contracts.md`
+## Contexto para ler: context/modules/auth/context.md, context/modules/users/context.md, context/project/domain-model.md
+## Skills a carregar: codegen.md + backend.md + security.md + authorization.md
+## O que já existe: definição dos módulos em context/modules/ (sem código)
+## O que criar:
+- Entidade User (id, email, name, avatarUrl, passwordHash, role: administrator|editor|member, emailVerifiedAt, status)
+- Interfaces IUserRepository, IRefreshTokenRepository, IPasswordResetTokenRepository
+- Use cases auth: Register, Login, RefreshToken (rotation), Logout, ForgotPassword, ResetPassword
+- Use cases users: GetProfile, UpdateProfile, AssignRole, ListUsers, ActivateUser, DeactivateUser
+- `IPasswordHasher` (bcrypt/argon2) + JWT próprio (access curto + refresh 7d rotation)
+- Middleware verify-jwt (injeta userId + role)
+- Route handlers Next.js (apps/web): /api/auth/register|login|refresh|logout|forgot-password|reset-password, /api/users/*
+## Especificação:
+- Senha nunca em claro — hash via IPasswordHasher no Register
+- Refresh token com rotation e revogação (token antigo rejeitado)
+- Rate limit em register (5 req/15min)
+- Token de reset single-use (TTL 15min); reset revoga refresh tokens do usuário
+- Papel padrão no registro: member
+- `user.created`/`user.updated`/`password.reset`/`role.assigned` via EventBus
+- Somente administrator gerencia papéis (AssignRole)
+- Barrel export só público
+## Critério de conclusão:
+- [ ] Teste: refresh rotation (token antigo rejeitado)
+- [ ] Teste: reset com token expirado/reutilizado rejeitado
+- [ ] Teste: register com senha fraca rejeitado (Zod)
+- [ ] Teste: somente administrator atribui papel
+- [ ] verify-jwt nas rotas protegidas
+- [ ] Barrel export atualizado
+- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@digimon/auth`
+- [ ] Lint passando
+## Ao terminar: atualizar status.md, rodar `pnpm harness finish 02` e registrar handoff
+## Complexidade: alta
+## Baseline (git)
+- .github/workflows/ci.yml
+- .gitignore
+- AGENTS.md
+- apps/api/package.json
+- apps/api/src/cache.ts
+- apps/api/src/server.spec.ts
+- apps/api/src/server.ts
+- apps/api/tsconfig.json
+- apps/web/package.json
+- apps/web/src/app/globals.css
+- apps/web/src/app/layout.tsx
+- apps/web/src/app/page.tsx
+- apps/web/tsconfig.json
+- context/agents/queue/01-module-tenancy.md
+- context/agents/queue/02-module-authorization.md
+- context/agents/queue/03-module-auth.md
+- context/agents/queue/04-module-audit.md
+- context/modules/audit/context.md
+- context/modules/audit/status.md
+- context/modules/auth/context.md
+- context/modules/auth/status.md
+- context/modules/authorization/context.md
+- context/modules/authorization/status.md
+- context/modules/tenancy/context.md
+- context/modules/tenancy/status.md
+- context/project/overview.md
+- context/project/stack.md
+- package.json
+- packages/api-client/package.json
+- packages/contracts/package.json
+- packages/contracts/src/index.ts
+- pnpm-lock.yaml
+- scripts/harness/src/init.js
+- scripts/harness/src/lib/git.js
+- scripts/harness/src/lib/tasks.js
+- scripts/harness/src/module.js
+- scripts/harness/src/task.js
+- scripts/harness/templates/module/context/context.md.tpl
+- scripts/harness/templates/module/context/status.md.tpl
+- scripts/harness/templates/module/package.json.tpl
+- scripts/harness/templates/module/src/index.ts.tpl
+- scripts/harness/templates/prisma/packages/prisma/package.json
+- scripts/harness/templates/prisma/packages/prisma/src/index.ts
+- scripts/harness/templates/project/.github/workflows/ci.yml
+- scripts/harness/templates/project/apps/api/package.json
+- scripts/harness/templates/project/apps/web/package.json
+- scripts/harness/templates/project/context/agents/queue/01-module-tenancy.md
+- scripts/harness/templates/project/context/agents/queue/02-module-authorization.md
+- scripts/harness/templates/project/context/agents/queue/03-module-auth.md
+- scripts/harness/templates/project/context/agents/queue/04-module-audit.md
+- scripts/harness/templates/project/context/modules/audit/context.md
+- scripts/harness/templates/project/context/modules/audit/status.md
+- scripts/harness/templates/project/context/modules/auth/context.md
+- scripts/harness/templates/project/context/modules/auth/status.md
+- scripts/harness/templates/project/context/modules/authorization/context.md
+- scripts/harness/templates/project/context/modules/authorization/status.md
+- scripts/harness/templates/project/context/modules/tenancy/context.md
+- scripts/harness/templates/project/context/modules/tenancy/status.md
+- scripts/harness/templates/project/packages/api-client/package.json
+- scripts/harness/templates/project/packages/contracts/package.json
+- apps/web/components.json
+- apps/web/next-env.d.ts
+- apps/web/postcss.config.mjs
+- apps/web/src/features/auth/.gitkeep
+- apps/web/src/features/cards/.gitkeep
+- apps/web/src/features/comments/.gitkeep
+- apps/web/src/features/content/.gitkeep
+- apps/web/src/features/decks/.gitkeep
+- apps/web/src/features/tournaments/.gitkeep
+- apps/web/src/features/users/.gitkeep
+- apps/web/src/lib/utils.ts
+- context/agents/_archived/01-module-tenancy.md
+- context/agents/_archived/02-module-authorization.md
+- context/agents/_archived/03-module-auth.md
+- context/agents/_archived/04-module-audit.md
+- context/agents/done/01-monorepo-contracts.md
+- context/agents/queue/02-module-auth-users.md
+- context/agents/queue/03-module-content.md
+- context/agents/queue/04-module-comments.md
+- context/agents/queue/05-module-cards.md
+- context/agents/queue/06-module-decks.md
+- context/agents/queue/07-module-tournaments.md
+- context/modules/_archived/audit/context.md
+- context/modules/_archived/audit/status.md
+- context/modules/_archived/auth/context.md
+- context/modules/_archived/auth/status.md
+- context/modules/_archived/authorization/context.md
+- context/modules/_archived/authorization/status.md
+- context/modules/_archived/tenancy/context.md
+- context/modules/_archived/tenancy/status.md
+- context/modules/cards/context.md
+- context/modules/cards/status.md
+- context/modules/comments/context.md
+- context/modules/comments/status.md
+- context/modules/content/context.md
+- context/modules/content/status.md
+- context/modules/contracts/context.md
+- context/modules/contracts/status.md
+- context/modules/decks/context.md
+- context/modules/decks/status.md
+- context/modules/tournaments/context.md
+- context/modules/tournaments/status.md
+- context/modules/users/context.md
+- context/modules/users/status.md
+- context/project/adr/ADR-001-portal-unico-nextjs.md
+- context/project/adr/ADR-002-auth-propria-jwt.md
+- context/project/adr/ADR-003-busca-fulltext-postgres.md
+- context/project/adr/ADR-004-sem-multitenancy-papeis-globais.md
+- context/project/adr/ADR-005-sem-redis-v1.md
+- context/project/domain-model.md
+- packages/contracts/src/errors.ts
+- packages/contracts/src/events.ts
+- packages/contracts/src/types.ts
+- prisma/schema.prisma

@@ -1,22 +1,20 @@
-# @saas/auth — Contexto do Módulo
+# @digimon/auth — Contexto do Módulo
 
 ## Responsabilidade
-Cadastro, autenticação e gestão de perfil de usuários.
+Autenticação própria (JWT): registro e login de usuários, refresh com rotation, recuperação de senha e sessão. Member é gratuito — sem planos/pagamento.
 
 ## Entidades
-- **User** — id, email, passwordHash, name, avatarUrl
+- **Session/RefreshToken** — id, userId, tokenHash, expiresAt, revokedAt
+- **PasswordResetToken** — id, userId, tokenHash, expiresAt, usedAt (single-use)
 
 ## Use Cases
-- `RegisterUseCase` — criar conta, gera token de verificação, publica `user.created`
-- `LoginUseCase` — validar credenciais
-- `RefreshTokenUseCase` — validar refresh token (rotation)
-- `GetProfileUseCase` — obter dados do perfil
-- `UpdateProfileUseCase` — atualizar nome/avatar, publica `user.updated`
-- `VerifyEmailUseCase` — verificar email com token
-- `SendVerificationEmailUseCase` — enviar email de verificação
-- `ResendVerificationEmailUseCase` — reenviar email de verificação (com rate limit)
-- `ForgotPasswordUseCase` — gera token de reset (TTL 15min, single-use) e publica `password.reset.requested`
-- `ResetPasswordUseCase` — valida token de reset, atualiza o hash e publica `password.reset`
+- `RegisterUseCase` — cria conta (Member por padrão), valida senha forte (Zod)
+- `LoginUseCase` — valida credenciais, emite access + refresh
+- `RefreshTokenUseCase` — rotation (token antigo rejeitado) e revogação
+- `LogoutUseCase` — revoga refresh
+- `ForgotPasswordUseCase` — gera token de reset (TTL 15min, single-use)
+- `ResetPasswordUseCase` — valida token, troca hash, revoga refresh tokens
+- `VerifyJwtMiddleware` — valida access token e injeta `userId` + `role` no request
 
 ## Eventos que Publica
 - `user.created`, `user.updated`, `password.reset.requested`, `password.reset`
@@ -25,17 +23,17 @@ Cadastro, autenticação e gestão de perfil de usuários.
 - Nenhum (módulo base)
 
 ## Dependências
-- `@saas/contracts` (tipos, erros, eventos, EventBus)
-- `@fastify/jwt` (access 15min) + refresh token (7d, rotation, revogação)
+- `@digimon/contracts` (tipos, erros, eventos, EventBus)
+- JWT próprio (access curto + refresh com rotation) — ver ADR
 - `IPasswordHasher` (bcrypt/argon2)
 
 ## Repositórios
-- `IUserRepository` — interface para persistência de usuários
-- `IPasswordResetTokenRepository` — interface para tokens de reset (single-use)
+- `IRefreshTokenRepository`
+- `IPasswordResetTokenRepository`
 
 ## Regras
 - Senha nunca em claro — hash via `IPasswordHasher`
 - Rate limit em `register` (5 req/15min)
-- Email verificado antes de operações sensíveis (configurável)
-- Token de reset é single-use com TTL 15min — expirado ou reutilizado é rejeitado
-- Após o reset, todos os refresh tokens do usuário são revogados
+- Token de reset single-use com TTL 15min; expirado/reutilizado rejeitado
+- Após reset, todos os refresh tokens do usuário são revogados
+- Papel padrão no registro: **Member**
