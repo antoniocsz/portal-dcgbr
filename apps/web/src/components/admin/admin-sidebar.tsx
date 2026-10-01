@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { Layers } from '../icons'
 import { Avatar } from '../ui/avatar'
+import { LogoutButton } from './logout-button'
 
 export type AdminNavItem = {
   href: string
@@ -56,12 +57,15 @@ export function AdminSidebar({ items, activeHref, user, className }: AdminSideba
         })}
       </nav>
 
-      <div className="mt-auto flex items-center gap-2.5 pt-3">
-        <Avatar name={user.name} tone="solid" />
-        <div className="flex flex-col">
-          <span className="text-[13px] font-bold text-ink">{user.name}</span>
-          <span className="text-[11px] text-ink-faint">{user.role}</span>
+      <div className="mt-auto flex flex-col gap-1 border-t border-border pt-3">
+        <div className="flex items-center gap-2.5 px-3 py-2">
+          <Avatar name={user.name} tone="solid" />
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[13px] font-bold text-ink">{user.name}</span>
+            <span className="text-[11px] text-ink-faint">{user.role}</span>
+          </div>
         </div>
+        <LogoutButton />
       </div>
     </aside>
   )

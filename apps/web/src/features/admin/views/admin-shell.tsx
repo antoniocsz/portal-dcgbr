@@ -18,6 +18,7 @@ import {
   Users
 } from '@/components'
 import type { AdminNavItem } from '@/components'
+import { LogoutButton } from '@/components/admin/logout-button'
 import type { Role } from '@digimon/contracts'
 
 const NAV_ITEMS: AdminNavItem[] = [
@@ -47,7 +48,10 @@ export function AdminShell({ user, isAdmin, children }: AdminShellProps) {
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-border bg-surface px-4 lg:hidden">
           <span className="font-display text-lg font-bold text-ink">Painel</span>
-          <Avatar name={user.name} tone="solid" />
+          <div className="flex items-center gap-2">
+            <Avatar name={user.name} tone="solid" />
+            <LogoutButton variant="icon" />
+          </div>
         </header>
 
         <AdminNav items={items} activeHref={pathname} />

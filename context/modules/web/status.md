@@ -155,3 +155,13 @@
 - [x] Typecheck + lint + build ok (42 páginas estáticas mantidas — sessão lida client-side)
 
 ## Handoff
+
+## Fase 12 — Logout no painel admin (task 25)
+- [x] `LogoutButton` (client): POST /api/auth/logout → redirect /login + router.refresh
+- [x] Sidebar desktop: item "Sair" no rodapé (abaixo do usuário, com divisor)
+- [x] Header mobile: ícone de logout (aria-label "Sair do painel")
+- [x] Typecheck + lint + build ok
+
+## Handoff (task 25)
+- **Feito:** painel admin com logout visível em desktop e mobile.
+- **Decisões:** redireciona para /login (contexto de painel) em vez de /; reusa a rota de logout existente.
