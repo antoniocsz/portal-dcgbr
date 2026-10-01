@@ -24,9 +24,12 @@ Imagem Docker multi-stage em `apps/web/Dockerfile`, baseada no padrão
    (sem node_modules completo), `node apps/web/server.js` com
    `HOSTNAME=0.0.0.0`.
 
-Env de runtime no painel: `DATABASE_URL`, `JWT_SECRET`, `PORT`. Migrations
-aplicadas fora da imagem (`pnpm --filter @digimon/database db:deploy` —
-pre-deploy/manual), mantendo a imagem imutável.
+Env de runtime no painel: `DATABASE_URL`, `JWT_SECRET`, `PORT` (default 3000;
+configurável via ARG `--build-arg PORT=xxxx` no build ou sobrescrito por env
+runtime — o `server.js` do standalone lê `process.env.PORT` ao subir, sem
+rebuild). Migrations aplicadas fora da imagem
+(`pnpm --filter @digimon/database db:deploy` — pre-deploy/manual), mantendo a
+imagem imutável.
 
 ## Consequências positivas
 

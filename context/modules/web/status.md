@@ -185,3 +185,11 @@
 ## Handoff (task 27)
 - **Feito:** imagem Docker pronta para Coolify. Prisma 7 com driver adapter (sem engine binário); client commitado (sem generate no build); páginas públicas estáticas (build sem banco); env runtime: DATABASE_URL, JWT_SECRET, PORT.
 - **Decisões:** migrations fora da imagem (db:deploy no pre-deploy/manual); sem NEXT_PUBLIC_* (Route Handlers same-origin); Alpine com allowBuilds para sharp/esbuild/prisma.
+
+## Fase 15 — Porta configurável (task 28)
+- [x] Dockerfile: `ARG PORT=3000` → `ENV PORT=$PORT` + `EXPOSE $PORT` no runtime stage
+- [x] Validação: `--build-arg PORT=8080` → imagem expõe 8080/tcp; runtime `PORT=3000` sobrescreve (container escutou em 3000, HTTP 200)
+- [x] ADR-006 atualizado (porta via ARG/ENV, sem rebuild)
+
+## Handoff (task 28)
+- **Feito:** porta configurável no build (ARG) e no runtime (env Coolify). O server.js do standalone já lia process.env.PORT — agora o Dockerfile permite o default e o EXPOSE acompanharem o ARG.

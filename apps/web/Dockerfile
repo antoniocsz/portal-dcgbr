@@ -59,9 +59,14 @@ RUN pnpm turbo build --filter=@digimon/app-web
 
 # ---------- Estágio 3: runtime -----------------------------------------------
 FROM node:22-alpine AS runtime
+# Porta do server standalone. Configurável:
+#   - build:  --build-arg PORT=8080   (muda EXPOSE e o default do ENV)
+#   - runtime: env PORT no Coolify     (sobrescreve sem rebuild — o server.js
+#                                       lê process.env.PORT ao subir)
+ARG PORT=3000
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
+    PORT=$PORT \
     HOSTNAME=0.0.0.0
 WORKDIR /app
 
@@ -71,6 +76,6 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build /app/apps/web/public ./apps/web/public
 
-EXPOSE 3000
+EXPOSE $PORT
 
 CMD ["node", "apps/web/server.js"]
