@@ -1,7 +1,7 @@
 # 26 — Reescrever README focado no projeto
 
 ## Agente: `agente-frontend`
-## Módulo: `README.md` (projeto)
+## Módulo: `web`
 
 ## Descrição
 O README atual é o template genérico do harness: fala mais do harness do que

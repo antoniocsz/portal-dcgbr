@@ -165,3 +165,12 @@
 ## Handoff (task 25)
 - **Feito:** painel admin com logout visível em desktop e mobile.
 - **Decisões:** redireciona para /login (contexto de painel) em vez de /; reusa a rota de logout existente.
+
+## Fase 13 — README do projeto (task 26)
+- [x] README reescrito focado no produto: visão, funcionalidades, papéis, stack real, estrutura do monorepo, como rodar local, scripts e docs
+- [x] Removida referência a stack antiga (Fastify/Redis/TanStack Query)
+- [x] `.env.example` criados (raiz e apps/web) referenciados pelo README
+
+## Handoff (task 26)
+- **Feito:** README orientado ao projeto; instruções de execução reais e validáveis; caminhos de contexto corrigidos (context/project/*).
+- **Decisões:** documentação do produto em primeiro plano; harness vira seção secundária; .env.example documentam DATABASE_URL/SHADOW_DATABASE_URL (raiz) e JWT_SECRET/DATABASE_URL (apps/web — Next.js não lê .env da raiz).
