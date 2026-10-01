@@ -59,8 +59,9 @@ export function parseTask(filePath) {
 }
 
 export function pathsOverlap(a, b) {
-  const x = norm(a)
-  const y = norm(b)
+  const strip = (p) => (p.endsWith('/**') ? p.slice(0, -3) : p)
+  const x = strip(norm(a))
+  const y = strip(norm(b))
   return x === y || x.startsWith(y + '/') || y.startsWith(x + '/')
 }
 

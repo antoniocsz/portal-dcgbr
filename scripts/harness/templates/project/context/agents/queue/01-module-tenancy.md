@@ -1,4 +1,4 @@
-# Task: Módulo tenancy (fundação @saas/tenancy)
+# Task: Módulo tenancy (fundação @digimon/tenancy)
 ## Agente: `agente-backend`
 ## Módulo: `packages/modules/tenancy`
 ## Escopo (arquivos que esta task vai tocar):
@@ -26,7 +26,7 @@
 - [ ] Use cases completos com DIP (interfaces)
 - [ ] Teste de integração: "tenant A não vê dado de tenant B"
 - [ ] Barrel export atualizado
-- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@saas/tenancy`
+- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@digimon/tenancy`
 - [ ] Lint passando
 ## Ao terminar: atualizar status.md, rodar `pnpm harness finish 01` e registrar handoff
 ## Complexidade: alta

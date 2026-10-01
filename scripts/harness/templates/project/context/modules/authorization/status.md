@@ -1,4 +1,4 @@
-# @saas/authorization — Status
+# @digimon/authorization — Status
 
 ## Fase 1 — Fundação
 - [ ] Domain entities (Role, Module, Permission, RolePermission)

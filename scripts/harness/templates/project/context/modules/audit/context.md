@@ -1,4 +1,4 @@
-# @saas/audit — Contexto do Módulo
+# @digimon/audit — Contexto do Módulo
 
 ## Responsabilidade
 Trilha de auditoria de ações críticas no sistema. Cumpre obrigação legal de retenção (LGPD — 5 anos) e alimenta investigações e conformidade.
@@ -18,7 +18,7 @@ Trilha de auditoria de ações críticas no sistema. Cumpre obrigação legal de
 - Eventos críticos via EventBus (ex: `user.updated`, `password.reset`, `membership.changed`, `role.created`, `role.updated`, `role.assigned`) → grava AuditLog de forma desacoplada
 
 ## Dependências
-- `@saas/contracts` (tipos, erros, eventos, EventBus)
+- `@digimon/contracts` (tipos, erros, eventos, EventBus)
 
 ## Repositórios
 - `IAuditLogRepository` — interface para persistência (append-only; sem update/delete)

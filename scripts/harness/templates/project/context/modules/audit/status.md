@@ -1,4 +1,4 @@
-# @saas/audit — Status
+# @digimon/audit — Status
 
 ## Fase 1 — Fundação
 - [ ] Domain entity (AuditLog — append-only)

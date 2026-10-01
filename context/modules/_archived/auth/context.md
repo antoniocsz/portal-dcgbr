@@ -1,4 +1,4 @@
-# @digimon/auth — Contexto do Módulo
+# @saas/auth — Contexto do Módulo
 
 ## Responsabilidade
 Cadastro, autenticação e gestão de perfil de usuários.
@@ -25,7 +25,7 @@ Cadastro, autenticação e gestão de perfil de usuários.
 - Nenhum (módulo base)
 
 ## Dependências
-- `@digimon/contracts` (tipos, erros, eventos, EventBus)
+- `@saas/contracts` (tipos, erros, eventos, EventBus)
 - `@fastify/jwt` (access 15min) + refresh token (7d, rotation, revogação)
 - `IPasswordHasher` (bcrypt/argon2)
 

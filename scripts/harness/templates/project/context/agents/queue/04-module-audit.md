@@ -1,4 +1,4 @@
-# Task: Módulo audit (trilha de auditoria — @saas/audit)
+# Task: Módulo audit (trilha de auditoria — @digimon/audit)
 ## Agente: `agente-backend`
 ## Módulo: `packages/modules/audit`
 ## Escopo (arquivos que esta task vai tocar):
@@ -28,7 +28,7 @@
 - [ ] Teste de integração: "tenant A não vê audit de tenant B"
 - [ ] Teste: append-only (update/delete rejeitados)
 - [ ] Barrel export atualizado
-- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@saas/audit`
+- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@digimon/audit`
 - [ ] Lint passando
 ## Ao terminar: atualizar status.md, rodar `pnpm harness finish 04` e registrar handoff
 ## Complexidade: média

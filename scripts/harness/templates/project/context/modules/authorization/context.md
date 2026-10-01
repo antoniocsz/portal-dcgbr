@@ -1,4 +1,4 @@
-# @saas/authorization — Contexto do Módulo
+# @digimon/authorization — Contexto do Módulo
 
 ## Responsabilidade
 Autorização RBAC + ABAC: papéis (roles), permissões (permissions) por módulo (resource), construção de abilities (CASL) por usuário+tenant e validação de acesso em controllers/use cases. Fronteira final de segurança — o backend sempre revalida, o frontend só esconde UI.
@@ -23,11 +23,11 @@ Autorização RBAC + ABAC: papéis (roles), permissões (permissions) por módul
 - `role.created`, `role.updated`, `role.assigned`, `role.removed`, `permission.changed`
 
 ## Eventos que Consome
-- `membership.changed` (@saas/tenancy) — invalida cache de abilities do usuário
-- `user.created` (@saas/auth) — aplica papel padrão do tenant (ex: client-user)
+- `membership.changed` (@digimon/tenancy) — invalida cache de abilities do usuário
+- `user.created` (@digimon/auth) — aplica papel padrão do tenant (ex: client-user)
 
 ## Dependências
-- `@saas/contracts` (tipos, erros, eventos, EventBus)
+- `@digimon/contracts` (tipos, erros, eventos, EventBus)
 - `@casl/ability` (ability building) — serialização via `rulesFor`
 
 ## Repositórios

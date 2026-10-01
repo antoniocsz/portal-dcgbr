@@ -1,4 +1,4 @@
-# @saas/tenancy — Contexto do Módulo
+# @digimon/tenancy — Contexto do Módulo
 
 ## Responsabilidade
 Resolução e contexto de tenancy: identificar o tenant ativo de cada request, fornecer o `tenantId` a toda query tenant-scoped e servir a base para o cache de abilities (RBAC/ABAC).
@@ -23,10 +23,10 @@ Platform (você)
 - `tenant.created`, `membership.changed` (added/removed/role)
 
 ## Eventos que Consome
-- `user.created` (@saas/auth) — para rastrear vínculo quando aplicável
+- `user.created` (@digimon/auth) — para rastrear vínculo quando aplicável
 
 ## Dependências
-- `@saas/contracts` (tipos, erros, eventos, EventBus)
+- `@digimon/contracts` (tipos, erros, eventos, EventBus)
 
 ## Repositórios
 - `ITenantRepository` — interface para persistência de tenants

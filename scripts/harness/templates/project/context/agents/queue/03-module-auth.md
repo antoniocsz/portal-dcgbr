@@ -1,4 +1,4 @@
-# Task: Módulo auth (autenticação — @saas/auth)
+# Task: Módulo auth (autenticação — @digimon/auth)
 ## Agente: `agente-backend`
 ## Módulo: `packages/modules/auth`
 ## Escopo (arquivos que esta task vai tocar):
@@ -32,7 +32,7 @@
 - [ ] Teste: register com senha fraca rejeitado (Zod)
 - [ ] verify-jwt nas rotas protegidas
 - [ ] Barrel export atualizado
-- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@saas/auth`
+- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@digimon/auth`
 - [ ] Lint passando
 ## Ao terminar: atualizar status.md, rodar `pnpm harness finish 03` e registrar handoff
 ## Complexidade: alta

@@ -32,7 +32,7 @@ export async function task(args) {
   const complexity = flag(['--complexity']) ?? 'baixa'
   const scopeRaw = flag(['--scope']) ?? ''
 
-  const moduleName = module.match(/modules\/([a-z0-9-]+)/)?.[1] ?? module.replace(/^@saas\//, '')
+  const moduleName = module.match(/modules\/([a-z0-9-]+)/)?.[1] ?? module.replace(/^@digimon\//, '')
   const displayModule = module || (moduleName ? `packages/modules/${moduleName}` : 'packages/modules/<modulo>')
   const ref = AGENT_REF[agent.toLowerCase()] ?? `${agent}.md`
 

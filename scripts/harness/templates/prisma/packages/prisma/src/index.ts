@@ -11,7 +11,7 @@ const adapter = new PrismaPg({ connectionString })
 export const prisma = new PrismaClient({ adapter })
 
 // Contrato para o middleware de tenancy injetar tenantId em toda query tenant-scoped.
-// Implementação no módulo @saas/tenancy.
+// Implementação no módulo @digimon/tenancy.
 export type TenancyMiddleware = (tenantId: string) => void
 
 export type { Prisma } from './generated/prisma/client'

@@ -1,4 +1,4 @@
-# @digimon/auth — Status
+# @saas/auth — Status
 
 ## Fase 1 — Fundação
 - [ ] Domain entities (User)

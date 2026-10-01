@@ -1,4 +1,4 @@
-# @saas/tenancy — Status
+# @digimon/tenancy — Status
 
 ## Fase 1 — Fundação
 - [ ] Domain entities (Tenant, TenantMembership)

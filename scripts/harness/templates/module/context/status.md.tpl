@@ -1,4 +1,4 @@
-# @saas/{{NAME}} — Status
+# @digimon/{{NAME}} — Status
 
 ## Fase 1 — Fundação
 - [ ] Domain entities

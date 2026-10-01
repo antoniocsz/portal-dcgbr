@@ -1,4 +1,4 @@
-# Task: Módulo authorization (RBAC/ABAC — @saas/authorization)
+# Task: Módulo authorization (RBAC/ABAC — @digimon/authorization)
 ## Agente: `agente-backend`
 ## Módulo: `packages/modules/authorization`
 ## Escopo (arquivos que esta task vai tocar):
@@ -31,7 +31,7 @@
 - [ ] Teste: papel customizado de tenant só contém permissões do próprio tenant
 - [ ] Teste: ability rejeita ação sem permissão (ForbiddenError)
 - [ ] Barrel export atualizado
-- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@saas/authorization`
+- [ ] Typecheck passando: `pnpm turbo typecheck --filter=@digimon/authorization`
 - [ ] Lint passando
 ## Ao terminar: atualizar status.md, rodar `pnpm harness finish 02` e registrar handoff
 ## Complexidade: alta

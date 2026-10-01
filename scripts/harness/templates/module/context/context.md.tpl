@@ -1,4 +1,4 @@
-# @saas/{{NAME}} — Contexto do Módulo
+# @digimon/{{NAME}} — Contexto do Módulo
 
 ## Responsabilidade
 [Descrição da responsabilidade do módulo.]
@@ -16,7 +16,7 @@
 - Nenhum
 
 ## Dependências
-- `@saas/contracts` (tipos, erros, eventos, EventBus)
+- `@digimon/contracts` (tipos, erros, eventos, EventBus)
 
 ## Repositórios
 - `I<Entity>Repository` — interface para persistência

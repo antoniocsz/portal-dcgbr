@@ -32,7 +32,7 @@ export function captureBaseline(root) {
 
 export function outOfScopeFiles(root, baseline, scope) {
   const current = modifiedFiles(root)
-  const allowed = [...baseline, ...scope].map((p) => norm(p).replace(/\/+$/, ''))
+  const allowed = [...baseline, ...scope].map((p) => norm(p).replace(/\/+$/, '')).map((p) => (p.endsWith('/**') ? p.slice(0, -3) : p))
   const out = []
   for (const file of current) {
     if (allowed.some((a) => file === a || file.startsWith(a + '/'))) continue

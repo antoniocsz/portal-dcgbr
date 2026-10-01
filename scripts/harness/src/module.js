@@ -20,8 +20,8 @@ export async function moduleCmd(args) {
   const withPrisma = args.includes('--with-prisma')
   const withHttp = args.includes('--with-http')
 
-  const deps = { '@saas/contracts': 'workspace:*' }
-  if (withPrisma) deps['@saas/prisma'] = 'workspace:*'
+  const deps = { '@digimon/contracts': 'workspace:*' }
+  if (withPrisma) deps['@digimon/prisma'] = 'workspace:*'
   if (withHttp) deps.fastify = '^5.0.0'
 
   const tpl = path.join(templatesDir(), 'module')
@@ -46,7 +46,7 @@ export async function moduleCmd(args) {
 
   process.stdout.write(
     [
-      `✅ Módulo @saas/${name} criado`,
+      `✅ Módulo @digimon/${name} criado`,
       `  - ${path.relative(root, moduleDest)}`,
       `  - ${path.relative(root, contextDest)}/context.md e status.md`,
       `  - deps: ${Object.keys(deps).join(', ')}`,

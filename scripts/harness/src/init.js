@@ -9,9 +9,9 @@ const DB_SCRIPTS =
   [
     '    "db:up": "docker compose up -d postgres redis",',
     '    "db:down": "docker compose down",',
-    '    "db:migrate": "pnpm --filter @saas/prisma migrate",',
-    '    "db:deploy": "pnpm --filter @saas/prisma deploy",',
-    '    "db:generate": "pnpm --filter @saas/prisma generate"'
+    '    "db:migrate": "pnpm --filter @digimon/prisma migrate",',
+    '    "db:deploy": "pnpm --filter @digimon/prisma deploy",',
+    '    "db:generate": "pnpm --filter @digimon/prisma generate"'
   ].join('\n')
 
 export async function init(args) {
