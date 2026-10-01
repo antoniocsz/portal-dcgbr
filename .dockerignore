@@ -1,0 +1,18 @@
+# Build context raiz (Coolify/EasyPanel) — excluir do contexto do Docker
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+.git
+.harness
+context
+scripts/harness
+dist
+**/dist
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log

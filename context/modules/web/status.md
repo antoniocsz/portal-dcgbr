@@ -174,3 +174,14 @@
 ## Handoff (task 26)
 - **Feito:** README orientado ao projeto; instruções de execução reais e validáveis; caminhos de contexto corrigidos (context/project/*).
 - **Decisões:** documentação do produto em primeiro plano; harness vira seção secundária; .env.example documentam DATABASE_URL/SHADOW_DATABASE_URL (raiz) e JWT_SECRET/DATABASE_URL (apps/web — Next.js não lê .env da raiz).
+
+## Fase 14 — Dockerfile do web (task 27)
+- [x] `apps/web/Dockerfile` multi-stage (deps → build → runtime) baseado na referência @diasbellazzi, adaptado p/ workspace deps @digimon/* (todos os manifests no deps stage)
+- [x] `output: 'standalone'` no next.config.ts
+- [x] `.dockerignore` (node_modules/.next/.git/.harness/context/.env)
+- [x] ADR-006 registrado
+- [x] Validação real: `docker build` OK; container rodou (home/noticias 200, /api/auth/me null, /admin 307 → /login, login com JWT contra o banco do host)
+
+## Handoff (task 27)
+- **Feito:** imagem Docker pronta para Coolify. Prisma 7 com driver adapter (sem engine binário); client commitado (sem generate no build); páginas públicas estáticas (build sem banco); env runtime: DATABASE_URL, JWT_SECRET, PORT.
+- **Decisões:** migrations fora da imagem (db:deploy no pre-deploy/manual); sem NEXT_PUBLIC_* (Route Handlers same-origin); Alpine com allowBuilds para sharp/esbuild/prisma.
