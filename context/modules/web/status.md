@@ -193,3 +193,11 @@
 
 ## Handoff (task 28)
 - **Feito:** porta configurável no build (ARG) e no runtime (env Coolify). O server.js do standalone já lia process.env.PORT — agora o Dockerfile permite o default e o EXPOSE acompanharem o ARG.
+
+## Fase 16 — Guia de deploy Coolify (task 29)
+- [x] `context/project/deploy.md`: runbook completo (Postgres → app Dockerfile → envs → deploy → migrations/seed fora da imagem → domínio/SSL → health check → verificação → atualizações → troubleshooting)
+- [x] README linka o guia
+
+## Handoff (task 29)
+- **Feito:** guia executável com a arquitetura real (Dockerfile standalone, ADR-006). Migrations/seed documentados como passo manual (imagem não tem pnpm/prisma).
+- **Decisões:** health check usa `/` (sem rota /api/health ainda); automação CI fica como passo futuro.

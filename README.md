@@ -100,6 +100,7 @@ forte no app).
 - `context/project/stack.md` — stack e decisões técnicas
 - `context/project/domain-model.md` — domínio e bounded contexts
 - `context/project/adr/` — decisões arquiteturais (ex.: portal único, sem Redis)
+- `context/project/deploy.md` — passo a passo de deploy no Coolify
 - `context/modules/<módulo>/` — contexto e status de cada módulo
 
 ## Desenvolvimento assistido (AlterAI — Agentic OS)
