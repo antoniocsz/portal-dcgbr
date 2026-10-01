@@ -1,0 +1,25 @@
+# Banco de desenvolvimento do @digimon/database.
+# Uso: docker compose -f packages/database/docker-compose.yml up -d
+# Porta 5432 (padrão) — alinhada com DATABASE_URL no .env da raiz.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: digimon-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: digimon
+      POSTGRES_PASSWORD: digimon
+      POSTGRES_DB: digimon
+    ports:
+      - '5432:5432'
+    volumes:
+      - digimon_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U digimon -d digimon']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  digimon_pg_data:
