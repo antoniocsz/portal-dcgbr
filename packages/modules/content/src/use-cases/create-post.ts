@@ -38,6 +38,7 @@ export class CreatePostUseCase {
       excerpt: parsed.data.excerpt ?? null,
       body: parsed.data.body,
       coverImage: parsed.data.coverImage ?? null,
+      externalUrl: parsed.data.externalUrl ?? null,
       category,
       authorId: command.actor.id
     })

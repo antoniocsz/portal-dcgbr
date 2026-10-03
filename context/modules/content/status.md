@@ -64,3 +64,16 @@
 ## Handoff (task 24)
 - **Feito:** digitação contínua sem perder foco; menu de comandos junto ao cursor.
 - **Decisões:** editor é "controlado" apenas para atualizações externas (reset/load); durante a digitação o editor é a fonte da verdade (uncontrolled) — evita o ciclo de recriação.
+
+## Fase 7 — Simuladores dinâmicos + externalUrl (task 31)
+- [x] Campo `externalUrl String?` no Post (schema + migration 20261003_external_url aplicada + client regenerado)
+- [x] Domínio/use cases/repo: externalUrl em PostData/Create/Update, Zod (url), mapping Prisma
+- [x] DTOs serializados com externalUrl; nova rota GET /api/posts/simulators (usa GetSimulatorsPageUseCase, já existente)
+- [x] Frontend: useSimulators dinâmico (useQuery), SimulatorsView com destaque/grade/estados (loading/erro/vazio), SimulatorCard baseado em post (capa + Acessar/Ler matéria)
+- [x] Form: campo "Link externo" (hint explicativo) + PostFormValues/toPostFormValues
+- [x] E2E: post simulator + externalUrl → publicado → GET /api/posts/simulators retorna com externalUrl
+
+## Handoff (task 31)
+- **Feito:** página de Simuladores 100% dinâmica — simuladores são posts da categoria `simulator` (editorial, como no domain-model). Destaque = mais recente; grade = demais. Botão "Acessar" só aparece quando externalUrl preenchido.
+- **Decisões:** externalUrl como campo opcional do Post (não módulo novo); fallback de capa com gradiente; content estático antigo removido (use-simulators agora é ViewModel de query).
+- **Pendências:** posts de simulador precisam ser criados/editados pelo editorial no /admin/posts (categoria Simuladores).

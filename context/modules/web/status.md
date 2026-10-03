@@ -208,3 +208,10 @@
 
 ## Handoff (task 30)
 - **Feito:** UUID substituído pelo nome do autor nos comentários públicos.
+
+## Fase 18 — Simuladores dinâmicos (task 31)
+- [x] Página /simuladores dinâmica (posts categoria simulator) + campo externalUrl no form
+- [x] E2E: API + página 200
+
+## Handoff (task 31)
+- **Feito:** página de Simuladores lê do banco; editorial cria posts com link externo.

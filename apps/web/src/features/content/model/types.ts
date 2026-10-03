@@ -11,6 +11,7 @@ export interface PostSummary {
   title: string
   excerpt: string | null
   coverImage: string | null
+  externalUrl: string | null
   category: PostCategory
   status: PostStatus
   publishedAt: string | null
@@ -29,6 +30,7 @@ export interface PostInput {
   excerpt?: string | null
   body: string
   coverImage?: string | null
+  externalUrl?: string | null
   category: PostCategory
 }
 

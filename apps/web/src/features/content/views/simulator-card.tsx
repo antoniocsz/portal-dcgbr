@@ -1,42 +1,52 @@
 // Path: apps/web/src/features/content/views/simulator-card.tsx
-// View presentacional: card de simulador da comunidade + ícone por chave.
-import { Dice5, Gamepad2, Globe, Swords, Tag } from '@/components'
-import { cn } from '@/lib/utils'
-import type { SimulatorIconName, SimulatorView } from '../viewmodels/use-simulators'
+// View presentacional: card de simulador da comunidade (a partir de um post da
+// categoria simulator). Capa (ou gradiente de fallback), título, resumo e
+// ações: "Acessar" (externalUrl) e "Ler matéria".
+import Link from 'next/link'
+import { buttonVariants, Tag } from '@/components'
+import type { PostSummary } from '../model/types'
 
-const ICONS: Record<SimulatorIconName, typeof Gamepad2> = {
-  gamepad: Gamepad2,
-  globe: Globe,
-  swords: Swords,
-  dice: Dice5
-}
-
-export interface SimulatorIconProps {
-  name: SimulatorIconName
-  className?: string
-}
-
-export function SimulatorIcon({ name, className }: SimulatorIconProps) {
-  const Icon = ICONS[name]
-  return <Icon className={className} />
-}
+const FALLBACK_ART =
+  'bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,#6FA0A8_0%,#0C0C0E_100%)]'
 
 export interface SimulatorCardProps {
-  simulator: SimulatorView
+  post: PostSummary
 }
 
-export function SimulatorCard({ simulator }: SimulatorCardProps) {
+export function SimulatorCard({ post }: SimulatorCardProps) {
   return (
     <article className="flex flex-col border border-border bg-surface transition-colors hover:border-ink-faint">
-      <div className={cn('flex h-[150px] items-center justify-center', simulator.artClass)}>
-        <SimulatorIcon name={simulator.icon} className="size-11 text-white" />
-      </div>
+      {post.coverImage ? (
+        <img
+          src={post.coverImage}
+          alt=""
+          className="h-[150px] w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className={`flex h-[150px] items-center justify-center ${FALLBACK_ART}`} aria-hidden="true" />
+      )}
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <h3 className="font-display text-lg font-bold text-ink">{simulator.name}</h3>
-        <p className="text-sm leading-5 text-ink-soft">{simulator.description}</p>
-        {simulator.tag ? (
-          <Tag className="mt-1 uppercase tracking-wider">{simulator.tag}</Tag>
+        <Tag className="uppercase tracking-wider">Simulador</Tag>
+        <h3 className="font-display text-lg font-bold text-ink">{post.title}</h3>
+        {post.excerpt ? (
+          <p className="text-sm leading-5 text-ink-soft">{post.excerpt}</p>
         ) : null}
+        <div className="mt-2 flex flex-wrap gap-2 pt-1">
+          {post.externalUrl ? (
+            <a
+              href={post.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ size: 'sm' })}
+            >
+              Acessar
+            </a>
+          ) : null}
+          <Link href={`/noticias/${post.slug}`} className={buttonVariants({ variant: 'dark', size: 'sm' })}>
+            Ler matéria
+          </Link>
+        </div>
       </div>
     </article>
   )

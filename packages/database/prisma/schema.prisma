@@ -130,6 +130,7 @@ model Post {
   excerpt     String?
   body        String
   coverImage  String?
+  externalUrl String?
   category    PostCategory
   status      PostStatus   @default(DRAFT)
   authorId    String

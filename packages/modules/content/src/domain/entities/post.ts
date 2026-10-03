@@ -11,6 +11,7 @@ export interface PostData {
   excerpt: string | null
   body: string
   coverImage: string | null
+  externalUrl: string | null
   category: PostCategory
   status: PostStatus
   authorId: string
@@ -26,6 +27,7 @@ export interface CreatePostData {
   excerpt: string | null
   body: string
   coverImage: string | null
+  externalUrl: string | null
   category: PostCategory
   authorId: string
 }
@@ -36,6 +38,7 @@ export interface UpdatePostData {
   excerpt?: string | null
   body?: string
   coverImage?: string | null
+  externalUrl?: string | null
   category?: PostCategory
 }
 
@@ -84,6 +87,10 @@ export class Post {
     return this.data.category
   }
 
+  get externalUrl(): string | null {
+    return this.data.externalUrl
+  }
+
   get authorId(): string {
     return this.data.authorId
   }
@@ -102,6 +109,7 @@ export class Post {
     if (patch.excerpt !== undefined) this.data.excerpt = patch.excerpt
     if (patch.body !== undefined) this.data.body = patch.body
     if (patch.coverImage !== undefined) this.data.coverImage = patch.coverImage
+    if (patch.externalUrl !== undefined) this.data.externalUrl = patch.externalUrl
     if (patch.category !== undefined) this.data.category = patch.category
     this.data.updatedAt = new Date()
   }

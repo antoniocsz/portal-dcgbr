@@ -11,6 +11,7 @@ export interface PostDTO {
   excerpt: string | null
   body: string
   coverImage: string | null
+  externalUrl: string | null
   category: string
   status: string
   authorId: string
@@ -26,6 +27,7 @@ export interface PostSummaryDTO {
   title: string
   excerpt: string | null
   coverImage: string | null
+  externalUrl: string | null
   category: string
   status: string
   authorId?: string
@@ -43,6 +45,7 @@ export function serializePost(post: Post, authorName?: string): PostDTO {
     excerpt: d.excerpt,
     body: d.body,
     coverImage: d.coverImage,
+    externalUrl: d.externalUrl,
     category: d.category,
     status: d.status,
     authorId: d.authorId,
@@ -61,6 +64,7 @@ export function serializePostSummary(post: Post, authorName?: string): PostSumma
     title: d.title,
     excerpt: d.excerpt,
     coverImage: d.coverImage,
+    externalUrl: d.externalUrl,
     category: d.category,
     status: d.status,
     ...(authorName ? { authorId: d.authorId, authorName } : {}),

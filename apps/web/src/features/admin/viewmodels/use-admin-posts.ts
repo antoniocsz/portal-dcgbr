@@ -54,6 +54,7 @@ export function toPostFormValues(post: Post): PostFormValues {
     excerpt: post.excerpt ?? '',
     body: post.body,
     coverImage: post.coverImage ?? '',
+    externalUrl: post.externalUrl ?? '',
     category: post.category
   }
 }

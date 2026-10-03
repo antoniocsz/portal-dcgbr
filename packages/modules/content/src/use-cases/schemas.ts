@@ -11,6 +11,7 @@ export const createPostSchema = z.object({
   excerpt: z.string().trim().max(400).nullable().optional(),
   body: z.string().min(1, 'Conteúdo é obrigatório'),
   coverImage: z.string().url('URL de capa inválida').nullable().optional(),
+  externalUrl: z.string().url('URL externa inválida').nullable().optional(),
   category: postCategorySchema
 })
 
@@ -21,6 +22,7 @@ export const updatePostSchema = z
     excerpt: z.string().trim().max(400).nullable().optional(),
     body: z.string().min(1, 'Conteúdo é obrigatório').optional(),
     coverImage: z.string().url('URL de capa inválida').nullable().optional(),
+    externalUrl: z.string().url('URL externa inválida').nullable().optional(),
     category: postCategorySchema.optional()
   })
   .strict()

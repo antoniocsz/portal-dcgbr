@@ -44,6 +44,7 @@ export class UpdatePostUseCase {
     if (parsed.data.excerpt !== undefined) patch.excerpt = parsed.data.excerpt
     if (parsed.data.body !== undefined) patch.body = parsed.data.body
     if (parsed.data.coverImage !== undefined) patch.coverImage = parsed.data.coverImage
+    if (parsed.data.externalUrl !== undefined) patch.externalUrl = parsed.data.externalUrl
     if (parsed.data.category !== undefined) patch.category = parsed.data.category
 
     post.update(patch)

@@ -33,6 +33,7 @@ interface FieldProps {
   type?: 'text' | 'url'
   placeholder?: string
   error?: string | null
+  hint?: string
   as?: 'input' | 'textarea' | 'select'
   children?: React.ReactNode
 }
@@ -45,6 +46,7 @@ function PostField({
   type = 'text',
   placeholder,
   error,
+  hint,
   as = 'input',
   children
 }: FieldProps) {
@@ -102,6 +104,7 @@ function PostField({
           {error}
         </p>
       ) : null}
+      {hint && !error ? <p className="text-[11px] text-ink-faint">{hint}</p> : null}
     </div>
   )
 }
@@ -174,6 +177,17 @@ export function PostForm({
           type="url"
           placeholder="https://…"
         />
+
+        <PostField
+          id="post-external-url"
+          label="Link externo (opcional)"
+          value={values.externalUrl}
+          onChange={(value) => onChange('externalUrl', value)}
+          type="url"
+          placeholder="https://… (ex.: simulador Alysium)"
+          hint="Usado na página de Simuladores para o botão “Acessar”."
+        />
+        {errors.externalUrl ? <p className="text-xs text-danger">{errors.externalUrl}</p> : null}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -201,3 +215,4 @@ export function PostForm({
     </form>
   )
 }
+

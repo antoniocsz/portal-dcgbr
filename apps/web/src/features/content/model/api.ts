@@ -53,6 +53,11 @@ export const contentApi = {
     return request(`/api/posts/${encodeURIComponent(slug)}`)
   },
 
+  /** Posts publicados da categoria simulator (página de Simuladores). */
+  getSimulators(): Promise<{ category: string; posts: PostSummary[] }> {
+    return request('/api/posts/simulators')
+  },
+
   createPost(input: PostInput): Promise<CreatePostResult> {
     return request('/api/posts/admin', {
       method: 'POST',

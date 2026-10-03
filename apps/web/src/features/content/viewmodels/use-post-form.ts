@@ -14,6 +14,7 @@ export interface PostFormValues {
   excerpt: string
   body: string
   coverImage: string
+  externalUrl: string
   category: PostCategory
 }
 
@@ -23,6 +24,7 @@ export const initialPostFormValues: PostFormValues = {
   excerpt: '',
   body: '',
   coverImage: '',
+  externalUrl: '',
   category: 'news'
 }
 
@@ -65,7 +67,8 @@ export function usePostForm(opts: { postId?: string; initial?: Partial<PostFormV
       body: values.body,
       category: values.category,
       excerpt: values.excerpt.trim() === '' ? null : values.excerpt,
-      coverImage: values.coverImage.trim() === '' ? null : values.coverImage
+      coverImage: values.coverImage.trim() === '' ? null : values.coverImage,
+      externalUrl: values.externalUrl.trim() === '' ? null : values.externalUrl
     }
     if (values.slug.trim() !== '') input.slug = values.slug
     return input
@@ -96,3 +99,4 @@ export function usePostForm(opts: { postId?: string; initial?: Partial<PostFormV
     }
   }
 }
+

@@ -4,7 +4,7 @@ export { useHome } from './use-home'
 export type { HomeData } from './use-home'
 export { useNewsList } from './use-news-list'
 export { useSimulators } from './use-simulators'
-export type { SimulatorView, SimulatorIconName, SimulatorsData } from './use-simulators'
+export type { SimulatorsData } from './use-simulators'
 export {
   categoryLabel,
   estimateReadingTime,
