@@ -28,8 +28,9 @@ describe('ListCommentsUseCase', () => {
     expect(result.items).toHaveLength(2)
     expect(result.page).toBe(1)
     expect(result.pageSize).toBe(2)
-    expect(result.items[0]?.body).toBe('c5')
-    expect(result.items[1]?.body).toBe('c4')
+    expect(result.items[0]?.comment.body).toBe('c5')
+    expect(result.items[1]?.comment.body).toBe('c4')
+    expect(result.items[0]?.authorName).toBe('Autor')
   })
 
   it('retorna página seguinte corretamente', async () => {
@@ -43,7 +44,7 @@ describe('ListCommentsUseCase', () => {
 
     expect(result.total).toBe(5)
     expect(result.items).toHaveLength(2)
-    expect(result.items[0]?.body).toBe('d3')
+    expect(result.items[0]?.comment.body).toBe('d3')
   })
 
   it('usa defaults de paginação quando não informados', async () => {

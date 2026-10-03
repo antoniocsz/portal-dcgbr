@@ -7,6 +7,7 @@ export type CommentStatus = 'visible' | 'hidden' | 'deleted'
 export interface CommentDTO {
   id: string
   authorId: string
+  authorName: string
   targetType: CommentTargetType
   targetId: string
   body: string

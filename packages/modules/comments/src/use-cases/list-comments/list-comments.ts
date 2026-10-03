@@ -2,8 +2,11 @@
 // Listagem pública de comentários por target, paginada. Expõe apenas visíveis.
 
 import type { CommentStatus, CommentTargetType, PaginatedResult } from '@digimon/contracts'
-import type { Comment } from '../../domain/entities/comment'
-import type { CommentRepository, ListCommentsParams } from '../../domain/repositories/comment-repository'
+import type {
+  CommentRepository,
+  CommentWithAuthor,
+  ListCommentsParams
+} from '../../domain/repositories/comment-repository'
 
 export interface ListCommentsInput {
   targetType: CommentTargetType
@@ -16,7 +19,7 @@ export interface ListCommentsInput {
 export class ListCommentsUseCase {
   constructor(private readonly repo: CommentRepository) {}
 
-  async execute(input: ListCommentsInput): Promise<PaginatedResult<Comment>> {
+  async execute(input: ListCommentsInput): Promise<PaginatedResult<CommentWithAuthor>> {
     const params: ListCommentsParams = {
       targetType: input.targetType,
       targetId: input.targetId

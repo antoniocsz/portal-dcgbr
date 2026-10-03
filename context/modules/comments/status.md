@@ -79,3 +79,15 @@
 - **Feito:** listagem global de comentários para moderação com nome do autor; rota admin validada E2E (200 com authorName; 401 sem sessão).
 - **Pendências:** painel admin de comentários (feature) ainda usa amostra do Model — task 21-frontend-admin-comments-barrel vai conectar à API real.
 - **Decisões:** o use case valida a role no domínio (defense in depth); o handler monta o input condicionalmente (exactOptionalPropertyTypes).
+
+## Fase 4 — authorName na listagem pública (task 30)
+- [x] `listByTarget` agora retorna `CommentWithAuthor` (join `author: { select: { name } }` no Prisma, como o listAll)
+- [x] Interface do repositório e use case `ListComments` atualizados
+- [x] GET /api/comments aplanava os itens com authorName
+- [x] Web: CommentDTO com authorName; CommentItem renderiza o nome (não o UUID)
+- [x] Memory repo + specs atualizados; testes 6 files / 24 testes passando
+- [x] E2E: listagem pública devolve "authorName":"Administrator"
+
+## Handoff (task 30)
+- **Feito:** comentários públicos mostram o nome do autor. Fronteira preservada (join no repo, sem import de @digimon/users).
+- **Pendência/nota:** resposta do POST/PATCH de comentário serializa a entidade crua (`_body`, `_status`) — irrelevante para render (a View faz refetch via invalidateQueries), mas pode ser limpo num futuro task de "serialização de entidades".

@@ -201,3 +201,10 @@
 ## Handoff (task 29)
 - **Feito:** guia executável com a arquitetura real (Dockerfile standalone, ADR-006). Migrations/seed documentados como passo manual (imagem não tem pnpm/prisma).
 - **Decisões:** health check usa `/` (sem rota /api/health ainda); automação CI fica como passo futuro.
+
+## Fase 17 — Nome do autor nos comentários (task 30)
+- [x] CommentDTO com authorName; comment-item renderiza o nome
+- [x] E2E validado (listagem pública com authorName)
+
+## Handoff (task 30)
+- **Feito:** UUID substituído pelo nome do autor nos comentários públicos.

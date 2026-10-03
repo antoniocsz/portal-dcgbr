@@ -24,7 +24,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       page: Number.isFinite(page) && page > 0 ? page : 1,
       pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20
     })
-    return NextResponse.json(result)
+    return NextResponse.json({
+      items: result.items.map(({ comment, authorName }) => ({
+        id: comment.id,
+        authorId: comment.authorId,
+        authorName,
+        targetType: comment.targetType,
+        targetId: comment.targetId,
+        body: comment.body,
+        status: comment.status,
+        createdAt: comment.createdAt.toISOString(),
+        updatedAt: comment.updatedAt.toISOString()
+      })),
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize
+    })
   } catch (error) {
     return toErrorResponse(error)
   }

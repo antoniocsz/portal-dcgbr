@@ -19,7 +19,7 @@ export function CommentItem({ comment }: CommentItemProps) {
   return (
     <article className="rounded-md border border-border p-3">
       <header className="flex items-center justify-between text-sm text-muted-foreground">
-        <span className="font-medium">{comment.authorId}</span>
+        <span className="font-medium">{comment.authorName}</span>
         <time dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time>
       </header>
       <p className="mt-1 whitespace-pre-wrap text-sm">{comment.body}</p>

@@ -61,7 +61,7 @@ export class PrismaCommentRepository implements CommentRepository {
     return this.toEntity(row)
   }
 
-  async listByTarget(params: ListCommentsParams): Promise<PaginatedResult<Comment>> {
+  async listByTarget(params: ListCommentsParams): Promise<PaginatedResult<CommentWithAuthor>> {
     const page = Math.max(1, params.page ?? 1)
     const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20))
     const where: Prisma.CommentWhereInput = {
@@ -72,6 +72,7 @@ export class PrismaCommentRepository implements CommentRepository {
     const [rows, total] = await Promise.all([
       this.db.comment.findMany({
         where,
+        include: { author: { select: { name: true } } },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize
@@ -79,7 +80,10 @@ export class PrismaCommentRepository implements CommentRepository {
       this.db.comment.count({ where })
     ])
     return {
-      items: rows.map((row) => this.toEntity(row)),
+      items: rows.map((row) => ({
+        comment: this.toEntity(row),
+        authorName: row.author?.name ?? 'Autor removido'
+      })),
       total,
       page,
       pageSize

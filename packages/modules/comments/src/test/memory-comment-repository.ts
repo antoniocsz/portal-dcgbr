@@ -34,7 +34,7 @@ export class MemoryCommentRepository implements CommentRepository {
     return comment
   }
 
-  async listByTarget(params: ListCommentsParams): Promise<PaginatedResult<Comment>> {
+  async listByTarget(params: ListCommentsParams): Promise<PaginatedResult<CommentWithAuthor>> {
     const page = Math.max(1, params.page ?? 1)
     const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20))
     const matching = [...this.items.values()].filter(
@@ -50,7 +50,7 @@ export class MemoryCommentRepository implements CommentRepository {
     })
     const items = matching
       .slice((page - 1) * pageSize, page * pageSize)
-      .map((entry) => entry.comment)
+      .map((entry) => ({ comment: entry.comment, authorName: 'Autor' }))
     return { items, total: matching.length, page, pageSize }
   }
 
