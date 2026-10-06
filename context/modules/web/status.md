@@ -215,3 +215,18 @@
 
 ## Handoff (task 31)
 - **Feito:** página de Simuladores lê do banco; editorial cria posts com link externo.
+
+## Fase 19 — Página "Em breve" configurável (task 32)
+- [x] Model `SiteSetting` (key/value) no banco + migration 20261003_site_settings
+- [x] `lib/server/site-gate.ts`: getSiteGate/setSiteGate com cache in-process (globalThis + TTL 10s); falha de banco → live (site não cai)
+- [x] `proxy.ts` (Next 16, node): allowlist /admin,/api,/login,/registro,/em-breve; resto redireciona para /em-breve no modo coming-soon
+- [x] Página /em-breve (noindex, sem chrome)
+- [x] GET/PATCH /api/settings/site-gate (somente administrator via requireRole)
+- [x] /admin/configuracoes: seletor Site no ar / Em breve + salvar + feedback
+- [x] Nav admin: item "Configurações" (somente admin)
+- [x] E2E: live→200; coming-soon→/ e /noticias 307→/em-breve, /admin→307→/login, /login 200, /em-breve 200 noindex; live→200
+
+## Handoff (task 32)
+- **Feito:** modo "em breve" acionável do painel com efeito imediato (cache limpo no PATCH).
+- **Decisões:** proxy.ts (convenção do Next 16 — substitui middleware.ts; runtime Node sempre, sem segment config); gate cache in-process por instância com TTL (single instance no Coolify v1); default `live` se o banco cair.
+- **Pendências/atenção:** Turbopack no Windows deu panic transitório de CSS (0xc0000142) após restart — resolveu com `rm -rf apps/web/.next`. Se ocorrer, limpar o cache.

@@ -5,6 +5,7 @@
 
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { Settings } from 'lucide-react'
 import {
   AdminNav,
   AdminSidebar,
@@ -28,7 +29,8 @@ const NAV_ITEMS: AdminNavItem[] = [
   { href: '/admin/torneios', label: 'Torneios', icon: <Trophy className="size-4.5" /> },
   { href: '/admin/decks', label: 'Decks', icon: <Copy className="size-4.5" /> },
   { href: '/admin/comentarios', label: 'Comentários', icon: <MessageSquare className="size-4.5" /> },
-  { href: '/admin/usuarios', label: 'Usuários', icon: <Users className="size-4.5" /> }
+  { href: '/admin/usuarios', label: 'Usuários', icon: <Users className="size-4.5" /> },
+  { href: '/admin/configuracoes', label: 'Configurações', icon: <Settings className="size-4.5" /> }
 ]
 
 export interface AdminShellProps {
@@ -39,7 +41,11 @@ export interface AdminShellProps {
 
 export function AdminShell({ user, isAdmin, children }: AdminShellProps) {
   const pathname = usePathname() ?? '/admin'
-  const items = isAdmin ? NAV_ITEMS : NAV_ITEMS.filter((item) => item.href !== '/admin/usuarios')
+  const items = isAdmin
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter(
+      (item) => item.href !== '/admin/usuarios' && item.href !== '/admin/configuracoes'
+    )
 
   return (
     <div className="flex min-h-screen bg-bg">

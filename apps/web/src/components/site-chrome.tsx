@@ -14,7 +14,7 @@ export type SiteChromeProps = {
 export function SiteChrome({ children }: SiteChromeProps) {
   const pathname = usePathname() ?? '/'
 
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/em-breve')) {
     return <>{children}</>
   }
 

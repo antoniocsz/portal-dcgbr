@@ -20,3 +20,8 @@
 
 ## Handoff
 - [x] Task 08 concluída: Prisma 6→7, centralização em @digimon/database, migration + seed + docker-compose
+## Fase 4 — SiteSetting (task 32)
+- [x] Model `SiteSetting` (key @id, value, updatedAt) + migration 20261003_site_settings aplicada
+
+## Handoff (task 32)
+- **Feito:** tabela key/value para configurações globais do site (gate "em breve").

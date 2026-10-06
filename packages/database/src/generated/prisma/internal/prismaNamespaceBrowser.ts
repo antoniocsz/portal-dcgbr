@@ -56,6 +56,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Post: 'Post',
   Comment: 'Comment',
+  SiteSetting: 'SiteSetting',
   Tournament: 'Tournament',
   Deck: 'Deck',
   DeckCopy: 'DeckCopy',
@@ -150,6 +151,15 @@ export const CommentScalarFieldEnum = {
 } as const
 
 export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
+
+
+export const SiteSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteSettingScalarFieldEnum = (typeof SiteSettingScalarFieldEnum)[keyof typeof SiteSettingScalarFieldEnum]
 
 
 export const TournamentScalarFieldEnum = {

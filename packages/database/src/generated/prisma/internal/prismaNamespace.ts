@@ -402,6 +402,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Post: 'Post',
   Comment: 'Comment',
+  SiteSetting: 'SiteSetting',
   Tournament: 'Tournament',
   Deck: 'Deck',
   DeckCopy: 'DeckCopy',
@@ -422,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card"
+    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -793,6 +794,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CommentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CommentCountAggregateOutputType> | number
+        }
+      }
+    }
+    SiteSetting: {
+      payload: Prisma.$SiteSettingPayload<ExtArgs>
+      fields: Prisma.SiteSettingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteSettingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteSettingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteSettingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteSettingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        findMany: {
+          args: Prisma.SiteSettingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>[]
+        }
+        create: {
+          args: Prisma.SiteSettingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        createMany: {
+          args: Prisma.SiteSettingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteSettingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteSettingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        update: {
+          args: Prisma.SiteSettingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteSettingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteSettingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteSettingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteSettingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteSettingPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteSettingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteSetting>
+        }
+        groupBy: {
+          args: Prisma.SiteSettingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteSettingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteSettingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteSettingCountAggregateOutputType> | number
         }
       }
     }
@@ -1276,6 +1351,15 @@ export const CommentScalarFieldEnum = {
 } as const
 
 export type CommentScalarFieldEnum = (typeof CommentScalarFieldEnum)[keyof typeof CommentScalarFieldEnum]
+
+
+export const SiteSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteSettingScalarFieldEnum = (typeof SiteSettingScalarFieldEnum)[keyof typeof SiteSettingScalarFieldEnum]
 
 
 export const TournamentScalarFieldEnum = {
@@ -1787,6 +1871,7 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   post?: Prisma.PostOmit
   comment?: Prisma.CommentOmit
+  siteSetting?: Prisma.SiteSettingOmit
   tournament?: Prisma.TournamentOmit
   deck?: Prisma.DeckOmit
   deckCopy?: Prisma.DeckCopyOmit

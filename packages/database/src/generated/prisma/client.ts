@@ -67,6 +67,11 @@ export type Post = Prisma.PostModel
  */
 export type Comment = Prisma.CommentModel
 /**
+ * Model SiteSetting
+ * Par de chave/valor para configurações do site (ex.: modo "em breve").
+ */
+export type SiteSetting = Prisma.SiteSettingModel
+/**
  * Model Tournament
  * 
  */

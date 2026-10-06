@@ -154,6 +154,13 @@ model Comment {
   @@index([targetType, targetId])
 }
 
+/// Par de chave/valor para configurações do site (ex.: modo "em breve").
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model Tournament {
   id          String           @id @default(cuid())
   slug        String           @unique
