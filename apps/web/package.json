@@ -10,14 +10,9 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@digimon/api-client": "workspace:*",
     "@digimon/auth": "workspace:*",
-    "@digimon/cards": "workspace:*",
-    "@digimon/comments": "workspace:*",
-    "@digimon/content": "workspace:*",
     "@digimon/contracts": "workspace:*",
-    "@digimon/database": "workspace:*",
-    "@digimon/decks": "workspace:*",
-    "@digimon/tournaments": "workspace:*",
     "@digimon/users": "workspace:*",
     "@tanstack/react-query": "^5.0.0",
     "@tiptap/extension-link": "^3.31.4",

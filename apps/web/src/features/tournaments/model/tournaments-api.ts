@@ -1,6 +1,7 @@
 // Path: apps/web/src/features/tournaments/model/tournaments-api.ts
-// Repository da feature: chamadas fetch para a API /api/tournaments.
+// Repository da feature: chamadas à API separada (ADR-007) via @digimon/api-client.
 // Sem hooks, sem JSX — camada Model do MVVM estrito.
+import { apiClient } from '@/lib/api-base'
 import type {
   CreateTournamentResult,
   ListTournamentsParams,
@@ -11,36 +12,7 @@ import type {
   TournamentSummary
 } from './types'
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly code: string
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers }
-  })
-  if (!response.ok) {
-    let message = 'Erro inesperado'
-    let code = 'INTERNAL_ERROR'
-    try {
-      const body = (await response.json()) as { error?: { message?: string; code?: string } }
-      if (body.error?.message) message = body.error.message
-      if (body.error?.code) code = body.error.code
-    } catch {
-      // corpo não-JSON: mantém mensagem padrão
-    }
-    throw new ApiError(message, response.status, code)
-  }
-  return (await response.json()) as T
-}
+export { ApiError } from '@digimon/api-client'
 
 function buildQuery(params: ListTournamentsParams): string {
   const search = new URLSearchParams()
@@ -57,41 +29,32 @@ function buildQuery(params: ListTournamentsParams): string {
 
 export const tournamentsApi = {
   listTournaments(params: ListTournamentsParams = {}): Promise<Paginated<TournamentSummary>> {
-    return request(`/api/tournaments${buildQuery(params)}`)
+    return apiClient.get(`/tournaments${buildQuery(params)}`)
   },
 
   getTournament(slug: string): Promise<Tournament> {
-    return request(`/api/tournaments/${encodeURIComponent(slug)}`)
+    return apiClient.get(`/tournaments/${encodeURIComponent(slug)}`)
   },
 
   createTournament(input: TournamentInput): Promise<CreateTournamentResult> {
-    return request('/api/tournaments', {
-      method: 'POST',
-      body: JSON.stringify(input)
-    })
+    return apiClient.post('/tournaments', input)
   },
 
   updateTournament(
     slug: string,
     input: Partial<TournamentInput>
   ): Promise<CreateTournamentResult> {
-    return request(`/api/tournaments/${encodeURIComponent(slug)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(input)
-    })
+    return apiClient.patch(`/tournaments/${encodeURIComponent(slug)}`, input)
   },
 
   cancelTournament(slug: string): Promise<{ id: string; status: 'cancelled' }> {
-    return request(`/api/tournaments/${encodeURIComponent(slug)}`, { method: 'DELETE' })
+    return apiClient.delete(`/tournaments/${encodeURIComponent(slug)}`)
   },
 
   addResults(
     slug: string,
     input: TournamentResultInput
   ): Promise<{ id: string; status: 'finished' }> {
-    return request(`/api/tournaments/${encodeURIComponent(slug)}/results`, {
-      method: 'POST',
-      body: JSON.stringify(input)
-    })
+    return apiClient.post(`/tournaments/${encodeURIComponent(slug)}/results`, input)
   }
 }

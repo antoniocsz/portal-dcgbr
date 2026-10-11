@@ -23,6 +23,14 @@ function hashPassword(password: string): string {
 }
 
 async function main(): Promise<void> {
+  if (process.argv.includes('--only-if-empty')) {
+    const userCount = await prisma.user.count()
+    if (userCount > 0) {
+      console.log('Seed ignorado (banco já populado)')
+      return
+    }
+  }
+
   const email = (process.env.ADMIN_EMAIL ?? 'admin@digimoncardgamebrasil.com.br').toLowerCase()
   const password = process.env.ADMIN_PASSWORD ?? 'admin12345'
 

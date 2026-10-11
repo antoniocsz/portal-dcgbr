@@ -2,7 +2,7 @@
 // View: indicador de sessão no header público.
 // Desktop: avatar + dropdown (nome, papel, painel admin, perfil, sair).
 // Mobile: links verticais dentro do menu hambúrguer.
-// Usa useSession (ViewModel) — nenhum fetch direto aqui (MVVM).
+// Usa useSession (ViewModel) + authApi (Model) — nenhum fetch direto aqui (MVVM).
 'use client'
 
 import Link from 'next/link'
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, LogOut } from 'lucide-react'
 import { useSession, type SessionUser } from '@/lib/use-session'
+import { authApi } from '@/features/auth/model/auth-api'
 import { Avatar } from './ui/avatar'
 import { cn } from '@/lib/utils'
 
@@ -48,7 +49,7 @@ export function UserMenu({ mobile = false }: { mobile?: boolean }) {
 
   async function handleLogout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await authApi.logout()
     } finally {
       refresh()
       setOpen(false)

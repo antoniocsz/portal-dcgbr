@@ -1,31 +1,15 @@
 // Path: apps/web/src/features/users/model/users-api.ts
-// Repository de users: chamadas fetch aos route handlers protegidos
+// Repository de users: chamadas à API separada (ADR-007) via @digimon/api-client
 // (envia o cookie httpOnly de sessão). Sem hooks, sem JSX — camada Model.
+import { apiClient } from '@/lib/api-base'
 import type { AssignRoleForm, ListUsersResult, UpdateProfileForm, UserListQuery, UserView } from './types'
-
-const API = '/api/users'
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-    credentials: 'include'
-  })
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as
-      | { error?: { code: string; message: string } }
-      | null
-    throw new Error(body?.error?.message ?? `Erro ${res.status}`)
-  }
-  return (await res.json()) as T
-}
 
 export const usersApi = {
   getProfile(): Promise<{ user: UserView }> {
-    return request('/me')
+    return apiClient.get('/users/me')
   },
   updateProfile(input: UpdateProfileForm): Promise<{ user: UserView }> {
-    return request('/me', { method: 'PATCH', body: JSON.stringify(input) })
+    return apiClient.patch('/users/me', input)
   },
   listUsers(query: UserListQuery = {}): Promise<ListUsersResult> {
     const params = new URLSearchParams()
@@ -35,12 +19,12 @@ export const usersApi = {
     if (query.page) params.set('page', String(query.page))
     if (query.pageSize) params.set('pageSize', String(query.pageSize))
     const qs = params.toString()
-    return request(qs ? `/?${qs}` : '/')
+    return apiClient.get(qs ? `/users?${qs}` : '/users')
   },
   assignRole(userId: string, input: AssignRoleForm): Promise<{ user: UserView }> {
-    return request(`/${userId}/role`, { method: 'PATCH', body: JSON.stringify(input) })
+    return apiClient.patch(`/users/${userId}/role`, input)
   },
   setStatus(userId: string, status: 'active' | 'inactive'): Promise<{ user: UserView }> {
-    return request(`/${userId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+    return apiClient.patch(`/users/${userId}/status`, { status })
   }
 }

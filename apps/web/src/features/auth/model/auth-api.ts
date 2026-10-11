@@ -1,42 +1,26 @@
 // Path: apps/web/src/features/auth/model/auth-api.ts
-// Repository de auth: chamadas fetch aos route handlers (credentials: include
-// envia os cookies httpOnly de sessão). Sem hooks, sem JSX — camada Model.
+// Repository de auth: chamadas à API separada (ADR-007) via @digimon/api-client
+// (credentials: 'include' envia os cookies httpOnly de sessão). Sem hooks, sem JSX.
+import { apiClient } from '@/lib/api-base'
 import type { AuthUser, ForgotPasswordForm, LoginForm, RegisterForm, ResetPasswordForm } from './types'
-
-const API = '/api/auth'
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}${path}`, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-    credentials: 'include'
-  })
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as
-      | { error?: { code: string; message: string } }
-      | null
-    throw new Error(body?.error?.message ?? `Erro ${res.status}`)
-  }
-  return (await res.json()) as T
-}
 
 export const authApi = {
   register(input: RegisterForm): Promise<{ user: AuthUser }> {
-    return request('/register', { method: 'POST', body: JSON.stringify(input) })
+    return apiClient.post('/auth/register', input)
   },
   login(input: LoginForm): Promise<{ user: AuthUser }> {
-    return request('/login', { method: 'POST', body: JSON.stringify(input) })
+    return apiClient.post('/auth/login', input)
   },
   refresh(): Promise<{ user: AuthUser }> {
-    return request('/refresh', { method: 'POST' })
+    return apiClient.post('/auth/refresh')
   },
   logout(): Promise<{ ok: true }> {
-    return request('/logout', { method: 'POST' })
+    return apiClient.post('/auth/logout')
   },
   forgotPassword(input: ForgotPasswordForm): Promise<{ ok: true }> {
-    return request('/forgot-password', { method: 'POST', body: JSON.stringify(input) })
+    return apiClient.post('/auth/forgot-password', input)
   },
   resetPassword(input: ResetPasswordForm): Promise<{ ok: true }> {
-    return request('/reset-password', { method: 'POST', body: JSON.stringify(input) })
+    return apiClient.post('/auth/reset-password', input)
   }
 }

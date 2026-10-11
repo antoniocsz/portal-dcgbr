@@ -1,11 +1,13 @@
 // Path: apps/web/src/components/admin/logout-button.tsx
 // Ação de sair do painel admin (client). Desktop: item "Sair" na sidebar.
-// Mobile: ícone no header do shell. Reutiliza POST /api/auth/logout
-// (revoga refresh token + limpa cookies httpOnly) e volta para /login.
+// Mobile: ícone no header do shell. Reutiliza authApi.logout() (Model via
+// @digimon/api-client) — revoga refresh token + limpa cookies httpOnly — e
+// volta para /login.
 'use client'
 
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
+import { authApi } from '@/features/auth/model/auth-api'
 import { cn } from '@/lib/utils'
 
 export function LogoutButton({ variant = 'sidebar' }: { variant?: 'sidebar' | 'icon' }) {
@@ -13,7 +15,7 @@ export function LogoutButton({ variant = 'sidebar' }: { variant?: 'sidebar' | 'i
 
   async function handleLogout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await authApi.logout()
     } finally {
       router.push('/login')
       router.refresh()

@@ -1,5 +1,7 @@
 // apps/web/src/features/comments/model/comments-api.ts
-// Model — tipos e acesso à API de comentários. Sem hooks, sem JSX (MVVM estrito).
+// Model — tipos e acesso à API de comentários (ADR-007) via @digimon/api-client.
+// Sem hooks, sem JSX (MVVM estrito).
+import { apiClient } from '@/lib/api-base'
 
 export type CommentTargetType = 'post' | 'card' | 'deck'
 export type CommentStatus = 'visible' | 'hidden' | 'deleted'
@@ -29,16 +31,7 @@ export interface CreateCommentPayload {
   body: string
 }
 
-async function parseError(response: Response): Promise<Error> {
-  try {
-    const body = (await response.json()) as { error?: { message?: string } }
-    return new Error(body.error?.message ?? 'Erro inesperado')
-  } catch {
-    return new Error('Erro inesperado')
-  }
-}
-
-export async function listComments(params: {
+export function listComments(params: {
   targetType: CommentTargetType
   targetId: string
   page?: number
@@ -51,45 +44,28 @@ export async function listComments(params: {
   if (params.page !== undefined) search.set('page', String(params.page))
   if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize))
 
-  const response = await fetch(`/api/comments?${search.toString()}`, { cache: 'no-store' })
-  if (!response.ok) throw await parseError(response)
-  return response.json() as Promise<ListCommentsResult>
+  return apiClient.request<ListCommentsResult>(`/comments?${search.toString()}`, {
+    cache: 'no-store'
+  })
 }
 
 export async function createComment(payload: CreateCommentPayload): Promise<CommentDTO> {
-  const response = await fetch('/api/comments', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  if (!response.ok) throw await parseError(response)
-  const body = (await response.json()) as { comment: CommentDTO }
-  return body.comment
+  const { comment } = await apiClient.post<{ comment: CommentDTO }>('/comments', payload)
+  return comment
 }
 
 export async function updateComment(id: string, body: string): Promise<CommentDTO> {
-  const response = await fetch(`/api/comments/${id}`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ body })
-  })
-  if (!response.ok) throw await parseError(response)
-  const json = (await response.json()) as { comment: CommentDTO }
-  return json.comment
+  const { comment } = await apiClient.patch<{ comment: CommentDTO }>(`/comments/${id}`, { body })
+  return comment
 }
 
 export async function deleteComment(id: string): Promise<void> {
-  const response = await fetch(`/api/comments/${id}`, { method: 'DELETE' })
-  if (!response.ok) throw await parseError(response)
+  await apiClient.delete<void>(`/comments/${id}`)
 }
 
 export async function moderateComment(id: string, action: 'hide' | 'show'): Promise<CommentDTO> {
-  const response = await fetch(`/api/comments/${id}/moderate`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ action })
+  const { comment } = await apiClient.post<{ comment: CommentDTO }>(`/comments/${id}/moderate`, {
+    action
   })
-  if (!response.ok) throw await parseError(response)
-  const body = (await response.json()) as { comment: CommentDTO }
-  return body.comment
+  return comment
 }

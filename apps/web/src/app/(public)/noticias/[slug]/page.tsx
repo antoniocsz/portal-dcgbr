@@ -1,21 +1,17 @@
 // Path: apps/web/src/app/(public)/noticias/[slug]/page.tsx
 // Leitura de notícia (SEO-first): SSR do artigo + generateMetadata com o slug.
-// O post é buscado server-side na API pública; comentários via feature comments.
+// O post é buscado server-side na API separada (base interna, ADR-007);
+// comentários via feature comments.
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { apiBaseUrl } from '@/lib/api-base'
 import { CommentSection } from '@/features/comments/views/comment-section'
 import type { Post } from '@/features/content/model/types'
 import { PORTAL_AUTHOR } from '@/features/content/viewmodels/post-view'
 import { PostArticle } from '@/features/content/views'
 
 async function fetchPost(slug: string): Promise<Post | null> {
-  const headerList = await headers()
-  const host = headerList.get('host')
-  if (!host) return null
-
-  const protocol = headerList.get('x-forwarded-proto') ?? 'http'
-  const url = `${protocol}://${host}/api/posts/${encodeURIComponent(slug)}`
+  const url = `${apiBaseUrl}/posts/${encodeURIComponent(slug)}`
 
   try {
     const response = await fetch(url, { next: { revalidate: 60 } })

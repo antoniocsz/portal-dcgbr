@@ -1,19 +1,14 @@
 // Path: apps/web/src/app/(public)/cartas/[id]/page.tsx
 // Ficha da Carta (SEO-first): generateMetadata busca a carta server-side na API
-// pública; a View (CardDetailView) hidrata os dados no client via useCard.
+// separada (base interna, ADR-007); a View (CardDetailView) hidrata no client.
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { apiBaseUrl } from '@/lib/api-base'
 import { CardDetailView } from '@/features/cards/views'
 import type { Card } from '@/features/cards/model/types'
 
 async function fetchCard(id: string): Promise<Card | null> {
-  const headerList = await headers()
-  const host = headerList.get('host')
-  if (!host) return null
-
-  const protocol = headerList.get('x-forwarded-proto') ?? 'http'
-  const url = `${protocol}://${host}/api/cards/${encodeURIComponent(id)}`
+  const url = `${apiBaseUrl}/cards/${encodeURIComponent(id)}`
 
   try {
     const response = await fetch(url, { next: { revalidate: 60 } })

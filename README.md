@@ -30,18 +30,21 @@ referência para o TCG, acompanhando também os simuladores (como o oficial
 
 - **Monorepo** — Turborepo + pnpm workspaces, TypeScript strict, ESLint flat
 - **Web** — Next.js App Router (SSR/ISR, SEO-first) + Tailwind CSS v4 +
-  shadcn/ui, tema escuro customizado
-- **Backend** — Route Handlers do Next.js + validação Zod (sem servidor
-  separado)
+  shadcn/ui, tema escuro customizado; frontend puro em `apps/web`
+- **Backend** — API separada em `apps/api` (Node + Fastify) + validação Zod
+  (ADR-007), exposta em `api.digimoncardgamebrasil.com.br`
 - **Dados** — PostgreSQL + Prisma 7, busca full-text nativa (sem Redis na v1)
-- **Auth** — própria, JWT com access + refresh rotation
-- **Deploy** — Coolify + Dockerfile, domínio único `digimoncardgamebrasil.com.br`
+- **Auth** — própria, JWT com access + refresh rotation (cookies httpOnly com
+  `Domain` compartilhado entre web e API)
+- **Deploy** — Coolify + Dockerfile, **dois apps**: web
+  (`digimoncardgamebrasil.com.br`) + API (`api.digimoncardgamebrasil.com.br`)
 
 ## Estrutura do monorepo
 
 ```
 apps/
-  web/              # Next.js — site público + painel admin (MVVM)
+  api/              # Node + Fastify — API (ADR-007), migrations/seed no entrypoint
+  web/              # Next.js — site público + painel admin (MVVM, frontend puro)
 packages/
   contracts/        # tipos, erros, eventos e EventBus (cola entre módulos)
   database/         # Prisma 7, schema, migrations, seed e docker-compose do Postgres
@@ -49,7 +52,7 @@ packages/
     auth/ users/    # conta, sessão JWT e perfis
     content/        # posts/notícias (inclui categoria Simuladores)
     cards/ decks/ tournaments/ comments/
-  api-client/       # http client tipado
+  api-client/       # http client tipado (cliente único do web)
 context/            # documentação e pipeline de tasks (ver abaixo)
 ```
 
@@ -65,24 +68,34 @@ pnpm install
 docker compose -f packages/database/docker-compose.yml up -d
 
 # 3. Variáveis de ambiente
-cp .env.example .env                     # raiz: DATABASE_URL (Prisma)
-cp apps/web/.env.example apps/web/.env   # app: JWT_SECRET (>=32 chars) + DATABASE_URL
+cp .env.example .env                     # raiz: DATABASE_URL para o Prisma (migrations/seed)
+cp apps/api/.env.example apps/api/.env   # API: HOST/PORT + CORS_ORIGIN + COOKIE_DOMAIN
+
+# apps/web/.env (crie a partir de apps/web/.env.example):
+#   JWT_SECRET          -> >= 32 chars, o MESMO valor da API (valida a sessão do admin)
+#   NEXT_PUBLIC_API_URL -> http://localhost:3001 (URL pública da API usada no browser)
+#   API_INTERNAL_URL    -> http://localhost:3001 (endereço usado no SSR/middleware)
 ```
 
-> O Next.js **não lê** o `.env` da raiz — por isso o app tem `.env` próprio.
+> O Next.js **não lê** o `.env` da raiz — por isso cada app tem `.env` próprio.
+> Em local, a API roda em `localhost:3001`; por isso `API_INTERNAL_URL` aponta para
+> `http://localhost:3001` (em produção é o endereço interno do serviço, ex.: `http://api:3001`).
 
 ```bash
 # 4. Migrations + seed (cria o administrador inicial)
 pnpm --filter @digimon/database db:deploy
 pnpm --filter @digimon/database db:seed
 
-# 5. Dev server
-pnpm dev   # http://localhost:3000
+# 5. Dev server (web + API juntos)
+pnpm dev   # web http://localhost:3000 · API http://localhost:3001 (health: /health)
 ```
+
+> Em local, migrations/seed rodam por comando (acima). **Em produção**, quem
+> aplica migrate + seed é o entrypoint do container da API (ver `deploy.md`).
 
 **Seed (dev):** `admin@digimoncardgamebrasil.com.br` / `admin12345`.
 Em produção, defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` no seed (e um `JWT_SECRET`
-forte no app).
+forte, o mesmo na API e no web).
 
 ## Scripts
 
@@ -99,8 +112,8 @@ forte no app).
 - `context/project/overview.md` — produto e problema
 - `context/project/stack.md` — stack e decisões técnicas
 - `context/project/domain-model.md` — domínio e bounded contexts
-- `context/project/adr/` — decisões arquiteturais (ex.: portal único, sem Redis)
-- `context/project/deploy.md` — passo a passo de deploy no Coolify
+- `context/project/adr/` — decisões arquiteturais (ex.: backend separado — ADR-007)
+- `context/project/deploy.md` — deploy no Coolify (2 apps: API + web)
 - `context/modules/<módulo>/` — contexto e status de cada módulo
 
 ## Desenvolvimento assistido (AlterAI — Agentic OS)

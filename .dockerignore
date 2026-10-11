@@ -12,7 +12,14 @@ scripts/harness
 dist
 **/dist
 *.tsbuildinfo
+# Segredos: excluir .env em QUALQUER nível (padrão Docker: `**/` cobre a raiz
+# e subpastas). Padrões sem `**/` casam apenas a raiz — por isso havia .env de
+# apps/web/.env vazando para o contexto de build / imagem standalone.
 .env
 .env.*
+**/.env
+**/.env.*
+# Exemplos são seguros e devem ser preservados (inclusive em subpastas).
 !.env.example
+!**/.env.example
 *.log

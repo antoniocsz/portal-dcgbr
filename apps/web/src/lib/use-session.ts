@@ -1,11 +1,12 @@
 // Path: apps/web/src/lib/use-session.ts
 // Hook de sessão do header público (ViewModel — sem JSX, sem fetch em views).
-// Faz GET /api/auth/me uma única vez por página (cache de módulo) e expõe
-// { user, loading, refresh }. O cache evita fetch duplicado entre o menu
-// desktop e o mobile, e `refresh` é usado após logout/login.
+// Faz GET /auth/me na API separada (ADR-007) uma única vez por página (cache de
+// módulo) e expõe { user, loading, refresh }. O cache evita fetch duplicado
+// entre o menu desktop e o mobile, e `refresh` é usado após logout/login.
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { apiClient } from '@/lib/api-base'
 
 export interface SessionUser {
   id: string
@@ -26,9 +27,9 @@ let inFlight: Promise<SessionUser | null> | null = null
 
 async function fetchSession(): Promise<SessionUser | null> {
   try {
-    const response = await fetch('/api/auth/me', { cache: 'no-store' })
-    if (!response.ok) return null
-    const data = (await response.json()) as { user: SessionUser | null }
+    const data = await apiClient.request<{ user: SessionUser | null }>('/auth/me', {
+      cache: 'no-store'
+    })
     return data.user
   } catch {
     return null

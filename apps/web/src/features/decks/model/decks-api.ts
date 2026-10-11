@@ -1,6 +1,7 @@
 // Path: apps/web/src/features/decks/model/decks-api.ts
-// Repository da feature: chamadas fetch para a API /api/decks.
+// Repository da feature: chamadas à API separada (ADR-007) via @digimon/api-client.
 // Sem hooks, sem JSX — camada Model do MVVM estrito.
+import { apiClient } from '@/lib/api-base'
 import type {
   CreateDeckResult,
   Deck,
@@ -10,36 +11,7 @@ import type {
   Paginated
 } from './types'
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly code: string
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers }
-  })
-  if (!response.ok) {
-    let message = 'Erro inesperado'
-    let code = 'INTERNAL_ERROR'
-    try {
-      const body = (await response.json()) as { error?: { message?: string; code?: string } }
-      if (body.error?.message) message = body.error.message
-      if (body.error?.code) code = body.error.code
-    } catch {
-      // corpo não-JSON: mantém mensagem padrão
-    }
-    throw new ApiError(message, response.status, code)
-  }
-  return (await response.json()) as T
-}
+export { ApiError } from '@digimon/api-client'
 
 function buildQuery(params: ListDecksParams): string {
   const search = new URLSearchParams()
@@ -55,36 +27,30 @@ function buildQuery(params: ListDecksParams): string {
 
 export const decksApi = {
   listDecks(params: ListDecksParams = {}): Promise<Paginated<DeckSummary>> {
-    return request(`/api/decks${buildQuery(params)}`)
+    return apiClient.get(`/decks${buildQuery(params)}`)
   },
 
   getDeck(slug: string): Promise<Deck> {
-    return request(`/api/decks/${encodeURIComponent(slug)}`)
+    return apiClient.get(`/decks/${encodeURIComponent(slug)}`)
   },
 
   createDeck(input: DeckInput): Promise<CreateDeckResult> {
-    return request('/api/decks', {
-      method: 'POST',
-      body: JSON.stringify(input)
-    })
+    return apiClient.post('/decks', input)
   },
 
   updateDeck(slug: string, input: Partial<DeckInput>): Promise<CreateDeckResult> {
-    return request(`/api/decks/${encodeURIComponent(slug)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(input)
-    })
+    return apiClient.patch(`/decks/${encodeURIComponent(slug)}`, input)
   },
 
   publishDeck(slug: string): Promise<CreateDeckResult> {
-    return request(`/api/decks/${encodeURIComponent(slug)}/publish`, { method: 'POST' })
+    return apiClient.post(`/decks/${encodeURIComponent(slug)}/publish`)
   },
 
   deleteDeck(slug: string): Promise<{ id: string; deleted: true }> {
-    return request(`/api/decks/${encodeURIComponent(slug)}`, { method: 'DELETE' })
+    return apiClient.delete(`/decks/${encodeURIComponent(slug)}`)
   },
 
   copyDeck(slug: string): Promise<CreateDeckResult> {
-    return request(`/api/decks/${encodeURIComponent(slug)}/copy`, { method: 'POST' })
+    return apiClient.post(`/decks/${encodeURIComponent(slug)}/copy`)
   }
 }

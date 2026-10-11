@@ -3,6 +3,7 @@
 // e ações de gestão. Reaproveita contentApi (@/features/content) e comments-api
 // (@/features/comments) — sem duplicar chamadas. Sem hooks, sem JSX (Model).
 import type { PaginatedResult, PostStatus } from '@digimon/contracts'
+import { apiClient } from '@/lib/api-base'
 import { contentApi } from '@/features/content/model/api'
 import { moderateComment } from '@/features/comments/model/comments-api'
 
@@ -39,24 +40,6 @@ export interface EditorialListParams {
   pageSize?: number
 }
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers }
-  })
-  if (!response.ok) {
-    let message = `Erro ${response.status}`
-    try {
-      const body = (await response.json()) as { error?: { message?: string } }
-      if (body.error?.message) message = body.error.message
-    } catch {
-      // corpo não-JSON: mantém a mensagem padrão
-    }
-    throw new Error(message)
-  }
-  return (await response.json()) as T
-}
-
 function buildQuery(params: EditorialListParams): string {
   const search = new URLSearchParams()
   if (params.status) search.set('status', params.status)
@@ -70,19 +53,19 @@ export const adminApi = {
   listEditorialPosts(
     params: EditorialListParams = {}
   ): Promise<PaginatedResult<EditorialPostSummary>> {
-    return request(`/api/posts/admin${buildQuery(params)}`)
+    return apiClient.get(`/posts/admin${buildQuery(params)}`)
   },
 
   async countByStatus(status: PostStatus): Promise<number> {
-    const result = await request<PaginatedResult<EditorialPostSummary>>(
-      `/api/posts/admin${buildQuery({ status, pageSize: 1 })}`
+    const result = await apiClient.get<PaginatedResult<EditorialPostSummary>>(
+      `/posts/admin${buildQuery({ status, pageSize: 1 })}`
     )
     return result.total
   },
 
   /** Busca um post por id com status editorial (draft/review/published/archived). */
   getEditorialPost(id: string): Promise<EditorialPostSummary> {
-    return request(`/api/posts/admin/${id}`)
+    return apiClient.get(`/posts/admin/${id}`)
   },
 
   publishPost(id: string): Promise<{ id: string; publishedAt: string }> {
@@ -110,6 +93,6 @@ export const adminApi = {
     if (params.page !== undefined) search.set('page', String(params.page))
     if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize))
     const qs = search.toString()
-    return request(`/api/comments/admin${qs ? `?${qs}` : ''}`)
+    return apiClient.get(`/comments/admin${qs ? `?${qs}` : ''}`)
   }
 }
