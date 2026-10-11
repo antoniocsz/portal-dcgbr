@@ -12,7 +12,8 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
-    "harness": "node scripts/harness/bin/harness.js"
+    "harness": "node scripts/harness/bin/harness.js",
+    "secret:scan": "node scripts/secret-scan.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

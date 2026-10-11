@@ -1,0 +1,40 @@
+# =============================================================================
+# gitleaks — varredura de segredos do digimon-card-game-brasil
+#
+# Local (Docker):
+#   docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+#     detect --source=/repo --config=/repo/.gitleaks.toml --redact -v
+#
+# CI: .github/workflows/gitleaks.yml (push/PR)
+#
+# Estratégia: herda o ruleset padrão do gitleaks (AWS, GCP, JWT, chaves
+# privadas, tokens, etc.) e adiciona allowlists do que NÃO é segredo neste
+# repositório — defaults de desenvolvimento (localhost) e placeholders.
+# =============================================================================
+
+title = "digimon-card-game-brasil"
+
+[extend]
+useDefault = true
+
+# Allowlist global (aplica a todas as regras).
+[[allowlists]]
+description = "Dev defaults, exemplos, fixtures e design — não são segredos"
+paths = [
+  '''\.env\.example$''',                 # arquivos de exemplo (placeholders)
+  '''pnpm-lock\.yaml$''',                # lockfile (integridade, não segredo)
+  '''(^|/)src/testing/''',               # fakes/fixtures dos módulos
+  '''\.spec\.ts$''',                     # testes usam senhas fake
+  '''context/project/design/''',         # mockups/design (.pen, .html, imagens)
+]
+regexes = [
+  # Defaults de desenvolvimento — não são credenciais reais
+  '''postgres(ql)?://digimon:digimon@localhost''',
+  '''postgres(ql)?://postgres:postgres@localhost''',
+  # Placeholders documentados em .env.example / docs
+  '''troque-por-um-segredo''',
+  '''admin12345''',
+  # Formato de hash interno (scrypt$<salt>$<hash>) — não é segredo
+  '''scrypt\$[0-9a-f]{1,}\$[0-9a-f]{1,}''',
+  '''DUMMY_HASH''',
+]
