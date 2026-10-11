@@ -25,3 +25,16 @@
 
 ## Handoff (task 32)
 - **Feito:** tabela key/value para configurações globais do site (gate "em breve").
+
+## Fase 5 — Bootstrap seguro (task 46)
+- [x] Guard `--only-if-empty` no `prisma/seed.ts`: se `User.count() > 0`, loga
+      `Seed ignorado (banco já populado)` e sai 0 (sem semear). Sem a flag, o
+      comportamento idempotente por e-mail permanece.
+- [x] Dois caminhos validados contra o Postgres de dev local: com flag →
+      `Seed ignorado (banco já populado)` (exit 0); sem flag → skip por e-mail (exit 0).
+- [x] Typecheck do pacote: ✅
+
+## Handoff (task 46)
+- **Feito:** guard `--only-if-empty` adicionado ao seed para o entrypoint da API
+  (task 47) nunca sobrescrever banco real. Guarda checa `prisma.user.count() > 0`.
+- **Pendências:** nenhuma. Task 47 (Dockerfile/entrypoint) consumirá a flag.

@@ -77,3 +77,20 @@
 - **Feito:** página de Simuladores 100% dinâmica — simuladores são posts da categoria `simulator` (editorial, como no domain-model). Destaque = mais recente; grade = demais. Botão "Acessar" só aparece quando externalUrl preenchido.
 - **Decisões:** externalUrl como campo opcional do Post (não módulo novo); fallback de capa com gradiente; content estático antigo removido (use-simulators agora é ViewModel de query).
 - **Pendências:** posts de simulador precisam ser criados/editados pelo editorial no /admin/posts (categoria Simuladores).
+
+## Fase 8 — Rotas Fastify no `apps/api` (task 38-backend-content-routes)
+- [x] `apps/api/src/routes/content.ts` — porte de `apps/web/src/app/api/posts/**` (públicas + admin + simuladores)
+- [x] `apps/api/src/routes/settings.ts` — porte de `apps/web/src/app/api/settings/site-gate` (administrator)
+- [x] Reuso de `@digimon/content` (use cases/schemas/`PrismaPostRepository`) + `@digimon/database` + `eventBus`/plugins de auth do `apps/api` — nenhuma regra de domínio duplicada
+- [x] Contratos JSON e workflow editorial idênticos (draft → review → published → archived); erros via `AppError` (handler global)
+- [x] Typecheck + lint + build `@digimon/app-api` ok; smoke `app.inject` (público + workflow editorial + guards 401/403)
+- [x] Strangler: `apps/web/**` intocado (web segue funcionando)
+
+## Handoff (task 38)
+- **Feito:** portados os handlers de conteúdo para `apps/api/src/routes/content.ts` (10 rotas: `GET /posts`, `GET /posts/simulators`, `GET /posts/:slug`, `POST/GET /posts/admin`, `GET/PATCH /posts/admin/:id`, `POST /posts/admin/:id/{submit,publish,archive}`) e os de site-gate para `apps/api/src/routes/settings.ts` (`GET/PATCH /settings/site-gate`). Composição local no plugin com `PrismaPostRepository(prisma)` + `eventBus` do container; use cases e schemas vêm do barrel `@digimon/content`. Helpers que no web viviam em `_lib/` (serialize/authors/session/handlers) foram embutidos no `content.ts` (o escopo da task só permite este arquivo), replicando a serialização (`Dates → ISO`, listagem sem body) e a resolução de `authorName` por lote.
+- **Arquivos:** `apps/api/src/routes/content.ts`, `apps/api/src/routes/settings.ts`, `context/modules/content/status.md`.
+- **Rotas/status:** públicas 200 (`/posts`, `/posts/simulators`, `/posts/:slug`); `POST /posts/admin` 201 `{id,slug}`; admin/editorial exige sessão + papel (401 sem sessão, 403 member); `submit` 200 review, `publish` 200 publishedAt, `archive` 200 archived; `GET/PATCH /settings/site-gate` exigem `administrator` (GET 401, PATCH 403 — paridade com o web).
+- **Validações:** `pnpm turbo typecheck/lint/build --filter=@digimon/app-api` ok; smoke via `app.inject` (health 200; guards sem sessão 401/403; member 403; workflow completo draft→review→published→archived com post de teste criado e **removido** ao final); `pnpm harness check --barrel --db` ok.
+- **Decisões:** (1) `content.ts`/`settings.ts` montam a composição inline (repo Prisma + `eventBus` do container) — não foi possível adicionar um `contentDeps()` ao `container.ts` (fora do escopo). (2) preHandlers `[authenticate, requireRoleHook([...])]` para rotas editoriais — `requireRoleHook` sozinho não injeta `request.auth`, então `authenticate` roda antes. (3) `settings.ts` replica a assimetria do web: GET devolve 401 (não-admin), PATCH devolve 403. (4) `ValidationError` (422) substitui os objetos de erro manuais do web no PATCH do site-gate.
+- **Divergência conhecida (reportar):** JSON malformado no PATCH `/settings/site-gate` o web devolvia 422 `VALIDATION_ERROR` ("Corpo inválido"); no Fastify o parser rejeita antes do handler (400 `FST_ERR_CTP_INVALID_JSON_BODY`). Afeta só corpo sintaticamente inválido; `mode` inválido segue 422 com a mensagem idêntica.
+- **Pendências:** nenhuma neste escopo. `POST /posts/admin/:id/publish` etc. reutilizam `eventBus` in-process do `apps/api` (eventos `post.*` publicados como no web).

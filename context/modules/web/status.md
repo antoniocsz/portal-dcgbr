@@ -230,3 +230,107 @@
 - **Feito:** modo "em breve" acionável do painel com efeito imediato (cache limpo no PATCH).
 - **Decisões:** proxy.ts (convenção do Next 16 — substitui middleware.ts; runtime Node sempre, sem segment config); gate cache in-process por instância com TTL (single instance no Coolify v1); default `live` se o banco cair.
 - **Pendências/atenção:** Turbopack no Windows deu panic transitório de CSS (0xc0000142) após restart — resolveu com `rm -rf apps/web/.next`. Se ocorrer, limpar o cache.
+
+## Fase 20 — Arquitetura: separação backend/frontend (task 33)
+- [x] ADR-007 criado: backend separado (`apps/api` Fastify) + `apps/web` frontend puro; API no subdomínio `api.digimoncardgamebrasil.com.br`; auth via CORS + cookies `Domain` (httpOnly/Secure/Lax); `@digimon/api-client` vira o cliente único
+- [x] migrate/seed no entrypoint da API (`migrate deploy` + seed `--only-if-empty`); imagem do web sem banco
+- [x] Estratégia strangler; web mantém fetch client-side
+- [x] `stack.md` + `overview.md` alinhados
+- [x] Plano de migração em 7 fases documentado no ADR (tasks a criar após aceite)
+
+## Handoff (task 33)
+- **Feito:** decisão arquitetural registrada (ADR-007) — reverte parcialmente o ADR-001 (backend integrado) e ajusta o ADR-006 (web sem banco). Nenhum código de aplicação tocado.
+- **Decisões:** Opção A (API pública em subdomínio) por escolha do dono; Fastify; migração strangler; web client-side; runtime Node completo na API p/ entrypoint migrate/seed.
+- **Pendências:** criar as tasks da migração (fases 1–7) na queue.
+
+## Fase 21 — Web consome a API separada via `@digimon/api-client` (task 45)
+- [x] `apps/web/src/lib/api-base.ts`: resolve o `baseUrl` (browser → `NEXT_PUBLIC_API_URL` com fallback dev `http://localhost:3001`; SSR → `API_INTERNAL_URL` com default `http://api:3001`), normaliza a barra final e expõe a instância compartilhada `apiClient` (`createApiClient` com `credentials: 'include'`)
+- [x] Camada **Model** das 10 features migrada para o `apiClient` (sem `/api` relativo): content, auth, users, comments, cards, decks, tournaments, admin (admin-api + admin-decks-api + site-gate-api)
+- [x] Paths ajustados (`/api/posts`→`/posts`, `/api/auth`→`/auth`, `/api/users`→`/users`, `/api/comments`→`/comments`, `/api/cards`→`/cards`, `/api/decks`→`/decks`, `/api/tournaments`→`/tournaments`, `/api/admin/decks`→`/admin/decks`, `/api/settings/site-gate`→`/settings/site-gate`), preservando as assinaturas públicas dos objetos `*Api`
+- [x] `ApiError` (message/status/code) agora vem de `@digimon/api-client`; reexportado dos models que o expunham (content/cards/decks/tournaments/admin-decks) — ViewModels usam `error instanceof Error ? error.message`
+- [x] `cache: 'no-store'` preservado (via `apiClient.request`) em comments (listagem) e site-gate (GET)
+- [x] Dep: `@digimon/api-client@workspace:*` em `apps/web/package.json` (+ `pnpm-lock.yaml`)
+- [x] **strangler:** `apps/web/src/app/api/**` e `apps/web/src/lib/server/**` intactos (cutover = task 53)
+- [x] typecheck + lint + build `@digimon/app-web` ok; `pnpm harness check --barrel --db` ok
+- [x] `next.config.ts` **não** precisou de `transpilePackages` (build passou sem ele)
+
+## Handoff (task 45)
+- **Feito:** o web passa a falar com a API separada (ADR-007, Opção A) pela camada Model. `api-base.ts` resolve a base URL por ambiente e cria o client único (`credentials: 'include'`).
+- **Decisões:** (1) `next.config.ts` intocado — o Turbopack transpilou `@digimon/api-client` sem `transpilePackages`. (2) `ApiError` deixa de ser redefinido por feature e passa a ser reexportado de `@digimon/api-client`. (3) `get` do client não aceita init, então `cache: 'no-store'` foi preservado via `apiClient.request` apenas onde existia (comments/site-gate). (4) `pnpm install` adicionou a dep via workspace.
+- **Pendências:** cutover (remover `apps/web/src/app/api/**` + `lib/server/**`) = task 53; SSR das páginas `[slug]`/`[id]` ainda faz `fetch` same-origin a `/api/**` (fora do escopo desta task).
+
+## Fase 22 — Cutover do strangler: web sem backend próprio nem banco (task 53)
+- [x] Removidos `apps/web/src/app/api/**` (63 arquivos) e `apps/web/src/lib/server/**` (4 arquivos) — o web deixa de expor `/api/**` e de fazer composition root/DB
+- [x] `apps/web` **não importa mais `@digimon/database`** (grep: nenhum `from '@digimon/database'` em `apps/web/src`; as 4 ocorrências restantes são apenas comentários nos tipos de feature explicando que o pacote NÃO é importado)
+- [x] `proxy.ts`: lê o site-gate via API (`GET ${apiBaseUrl}/settings/site-gate`, base interna `API_INTERNAL_URL` default `http://api:3001`); cache de módulo curto (10s); `!ok`/erro → `live`; allowlist (`/admin`, `/api`, `/login`, `/registro`, `/em-breve`) e redirect do coming-soon preservados
+- [x] `apps/api/src/routes/settings.ts`: `GET /settings/site-gate` agora **público** (o proxy roda para tráfego anônimo); `PATCH` segue administrator-only (403). Decisão aprovada pelo usuário
+- [x] `features/admin/model/session.ts`: sessão validada server-side via `@digimon/auth` (`JwtTokenService(process.env.JWT_SECRET)` + `verifyJwt`) lendo o cookie `access_token` (`next/headers`) — sem container/DB; + `fetchCurrentUser()` (`GET /auth/me` encaminhando o cookie)
+- [x] `app/admin/layout.tsx`: gate administrator/editor pela sessão; nome do usuário via API (`GET /auth/me`)
+- [x] `app/admin/configuracoes/page.tsx`: modo inicial via Model (`fetchSiteGateMode()`, API)
+- [x] `(public)/noticias/[slug]` e `(public)/cartas/[id]`: SSR via base interna, preservando `next: { revalidate: 60 }` + `generateMetadata`/`notFound`
+- [x] `lib/use-session.ts`: `GET /auth/me` via `apiClient` (browser, `credentials: 'include'`)
+- [x] `components/admin/logout-button.tsx` e `components/user-menu.tsx`: logout via Model (`authApi.logout()`)
+- [x] typecheck + lint + build `@digimon/app-web` (+ `@digimon/app-api`) ok; `pnpm harness check --barrel --db` ok
+
+## Handoff (task 53)
+- **Feito:** cutover final do strangler (ADR-007). O `apps/web` vira frontend puro: `app/api/**` e `lib/server/**` removidos, sem acesso a banco. Site-gate, sessão admin, SSR das páginas `[slug]`/`[id]` e logout passam pela API separada (`@digimon/api-client` / base interna `API_INTERNAL_URL`).
+- **Decisões:** (1) `GET /settings/site-gate` público na API (aprovado) — o `proxy.ts` roda para tráfego anônimo e o modo não é sensível; `PATCH` segue administrator-only. (2) Sessão server-side sem composition root: `JwtTokenService` construído do `process.env.JWT_SECRET` dentro do Model (`session.ts`); se ausente/curto → sessão nula (não derruba a página). (3) `proxy.ts` reusa `apiBaseUrl` de `lib/api-base` (mesma resolução SSR `API_INTERNAL_URL`/default) e faz `fetch` cru com cache de módulo curto — `!ok`/erro → `live`. (4) Nome do admin via `GET /auth/me` encaminhando o header `cookie` da requisição (evita Prisma no web). (5) Logout reusa `authApi.logout()` (Model existente) em vez de recriar chamada. (6) `next.config.ts` mantém `transpilePackages` (`@digimon/auth`/`users`/`contracts` ainda usados no web).
+- **Pendências/fora do escopo (reportar):** `apps/web/package.json` ainda declara `@digimon/database` (+ `@digimon/cards|comments|content|decks|tournaments|users` usados só por types/tipos espelhados) — remover a dep do web é da **task 48** (Dockerfile enxuto / package.json). Os comentários de doc em `features/*/viewmodels` e tipos ainda citam caminhos `/api/*` (apenas texto). SSR `[slug]`/`[id]` agora usa URL absoluta interna (`http://api:3001`), exigindo a API acessível pela rede do web em runtime.
+
+## Fase 23 — Dockerfile enxuto do web (task 48)
+- [x] `apps/web/package.json`: removidas `@digimon/{cards,comments,content,database,decks,tournaments}` (zero imports no `apps/web/src`). Mantidas `@digimon/{api-client,contracts,auth,users}`
+- [x] `@digimon/users` **mantida** (não é dep de dados no web): é importada por tipo em `features/users/model/types.ts` (`import type { UserView } from '@digimon/users'`) — sem ela o `tsc --noEmit` quebra. Documentada no handoff
+- [x] `pnpm install` reconciliou `pnpm-lock.yaml` (importer `apps/web` perdeu as 6 deps)
+- [x] `apps/web/Dockerfile`: removida toda referência a banco/Prisma/migrations (`DATABASE_URL`, driver adapter, `db:deploy`). Comentário de envs atualizado p/ o frontend puro (`JWT_SECRET`, `API_INTERNAL_URL`, `NEXT_PUBLIC_API_URL` em build time, `PORT`)
+- [x] `apps/web/Dockerfile` (deps): só os manifests do grafo do web (raiz + `apps/web` + `api-client`/`contracts`/`database`/`modules/{auth,users}`); `cards|comments|content|decks|tournaments` e `apps/api` saíram do install. `@digimon/database` **permanece** porque `auth`/`users` o declaram (tipos de `PrismaClient`)
+- [x] `apps/web/Dockerfile` (build): `COPY --from=deps /app ./` (garante `apps/web/node_modules` no estágio de build — padrão do `apps/api/Dockerfile`)
+- [x] Validação real: `docker build -f apps/web/Dockerfile .` **OK**; container sobe **sem `DATABASE_URL`** → `/` 200, `/login` 200, `/admin` 307 → `/login`, `/em-breve` 200
+- [x] Imagem de runtime **sem Prisma/banco**: `find /app -iname '*prisma*' -o -iname '*database*'` vazio; `DATABASE_URL=[]`; 48.4M
+- [x] Local: `pnpm turbo typecheck --filter=@digimon/app-web` OK; `pnpm turbo build --filter=@digimon/app-web` OK (standalone sem prisma/database)
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 48)
+- **Feito:** `apps/web` (frontend puro) não carrega mais nada de banco. `package.json` enxugado (6 deps removidas), `pnpm-lock.yaml` reconciliado e `apps/web/Dockerfile` reescrito: deps instalam só o grafo do web, o runtime standalone não tem Prisma/`DATABASE_URL`, e o build não abre conexão com o Postgres.
+- **Deps removidas:** `@digimon/database`, `@digimon/cards`, `@digimon/comments`, `@digimon/content`, `@digimon/decks`, `@digimon/tournaments`.
+- **Deps mantidas (e por quê):** `@digimon/api-client` (client HTTP único, runtime), `@digimon/auth` (runtime em `features/admin/model/session.ts` — `JwtTokenService`/`verifyJwt`/`ACCESS_TOKEN_COOKIE`), `@digimon/contracts` (tipos `Role`/`PostStatus`/`CommentStatus`/`PaginatedResult`), **`@digimon/users`** (import de **tipo** `UserView` em `features/users/model/types.ts` — o build/typecheck não passa sem ela; é o único dos "tipos espelhados" que ainda é importado de fato).
+- **Decisões:** (1) `@digimon/database` **permanece** no estágio de deps do Dockerfile (não é importada pelo web, mas é declarada por `@digimon/auth`/`@digimon/users`, que o build transpila via `transpilePackages` — os tipos de `PrismaClient` precisam resolver no typecheck do Next). Ela **não** entra no runtime (o standalone só traceia o que é importado). (2) `COPY --from=deps /app ./` no estágio de build (antes copiava só `/app/node_modules`) para garantir `apps/web/node_modules` no build — alinhado ao `apps/api/Dockerfile`. (3) `NEXT_PUBLIC_API_URL` é build-time (documentado no cabeçalho + `deploy.md`).
+- **Pendência/fora do escopo (reportar):** o Dockerfile **não** declara `ARG NEXT_PUBLIC_API_URL` no estágio de build. Sem ele, a env "available at buildtime" do Coolify (instruída no `deploy.md`, task 49) não alcança o `next build` — o browser cairia no fallback `http://localhost:3001`. Não adicionei o `ARG` por estar fora do escopo desta task (que pediu **remover** a dependência de banco); recomendo uma task curta para incluir `ARG NEXT_PUBLIC_API_URL` + `ENV` no estágio de build do web.
+
+## Fase 24 — Validação final pós-split (task 50)
+- [x] Sem `fetch('/api…')` client-side residual em `apps/web/src` (tudo migrado para `@digimon/api-client`)
+- [x] Sem imports de `lib/server` nem `@digimon/database` em `apps/web/src` (grep zero)
+- [x] SEO preservado: `metadata`/`canonical`/`openGraph`/`generateMetadata` presentes nas páginas públicas (`/`, `/noticias`, `/noticias/[slug]`, `/cartas`, `/cartas/[id]`, `/decks`, `/torneios`, `/simuladores`)
+- [x] Build de produção: **25 páginas**, **zero rotas `/api/*`**, `Proxy (Middleware)` presente
+- [x] `pnpm turbo typecheck` 12/12 + `pnpm turbo lint` 12/12
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 50)
+- **Feito:** validação final do portal pós-split (checagens estáticas + build de produção). Sem regressões; **nenhum arquivo de código alterado**.
+- **Limitações:** smoke de runtime end-to-end (API + web + DB) não executado nesta sessão (exige a stack completa); a validação cobriu ausência de resíduos, SEO, build e typecheck/lint.
+- **Pendências (fora do escopo):** (1) `ARG NEXT_PUBLIC_API_URL` no Dockerfile do web (task 48 — reportado); (2) `apps/web/.env.example` desatualizado (task 49 — reportado).
+
+## Fase 25 — ARG NEXT_PUBLIC_API_URL no build do web (task 54)
+- [x] `apps/web/Dockerfile` (estágio `build`): `ARG NEXT_PUBLIC_API_URL` + `ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL` antes do `pnpm turbo build` — recebe `--build-arg` e/ou a env "available at buildtime" do Coolify
+- [x] Validação real: `docker build --build-arg NEXT_PUBLIC_API_URL=https://api.digimoncardgamebrasil.com.br -f apps/web/Dockerfile .` — OK (imagem sha256:7a03f3b6, 25 rotas, Proxy/Middleware presente)
+- [x] Env efetivamente embutida no bundle client: URL presente em `/app/apps/web/.next/static/chunks/*.js` na imagem (grep na imagem)
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 54)
+- **Feito:** o estágio de build do `apps/web/Dockerfile` agora declara `ARG NEXT_PUBLIC_API_URL` + `ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL` antes do `next build`. O Next inlina `NEXT_PUBLIC_*` em build time; sem o `ARG`, o `--build-arg`/env "available at buildtime" (documentada em `deploy.md`, task 49) não alcançava o build e o browser caía no fallback `http://localhost:3001` (`apps/web/src/lib/api-base.ts`). Fecha o gap reportado pelas tasks 48/50.
+- **Validação:** `docker build --build-arg NEXT_PUBLIC_API_URL=https://api.digimoncardgamebrasil.com.br -f apps/web/Dockerfile .` OK; grep na imagem confirma a URL em `.next/static/chunks/*.js` (bundle client).
+- **Decisões:** `ARG`/`ENV` declarados no estágio `build` (único consumidor do valor); nada no runtime (o standalone já traz o JS buildado). `ENV` espelha o `ARG` para que a env também funcione quando injetada como variável de build (Coolify), não só via `--build-arg`.
+- **Pendências/fora do escopo (reportar):** se a build-arg/env estiver ausente, `ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL` resolve para string vazia e o fallback de `api-base.ts` (`?? 'http://localhost:3001'`) **não** dispara (string vazia não é nullish). Não ajustado aqui (apenas Dockerfile no escopo); sugerir tratamento em `api-base.ts` (ex.: `|| BROWSER_FALLBACK`) numa task futura se desejado.
+
+## Fase 26 — P0: `.dockerignore` exclui `.env` em qualquer nível (task 56)
+- [x] `.dockerignore`: adicionados `**/.env` e `**/.env.*` (o padrão Docker `**/` casa a raiz **e** subpastas); mantidos `.env`/`.env.*` (raiz) e as exceções `!.env.example`/`!**/.env.example`
+- [x] Causa raiz confirmada: `.env`/`.env.*` **sem `**/`** cobria só a raiz → `apps/web/.env` (com `JWT_SECRET`/`DATABASE_URL` reais) entrava no contexto de build e o `next build` o replicava em `.next/standalone/apps/web/.env`, ficando na imagem publicada
+- [x] Prova (contexto de build): imagem-sonda `FROM busybox` + `COPY . /ctx` → `find /ctx \( -name '.env*' -o -name '*.env' \)` = apenas os 4 `.env.example`; **nenhum `.env` real**
+- [x] Prova (imagens): `docker build -f apps/web/Dockerfile .` + `docker build -f apps/api/Dockerfile .` → `docker run … find / \( -name '.env' -o -name '.env.*' \)` = **vazio** na web; na API apenas `apps/api/.env.example` (template, sem segredo — permitido de propósito)
+- [x] Imagens/containers de teste removidos ao final (nenhuma publicação)
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 56)
+- **Feito:** `.dockerignore` corrigido para excluir `.env`/`.env.*` em **qualquer nível**. O padrão Docker (estilo `filepath.Match` com `**`) foi validado empiricamente com uma imagem-sonda: `**/.env`/`**/.env.*` casam raiz e subpastas; `!**/.env.example` preserva os exemplos (sem segredo). As imagens web e API não contêm nenhum `.env` real (a API traz só `apps/api/.env.example`, template).
+- **Segurança:** o `apps/web/.env` (com `JWT_SECRET`/`DATABASE_URL` reais) deixava de vazar para `.next/standalone/apps/web/.env` na imagem publicada. **PENDÊNCIA CRÍTICA (ação do usuário):** se alguma imagem do web já foi construída/publicada antes desta correção, **rotacionar o `JWT_SECRET`** (e quaisquer credenciais do `apps/web/.env`) — o segredo esteve embutido na imagem/camada publicada.
+- **Decisões:** manter `.env`/`.env.*` (raiz) **e** `**/.env`/`**/.env.*` (belt-and-suspenders; não dependemos de o `**` casar a raiz em toda versão do Docker, embora o teste confirme que casa). `!.env.example`/`!**/.env.example` ficam após as exclusões (ordem importa no `.dockerignore`).
+- **Escopo:** único arquivo tocado = `.dockerignore`. Imagens/containers de teste limpos; nada publicado.

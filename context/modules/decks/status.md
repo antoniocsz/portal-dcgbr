@@ -24,7 +24,26 @@
 - [x] Testes: 26 passed (4 novos: admin deleta deck de outro; editor deleta deck de outro; admin vê todos os status; editor filtra por status)
 - [x] Typecheck: ✅ | Lint: ✅ | Testes: ✅ 26 passed
 
+## Fase 4 — Porte para a API (task 41-backend-decks-routes)
+- [x] `apps/api/src/routes/decks.ts` — 9 rotas Fastify portadas de `apps/web/src/app/api/decks/**` + `/api/admin/decks/**` (caminhos completos `/decks` e `/admin/decks`)
+- [x] Contratos JSON/erros idênticos (owner-only + override admin no domínio, sem duplicar regra)
+- [x] Composição inline no arquivo (DIP): `PrismaDeckRepository` + `PrismaCardReferenceValidator` + use cases, reusando `eventBus` do container
+- [x] Typecheck: ✅ | Lint: ✅ | Build `@digimon/app-api`: ✅ (esbuild)
+- [x] Smoke via `app.inject`: ✅ 22 checks (401 anônimo, 403 RBAC admin, 404 draft anônimo, 201 create, 200 get/patch/mine/delete, 404 pós-delete)
+- [x] Strangler: `apps/web/**` intocado (handlers web seguem no ar)
+
 ## Handoff
+
+### Handoff task 41 (rotas de decks na API)
+- **Feito:** porte dos route handlers de decks (`/api/decks/**` e `/api/admin/decks/**`) para um único plugin Fastify em `apps/api/src/routes/decks.ts`: `GET/POST /decks`, `GET/PATCH/DELETE /decks/:slug`, `POST /decks/:slug/{publish,copy}`, `GET /admin/decks` (administrator|editor), `DELETE /admin/decks/:slug` (administrator). Sessão reusa `authenticate`/`requireRoleHook`/`getAuthContext` (plugins) — os handlers públicos (`GET /decks`, `GET /decks/:slug`) usam ator opcional (paridade com `_lib/session.ts`).
+- **Arquivos:** `apps/api/src/routes/decks.ts`, `context/modules/decks/status.md`.
+- **Decisões:**
+  1. **Composição inline (container não estendido):** o `apps/api/src/container.ts` (fora do escopo desta task) não expõe deps de decks; a composição (`PrismaDeckRepository`, `PrismaCardReferenceValidator`, 7 use cases) vive no próprio arquivo de rota, reusando o `eventBus` exportado pelo container e o `prisma` singleton. Nenhuma regra de domínio duplicada. Se o padrão desejado for `decksDeps()` no container, extrair depois (task própria).
+  2. **Erros delegados ao handler global** (`AppError → { error: { code, message, details } }`), em vez do `toErrorResponse` interno do web — mesmo contrato, seguindo o padrão das rotas de auth (task 36).
+  3. **`parseListInput`** replica o parse de query do web (`listDecksSchema.parse` + `queryString('' → undefined)`), garantindo `page/pageSize` coercidos e filtros opcionais.
+  4. Serialização portada (`serializeDeck`/`serializeSummary`/`serializeList`) inline — resumo da listagem sem `cardList`/`description`.
+- **Validações:** `pnpm turbo typecheck|lint|build --filter=@digimon/app-api` ✅; `pnpm harness check --barrel --db` ✅; smoke `app.inject` ✅ (publish/copy não exercitados no smoke por não haver cartas no catálogo local — cobertos pelos 26 testes de domínio).
+- **Fora do escopo (reportar):** `apps/web/**` intocado; `apps/api/src/container.ts` intocado.
 
 ### Handoff task 16 (rota admin de decks)
 - **Override admin no domínio (defense in depth):** `DeleteDeckUseCase.execute` autoriza delete se `actor.role === 'administrator' || 'editor'` OU `requireOwner(actor, deck.ownerId)` — a rota admin também exige o papel, mas a regra vive no use case (nenhum caller "comum" consegue escalar privilégio).

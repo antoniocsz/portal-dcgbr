@@ -31,3 +31,14 @@
 ## Handoff (task 23)
 - **Feito:** header mostra avatar dropdown quando logado; logout funcional via rota existente.
 - **Decisões:** leitura de sessão 100% client-side (fetch /me) para não quebrar geração estática das páginas públicas.
+
+## Fase 8 — Rotas portadas para a API Fastify (task 36, ADR-007)
+- [x] `apps/api/src/routes/auth.ts` reusa os use cases de `@digimon/auth` (nenhuma regra de domínio duplicada)
+- [x] `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`, `POST /auth/register` (rate limit 5/15min), `POST /auth/forgot-password`, `POST /auth/reset-password`, `GET /auth/me`
+- [x] Contratos JSON idênticos ao web; cookie httpOnly via `apps/api/src/http/cookies.ts`; erros `{ error: { code, message, details } }`
+- [x] Strangler: handlers equivalente em `apps/web/src/app/api/auth/**` mantidos (web segue funcionando)
+
+## Handoff (task 36)
+- **Feito:** rotas de auth da API portadas e validadas por smoke `app.inject` (register/me/refresh/logout + contratos de erro).
+- **Pendências:** CORS + cookie `Domain=.digimoncardgamebrasil.com.br` (task 43); cliente HTTP do web (tasks 44–45).
+- **Decisões:** nenhuma mudança em `@digimon/auth`; a composição é feita no `apps/api/src/container.ts` (já existente da task 35).

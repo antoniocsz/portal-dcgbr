@@ -91,3 +91,29 @@
 ## Handoff (task 30)
 - **Feito:** comentários públicos mostram o nome do autor. Fronteira preservada (join no repo, sem import de @digimon/users).
 - **Pendência/nota:** resposta do POST/PATCH de comentário serializa a entidade crua (`_body`, `_status`) — irrelevante para render (a View faz refetch via invalidateQueries), mas pode ser limpo num futuro task de "serialização de entidades".
+
+## Fase 5 — Porte das rotas para `apps/api` (task 39-backend-comments-routes)
+- [x] `apps/api/src/routes/comments.ts` preenchido (porte de `apps/web/src/app/api/comments/**`, strangler ADR-007)
+- [x] Rotas: `GET/POST /comments`, `PATCH/DELETE /comments/:id`, `POST /comments/:id/moderate`, `GET /comments/admin`
+- [x] Contratos JSON idênticos (inclui `authorName`; POST/PATCH/moderate devolvem `{ comment }`; DELETE 204)
+- [x] Moderação `admin|editor` (validação no domínio via `ListAllCommentsUseCase`/`ModerateCommentUseCase`)
+- [x] Sessão via `readSessionToken` (cookie httpOnly ou Bearer) + `verifyJwt`; anônimo → 401
+- [x] Erros via `AppError` (handler global) — sem try/catch local
+- [x] Typecheck + lint + build `@digimon/app-api` ok
+- [x] Smoke via `app.inject`: 9 casos (422 validação / 401 anônimo) passando
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 39)
+- **Feito:** handlers de comentários portados para Fastify em `apps/api`, reusando `@digimon/comments`
+  e o `eventBus` do container da API. Sem tocar em `apps/web/**` (janela do strangler).
+- **Decisões:**
+  - Composição local `commentsDeps()` no próprio `comments.ts` (o `container.ts` da API não expõe
+    deps de comments e está fora do escopo desta task) reusando `eventBus` + `prisma` do app.
+  - Sessão lida com `readSessionToken` (precedência cookie → Bearer) + `verifyJwt`; sem token → `null`
+    (anônimo) e os use cases lançam `UnauthorizedError` (401). Token inválido → 401.
+  - Serialização da listagem idêntica ao web (id/authorId/authorName/targetType/targetId/body/status/createdAt/updatedAt).
+  - Sem `try/catch`: erros de domínio sobem ao handler global (`{ error: { code, message } }`).
+- **Pendências:**
+  - `apps/web/src/app/api/comments/**` permanece ativo (strangler) até a task de wire do `api-client`
+    (44/45) e remoção dos handlers duplicados do web.
+  - Testes de integração (Prisma/DB real) do módulo continuam pendentes (herdado da Fase 1).

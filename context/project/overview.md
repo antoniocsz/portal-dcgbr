@@ -26,13 +26,13 @@ Portal de notícias (CMS/Blog) sobre o Digimon Card Game no Brasil, com:
 
 ## Stack
 
-Portal único web (Next.js App Router + Tailwind/shadcn-ui) com backend integrado (Route Handlers/Server Actions + Zod), Postgres + Prisma, auth própria (JWT), deploy via Coolify/Dockerfile.
+Portal web em Next.js (App Router + Tailwind/shadcn-ui) com **backend separado** — API Node/Fastify em `apps/api` (ADR-007) — Postgres + Prisma, auth própria (JWT), deploy via Coolify/Dockerfile (dois apps).
 Detalhes em `context/project/stack.md`.
 
 ## Princípios
 
 - SEO-first: SSR/ISR, indexação e Core Web Vitals são prioridade
-- Portal único: site público + painel admin integrados no mesmo app, mesmo domínio
+- Portal único no web: site público + painel admin integrados no mesmo app; backend (API) separado em `apps/api` (ADR-007)
 - Não multi-tenant: papéis globais fixos
 - Áreas (bounded contexts) independentes, integradas por entidades de núcleo (Carta, Torneio, Deck) e `@digimon/contracts`
 - Colaborativo onde faz sentido (torneios e decks por Members), editorial onde exige curadoria (notícias por Admin/Editor)
