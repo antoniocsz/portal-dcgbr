@@ -82,6 +82,19 @@
 
 ## Handoff
 
+### Handoff task 72 (redesenho do formulário de criar deck — UX)
+- **Feito (frontend, `apps/web`):** reescrita de `features/decks/views/deck-form-view.tsx` + evolução de `features/decks/viewmodels/use-deck-form.ts` para corrigir os 6 problemas de UX do `/decks/novo`.
+  - **Slug** derivado do nome (local `slugify`, espelho do domínio) e movido para linha secundária "URL: /decks/<slug>" + `<details>` avançado.
+  - **Sem `<form>` aninhado** (removidos form externo e de busca; Enter na busca não submete).
+  - **Quantidades 1..4**: `incrementCard`/`decrementCard`/`setQuantity(zone, cardId, qty)` no VM, com clamp por `maxCountInDeck` (default 4) e pelos caps de zona (main 50 / egg 5); `addCard`/`addEggCard` recebem `CardSummary` e registram o metadado.
+  - **Steppers +/−** nas listas main/egg (miniatura, nome, contador, Remover) e nos resultados da busca; contadores `X/50` e `Y/5`.
+  - **Índice de cartas** (`resolveCard`/`maxCountFor`): `Record<cardId, CardSummary>` alimentado ao adicionar + `useQueries` (`cardsApi.getCard`, cache `['card', id]`) p/ ids vindos de import — capa e listas mostram os nomes corretos.
+  - **Layout em 2 colunas** responsivo (busca à esquerda; painel do deck/legalidade/capa/ações à direita).
+- **Arquivos:** `apps/web/src/features/decks/views/deck-form-view.tsx`, `apps/web/src/features/decks/viewmodels/use-deck-form.ts`, `context/modules/web/status.md`, `context/modules/decks/status.md`.
+- **Decisões:** ver handoff da task 72 em `context/modules/web/status.md` (Fase 32). Destaque: constantes de tamanho locais no VM (não importa `@digimon/decks` no client); nenhuma regra de domínio duplicada — a legalidade continua vindo de `POST /decks/legality`.
+- **Validações:** `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings; build com `/decks/novo`).
+- **Fora do escopo (reportar):** `apps/api/**`, `packages/**` e `components/**` intocados. O wrapper da página (`(member)/decks/novo/page.tsx`: `AuthShell`/card ~420px) não foi alterado — o formulário em 2 colunas herda a largura do card do shell.
+
 ### Handoff task 66 (frontend da comunidade de decks)
 - **Feito:** frontend da comunidade (feed/curtir/publicar/import/export) consumindo as rotas reais da task 65. MVVM estrito — Model (`community-types`/`community-api`), ViewModels (4 novos + helpers), Views só JSX.
 - **Decisões:** contrato dos erros exibido via `error.message` do `ApiError` (envelope `{ error: { code, message, details } }`); like otimista com rollback; "copiar pra mim" cria rascunho próprio + registra cópia; export via `fetch` cru (text/plain).

@@ -1,23 +1,29 @@
 // Path: apps/web/src/features/decks/views/deck-form-view.tsx
-// View do formulário de criação de deck: dados + composição (main/egg) + capa,
-// legalidade ao vivo, import de decklist e publicação na comunidade após salvar.
-// Controlada pelos ViewModels; a View só renderiza e dispara callbacks.
+// View do formulário de criação de deck: metadados + composição (main/egg) com
+// steppers de quantidade, legalidade ao vivo, capa, import de decklist e
+// publicação na comunidade após salvar. Layout em duas colunas (busca à esquerda,
+// painel do deck à direita); a View só renderiza e dispara callbacks dos VMs.
 'use client'
 
 import type { ChangeEvent, ReactNode } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Button, StatusBadge } from '@/components'
+import { Minus, Plus, Search } from 'lucide-react'
+import { Button, CardTile, Sparkles, StatusBadge, X } from '@/components'
 import { cn } from '@/lib/utils'
-import { useDeckForm } from '../viewmodels/use-deck-form'
-import { useDeckPublications } from '../viewmodels/use-deck-publications'
+import { cardTypeLabel, toCardTileData } from '@/features/cards/viewmodels/card-view'
+import { CARD_COLOR_LABELS, CARD_TYPE_LABELS } from '@/features/cards/model/types'
+import type { CardColor, CardSummary, CardType } from '@/features/cards/model/types'
 import { useCardList } from '@/features/cards/viewmodels/use-card-list'
-import { toCardTileData } from '@/features/cards/viewmodels/card-view'
+import { useDeckForm, type DeckZone } from '../viewmodels/use-deck-form'
+import { useDeckPublications } from '../viewmodels/use-deck-publications'
 import type { DeckStatus } from '../model/types'
 import { DeckImportModal } from './deck-import-modal'
 import { DeckPublishModal } from './deck-publish-modal'
 
 const FORMAT_SUGGESTIONS = ['Standard', 'Booster Draft', 'Sealed', 'Casual']
+const TYPE_VALUES: CardType[] = ['digimon', 'tamer', 'option', 'digiegg']
+const COLOR_VALUES: CardColor[] = ['red', 'blue', 'yellow', 'green', 'purple', 'black', 'white']
 
 interface FieldProps {
   id: string
@@ -62,7 +68,6 @@ function DeckField({
           value={value}
           onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
           placeholder={placeholder}
-          required={required}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={classes}
@@ -73,6 +78,164 @@ function DeckField({
           {error}
         </p>
       ) : null}
+    </div>
+  )
+}
+
+function CardThumb({
+  imageUrl,
+  name,
+  className
+}: {
+  imageUrl?: string | null
+  name: string
+  className?: string
+}) {
+  if (!imageUrl) {
+    return (
+      <span
+        className={cn('flex items-center justify-center bg-surface-2 text-ink-faint', className)}
+        aria-hidden="true"
+      >
+        <Sparkles className="size-4" />
+      </span>
+    )
+  }
+  return (
+    <img
+      src={imageUrl}
+      alt={`Arte da carta ${name}`}
+      loading="lazy"
+      className={cn('object-contain', className)}
+    />
+  )
+}
+
+function QuantityStepper({
+  value,
+  max,
+  label,
+  onIncrement,
+  onDecrement
+}: {
+  value: number
+  max: number
+  label: string
+  onIncrement: () => void
+  onDecrement: () => void
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={`Quantidade de ${label}`}
+      className="inline-flex shrink-0 items-center border border-border bg-surface"
+    >
+      <button
+        type="button"
+        onClick={onDecrement}
+        aria-label={`Diminuir quantidade de ${label}`}
+        className="flex h-9 w-9 items-center justify-center text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+      >
+        <Minus className="size-4" aria-hidden="true" />
+      </button>
+      <span
+        aria-live="polite"
+        className="flex h-9 w-9 items-center justify-center border-x border-border text-[13px] font-semibold text-ink"
+      >
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={onIncrement}
+        disabled={value >= max}
+        aria-label={`Aumentar quantidade de ${label}`}
+        className="flex h-9 w-9 items-center justify-center text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 disabled:pointer-events-none disabled:opacity-40"
+      >
+        <Plus className="size-4" aria-hidden="true" />
+      </button>
+    </div>
+  )
+}
+
+interface DeckEntryView {
+  cardId: string
+  quantity: number
+  name: string
+  number: string | null
+  imageUrl: string | null
+  max: number
+}
+
+function DeckZonePanel({
+  title,
+  hint,
+  total,
+  limit,
+  entries,
+  onIncrement,
+  onDecrement,
+  onRemove
+}: {
+  title: string
+  hint: string
+  total: number
+  limit: number
+  entries: DeckEntryView[]
+  onIncrement: (cardId: string) => void
+  onDecrement: (cardId: string) => void
+  onRemove: (cardId: string) => void
+}) {
+  const full = total >= limit
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-xs font-semibold text-ink-soft">{title}</p>
+        <p className={cn('font-display text-sm font-bold', full ? 'text-warning' : 'text-ink')}>
+          {total}
+          <span className="text-ink-faint">/{limit}</span>
+        </p>
+      </div>
+      {entries.length === 0 ? (
+        <p className="border border-dashed border-border px-3 py-4 text-center text-[13px] text-ink-faint">
+          {hint}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-1.5">
+          {entries.map((entry) => (
+            <li
+              key={entry.cardId}
+              className="flex items-center gap-2 border border-border bg-surface-2 p-1.5"
+            >
+              <CardThumb
+                imageUrl={entry.imageUrl}
+                name={entry.name}
+                className="h-12 w-9 shrink-0 border border-border"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-ink">{entry.name}</p>
+                {entry.number ? (
+                  <p className="truncate text-[11px] text-ink-faint">{entry.number}</p>
+                ) : null}
+              </div>
+              <QuantityStepper
+                value={entry.quantity}
+                max={entry.max}
+                label={entry.name}
+                onIncrement={() => onIncrement(entry.cardId)}
+                onDecrement={() => onDecrement(entry.cardId)}
+              />
+              <button
+                type="button"
+                onClick={() => onRemove(entry.cardId)}
+                aria-label={`Remover ${entry.name} do deck`}
+                className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-faint transition-colors hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -88,8 +251,8 @@ export function DeckFormView({ submitLabel = 'Salvar deck', onSuccess }: DeckFor
   const publications = useDeckPublications()
   const [importOpen, setImportOpen] = useState(false)
   const [publishOpen, setPublishOpen] = useState(false)
+  const [term, setTerm] = useState(search.filters.search ?? '')
   const errorMessage = vm.error instanceof Error ? vm.error.message : null
-  const nameById = new Map(search.cards.map((card) => [card.id, card.name]))
 
   const submit = (status: DeckStatus) => {
     void vm.handleSubmit(status).then((created) => {
@@ -97,302 +260,427 @@ export function DeckFormView({ submitLabel = 'Salvar deck', onSuccess }: DeckFor
     })
   }
 
+  const applySearch = () => {
+    const next = { ...search.filters }
+    const trimmed = term.trim()
+    if (trimmed) next.search = trimmed
+    else delete next.search
+    search.setFilters(next)
+  }
+
+  const applyTypeFilter = (value: string) => {
+    const next = { ...search.filters }
+    if (value) next.type = value as CardType
+    else delete next.type
+    search.setFilters(next)
+  }
+
+  const applyColorFilter = (value: string) => {
+    const next = { ...search.filters }
+    if (value) next.color = value as CardColor
+    else delete next.color
+    search.setFilters(next)
+  }
+
   const publishError =
     publications.publishError instanceof Error ? publications.publishError.message : null
 
+  const coverCard: CardSummary | undefined = vm.coverCardId
+    ? vm.resolveCard(vm.coverCardId)
+    : undefined
+
+  const toEntries = (
+    list: { cardId: string; quantity: number }[],
+    zone: DeckZone
+  ): DeckEntryView[] => {
+    const remaining = zone === 'egg' ? vm.remainingEgg : vm.remainingMain
+    return list.map((entry) => {
+      const card = vm.resolveCard(entry.cardId)
+      return {
+        cardId: entry.cardId,
+        quantity: entry.quantity,
+        name: card?.name ?? entry.cardId,
+        number: card?.number ?? null,
+        imageUrl: card?.imageUrl ?? null,
+        max: Math.min(vm.maxCountFor(entry.cardId), entry.quantity + remaining)
+      }
+    })
+  }
+
+  const mainEntries = toEntries(vm.cardList, 'main')
+  const eggEntries = toEntries(vm.eggList, 'egg')
+
   return (
     <>
-      <form
-        className="flex flex-col gap-5"
-        onSubmit={(event) => {
-          event.preventDefault()
-          submit('draft')
-        }}
-      >
-        <DeckField
-          id="deck-name"
-          label="Nome do deck"
-          value={vm.values.name}
-          onChange={(value) => vm.handleChange('name', value)}
-          placeholder="Ex: Agumon Rush"
-          required
-          error={vm.errors.name ?? null}
-        />
-
-        <DeckField
-          id="deck-slug"
-          label="Slug (opcional)"
-          value={vm.values.slug}
-          onChange={(value) => vm.handleChange('slug', value)}
-          placeholder="slug-seo-friendly (gerado do nome se vazio)"
-          error={vm.errors.slug ?? null}
-        />
-
-        <DeckField
-          id="deck-format"
-          label="Formato"
-          value={vm.values.format}
-          onChange={(value) => vm.handleChange('format', value)}
-          placeholder="Ex: Standard"
-          required
-          error={vm.errors.format ?? null}
-        >
-          <input
-            id="deck-format"
-            name="format"
-            type="text"
-            list="deck-formats"
-            value={vm.values.format}
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              vm.handleChange('format', event.target.value)
-            }
+      <div className="flex w-full flex-col gap-5">
+        <div className="grid gap-4 border border-border bg-surface p-4 sm:grid-cols-2">
+          <DeckField
+            id="deck-name"
+            label="Nome do deck"
+            value={vm.values.name}
+            onChange={(value) => vm.handleChange('name', value)}
+            placeholder="Ex: Agumon Rush"
             required
-            aria-invalid={vm.errors.format ? true : undefined}
-            className={cn(
-              'h-10 w-full border bg-surface-2 px-3 text-sm text-ink outline-none transition-colors',
-              'placeholder:text-ink-faint focus:border-primary',
-              vm.errors.format ? 'border-danger' : 'border-border'
-            )}
+            error={vm.errors.name ?? null}
           />
-          <datalist id="deck-formats">
-            {FORMAT_SUGGESTIONS.map((format) => (
-              <option key={format} value={format} />
-            ))}
-          </datalist>
-        </DeckField>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="deck-description" className="text-xs font-semibold text-ink-soft lg:text-[13px]">
-            Descrição (opcional)
-          </label>
-          <textarea
-            id="deck-description"
-            name="description"
-            value={vm.values.description}
-            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-              vm.handleChange('description', event.target.value)
-            }
-            rows={3}
-            placeholder="Estratégia, engine, combos…"
-            className={cn(
-              'w-full border bg-surface-2 px-3 py-2.5 text-sm text-ink outline-none transition-colors',
-              'placeholder:text-ink-faint focus:border-primary'
-            )}
-          />
-        </div>
-
-        <div className="flex items-center justify-between gap-3 border border-border bg-surface p-4">
-          <div className="flex flex-col">
-            <p className="text-xs font-semibold text-ink-soft">Decklist pronta?</p>
-            <p className="text-[13px] text-ink-faint">Cole o texto e preencha main + egg.</p>
-          </div>
-          <Button type="button" variant="dark" size="sm" onClick={() => setImportOpen(true)}>
-            Importar decklist
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-2 border border-border bg-surface p-4" aria-live="polite">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-ink-soft">Legalidade</p>
-            {vm.isCheckingLegality ? (
-              <span className="text-xs text-ink-faint">Verificando…</span>
-            ) : vm.legality ? (
-              <StatusBadge tone={vm.legality.legal ? 'success' : 'danger'}>
-                {vm.legality.legal ? 'Legal' : 'Ilegal'}
-              </StatusBadge>
-            ) : (
-              <span className="text-xs text-ink-faint">Adicione cartas</span>
-            )}
-          </div>
-          <p className="text-xs text-ink-faint">
-            main {vm.totalMain}/50 · egg {vm.totalEgg}/5
-          </p>
-          {vm.legality && vm.legality.violations.length > 0 ? (
-            <ul className="flex flex-col gap-1">
-              {vm.legality.violations.map((violation, index) => (
-                <li key={`${violation.code}-${violation.cardId ?? index}`} className="text-xs text-danger">
-                  {violation.message}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {vm.importSummary ? (
-            <p className="text-xs text-ink-soft">
-              Importado: {vm.importSummary.main} main · {vm.importSummary.egg} egg. Ignoradas:{' '}
-              {vm.importSummary.skipped}. Cortadas: {vm.importSummary.trimmed}.
-            </p>
-          ) : null}
-        </div>
-
-        <div className="flex flex-col gap-2 border border-border bg-surface p-4">
-          <p className="text-xs font-semibold text-ink-soft">Buscar cartas do catálogo</p>
-          <form
-            className="flex gap-2"
-            onSubmit={(event) => {
-              event.preventDefault()
-              const value = new FormData(event.currentTarget).get('search')
-              const term = typeof value === 'string' ? value.trim() : ''
-              if (term) search.setFilters({ search: term })
-            }}
+          <DeckField
+            id="deck-format"
+            label="Formato"
+            value={vm.values.format}
+            onChange={(value) => vm.handleChange('format', value)}
+            placeholder="Ex: Standard"
+            required
+            error={vm.errors.format ?? null}
           >
             <input
-              type="search"
-              name="search"
-              defaultValue={search.filters.search ?? ''}
-              placeholder="Nome ou efeito (ex: Agumon, explosão)…"
-              aria-label="Buscar cartas do catálogo"
-              className="h-9 min-w-0 flex-1 border border-border bg-surface-2 px-3 text-sm text-ink outline-none focus:border-primary placeholder:text-ink-faint"
+              id="deck-format"
+              name="format"
+              type="text"
+              list="deck-formats"
+              value={vm.values.format}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                vm.handleChange('format', event.target.value)
+              }
+              aria-invalid={vm.errors.format ? true : undefined}
+              className={cn(
+                'h-10 w-full border bg-surface-2 px-3 text-sm text-ink outline-none transition-colors',
+                'placeholder:text-ink-faint focus:border-primary',
+                vm.errors.format ? 'border-danger' : 'border-border'
+              )}
             />
-            <Button type="submit" variant="dark" size="sm">
-              Buscar
-            </Button>
-          </form>
+            <datalist id="deck-formats">
+              {FORMAT_SUGGESTIONS.map((format) => (
+                <option key={format} value={format} />
+              ))}
+            </datalist>
+          </DeckField>
 
-          {search.isLoading ? (
-            <p className="text-[13px] text-ink-faint">Buscando…</p>
-          ) : search.isError ? (
-            <p className="text-[13px] text-danger">Não foi possível buscar cartas.</p>
-          ) : search.cards.length > 0 ? (
-            <ul className="flex max-h-64 flex-col gap-1.5 overflow-y-auto" aria-label="Resultados da busca">
-              {search.cards.map((card) => {
-                const tile = toCardTileData(card)
-                const inMain = vm.cardList.some((entry) => entry.cardId === card.id)
-                const isEgg = card.type === 'digiegg'
-                const inEgg = vm.eggList.some((entry) => entry.cardId === card.id)
-                return (
-                  <li
-                    key={card.id}
-                    className="flex items-center justify-between gap-2 border border-border bg-surface-2 px-3 py-2 text-[13px] text-ink"
-                  >
-                    <span className="min-w-0 truncate">
-                      <span className="font-semibold">{card.name}</span>
-                      <span className="ml-2 text-ink-faint">{card.number}</span>
-                      <span className="ml-2 hidden text-ink-faint sm:inline">
-                        {tile.type} · {card.dp != null ? `${card.dp} DP` : ''}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 gap-2">
-                      {isEgg ? (
-                        <Button
-                          type="button"
-                          variant={inEgg ? 'dark' : 'primary'}
-                          size="sm"
-                          disabled={inEgg}
-                          onClick={() => vm.addEggCard(card.id)}
-                        >
-                          {inEgg ? 'No egg' : 'Egg'}
-                        </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant={inMain ? 'dark' : 'primary'}
-                          size="sm"
-                          disabled={inMain}
-                          onClick={() => vm.addCard(card.id)}
-                        >
-                          {inMain ? 'No deck' : 'Adicionar'}
-                        </Button>
-                      )}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          ) : (
-            <p className="text-[13px] text-ink-faint">
-              Nenhuma carta encontrada. Tente outro termo ou limpe a busca.
-            </p>
-          )}
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col gap-2 border border-border bg-surface p-4">
-            <p className="text-xs font-semibold text-ink-soft">
-              Main deck ({vm.totalMain} cartas)
-            </p>
-            {vm.cardList.length === 0 ? (
-              <p className="text-[13px] text-ink-faint">Nenhuma carta no main.</p>
-            ) : (
-              <ul className="flex flex-col gap-1.5">
-                {vm.cardList.map((entry) => (
-                  <li
-                    key={entry.cardId}
-                    className="flex items-center justify-between gap-2 text-[13px] text-ink"
-                  >
-                    <span className="min-w-0 truncate">
-                      {nameById.get(entry.cardId) ?? entry.cardId} ×{entry.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => vm.removeCard(entry.cardId)}
-                      className="shrink-0 text-xs font-semibold text-danger hover:underline"
-                    >
-                      Remover
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <label htmlFor="deck-description" className="text-xs font-semibold text-ink-soft lg:text-[13px]">
+              Descrição (opcional)
+            </label>
+            <textarea
+              id="deck-description"
+              name="description"
+              value={vm.values.description}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                vm.handleChange('description', event.target.value)
+              }
+              rows={2}
+              placeholder="Estratégia, engine, combos…"
+              className={cn(
+                'w-full border bg-surface-2 px-3 py-2.5 text-sm text-ink outline-none transition-colors',
+                'placeholder:text-ink-faint focus:border-primary'
+              )}
+            />
           </div>
 
-          <div className="flex flex-col gap-2 border border-border bg-surface p-4">
+          <div className="flex flex-col gap-1 sm:col-span-2">
             <p className="text-xs font-semibold text-ink-soft">
-              Egg deck ({vm.totalEgg} cartas)
+              URL: <span className="font-mono text-ink">/decks/{vm.effectiveSlug || '…'}</span>
             </p>
-            {vm.eggList.length === 0 ? (
-              <p className="text-[13px] text-ink-faint">Nenhuma carta no egg.</p>
-            ) : (
-              <ul className="flex flex-col gap-1.5">
-                {vm.eggList.map((entry) => (
-                  <li
-                    key={entry.cardId}
-                    className="flex items-center justify-between gap-2 text-[13px] text-ink"
-                  >
-                    <span className="min-w-0 truncate">
-                      {nameById.get(entry.cardId) ?? entry.cardId} ×{entry.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => vm.removeEggCard(entry.cardId)}
-                      className="shrink-0 text-xs font-semibold text-danger hover:underline"
-                    >
-                      Remover
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <details className="text-[13px] text-ink-faint">
+              <summary className="cursor-pointer select-none hover:text-ink-soft">
+                Avançado: definir slug manualmente
+              </summary>
+              <div className="pt-2">
+                <label htmlFor="deck-slug" className="sr-only">
+                  Slug do deck
+                </label>
+                <input
+                  id="deck-slug"
+                  name="slug"
+                  type="text"
+                  value={vm.values.slug}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                    vm.handleChange('slug', event.target.value)
+                  }
+                  placeholder="gerado do nome se vazio"
+                  aria-invalid={vm.errors.slug ? true : undefined}
+                  className={cn(
+                    'h-9 w-full border bg-surface-2 px-3 font-mono text-[13px] text-ink outline-none transition-colors',
+                    'placeholder:text-ink-faint focus:border-primary',
+                    vm.errors.slug ? 'border-danger' : 'border-border'
+                  )}
+                />
+                {vm.errors.slug ? (
+                  <p className="pt-1 text-xs font-semibold text-danger">{vm.errors.slug}</p>
+                ) : null}
+              </div>
+            </details>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="deck-cover" className="text-xs font-semibold text-ink-soft lg:text-[13px]">
-            Carta de capa (opcional)
-          </label>
-          <select
-            id="deck-cover"
-            value={vm.coverCardId ?? ''}
-            onChange={(event) => vm.setCoverCard(event.target.value || null)}
-            className="h-10 w-full border border-border bg-surface-2 px-3 text-sm text-ink outline-none focus:border-primary"
-          >
-            <option value="">Sem capa</option>
-            {vm.cardList.map((entry) => (
-              <option key={entry.cardId} value={entry.cardId}>
-                {nameById.get(entry.cardId) ?? entry.cardId}
-              </option>
-            ))}
-          </select>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
+          {/* Esquerda — busca/seleção de cartas */}
+          <div className="flex flex-col gap-5">
+            <section className="flex flex-col gap-3 border border-border bg-surface p-4">
+              <h2 className="font-display text-sm font-bold text-ink">Buscar cartas do catálogo</h2>
+
+              <div className="flex flex-wrap gap-2">
+                <label className="sr-only" htmlFor="deck-search-type">
+                  Filtrar por tipo
+                </label>
+                <select
+                  id="deck-search-type"
+                  value={search.filters.type ?? ''}
+                  onChange={(event) => applyTypeFilter(event.target.value)}
+                  className="h-9 border border-border bg-surface-2 px-2 text-[13px] text-ink outline-none focus:border-primary"
+                >
+                  <option value="">Todos os tipos</option>
+                  {TYPE_VALUES.map((type) => (
+                    <option key={type} value={type}>
+                      {CARD_TYPE_LABELS[type]}
+                    </option>
+                  ))}
+                </select>
+                <label className="sr-only" htmlFor="deck-search-color">
+                  Filtrar por cor
+                </label>
+                <select
+                  id="deck-search-color"
+                  value={search.filters.color ?? ''}
+                  onChange={(event) => applyColorFilter(event.target.value)}
+                  className="h-9 border border-border bg-surface-2 px-2 text-[13px] text-ink outline-none focus:border-primary"
+                >
+                  <option value="">Todas as cores</option>
+                  {COLOR_VALUES.map((color) => (
+                    <option key={color} value={color}>
+                      {CARD_COLOR_LABELS[color]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  id="deck-search-term"
+                  type="search"
+                  value={term}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setTerm(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      applySearch()
+                    }
+                  }}
+                  placeholder="Nome ou efeito (ex: Agumon, explosão)…"
+                  aria-label="Buscar cartas do catálogo"
+                  className="h-9 min-w-0 flex-1 border border-border bg-surface-2 px-3 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-primary"
+                />
+                <Button variant="dark" size="sm" onClick={applySearch}>
+                  <Search className="size-4" aria-hidden="true" />
+                  Buscar
+                </Button>
+              </div>
+
+              <div aria-live="polite">
+                {search.isLoading ? (
+                  <p className="text-[13px] text-ink-faint">Buscando cartas…</p>
+                ) : search.isError ? (
+                  <p className="text-[13px] text-danger">
+                    Não foi possível buscar cartas. Tente novamente.
+                  </p>
+                ) : search.cards.length > 0 ? (
+                  <>
+                    <p className="pb-2 text-[11px] text-ink-faint">
+                      {search.total} resultado{search.total === 1 ? '' : 's'} · até 4 cópias por carta
+                    </p>
+                    <ul
+                      className="flex max-h-[28rem] flex-col gap-1.5 overflow-y-auto pr-1 lg:max-h-[40rem]"
+                      aria-label="Resultados da busca"
+                    >
+                      {search.cards.map((card) => {
+                        const zone: DeckZone = card.type === 'digiegg' ? 'egg' : 'main'
+                        const list = zone === 'egg' ? vm.eggList : vm.cardList
+                        const entry = list.find((item) => item.cardId === card.id)
+                        const inDeck = Boolean(entry)
+                        const remaining = zone === 'egg' ? vm.remainingEgg : vm.remainingMain
+                        const cap = Math.min(
+                          vm.maxCountFor(card.id),
+                          (entry?.quantity ?? 0) + remaining
+                        )
+                        return (
+                          <li
+                            key={card.id}
+                            className="flex items-center gap-3 border border-border bg-surface-2 p-2"
+                          >
+                            <CardThumb
+                              imageUrl={card.imageUrl}
+                              name={card.name}
+                              className="h-14 w-10 shrink-0 border border-border"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[13px] font-semibold text-ink">
+                                {card.name}
+                              </p>
+                              <p className="truncate text-[11px] text-ink-faint">
+                                {card.number} · {cardTypeLabel(card.type)}
+                                {card.dp != null ? ` · ${card.dp} DP` : ''}
+                              </p>
+                            </div>
+                            {inDeck ? (
+                              <QuantityStepper
+                                value={entry?.quantity ?? 0}
+                                max={cap}
+                                label={card.name}
+                                onIncrement={() => vm.incrementCard(zone, card.id)}
+                                onDecrement={() => vm.decrementCard(zone, card.id)}
+                              />
+                            ) : (
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                disabled={remaining <= 0}
+                                onClick={() =>
+                                  zone === 'egg' ? vm.addEggCard(card) : vm.addCard(card)
+                                }
+                              >
+                                {zone === 'egg' ? 'Adicionar egg' : 'Adicionar'}
+                              </Button>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-[13px] text-ink-faint">
+                    Nenhuma carta encontrada. Ajuste os filtros ou tente outro termo.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <div className="flex items-center justify-between gap-3 border border-border bg-surface p-4">
+              <div className="flex flex-col">
+                <p className="text-xs font-semibold text-ink-soft">Decklist pronta?</p>
+                <p className="text-[13px] text-ink-faint">Cole o texto e preencha main + egg.</p>
+              </div>
+              <Button type="button" variant="dark" size="sm" onClick={() => setImportOpen(true)}>
+                Importar decklist
+              </Button>
+            </div>
+          </div>
+
+          {/* Direita — painel do deck */}
+          <div className="flex flex-col gap-5 lg:sticky lg:top-6">
+            <section className="flex flex-col gap-4 border border-border bg-surface p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-display text-sm font-bold text-ink">Seu deck</h2>
+                {vm.isCheckingLegality ? (
+                  <span className="text-xs text-ink-faint">Verificando…</span>
+                ) : vm.legality ? (
+                  <StatusBadge tone={vm.legality.legal ? 'success' : 'danger'}>
+                    {vm.legality.legal ? 'Legal' : 'Ilegal'}
+                  </StatusBadge>
+                ) : (
+                  <span className="text-xs text-ink-faint">Sem cartas</span>
+                )}
+              </div>
+
+              <DeckZonePanel
+                title="Main deck"
+                hint="Adicione cartas do main pela busca."
+                total={vm.totalMain}
+                limit={50}
+                entries={mainEntries}
+                onIncrement={(cardId) => vm.incrementCard('main', cardId)}
+                onDecrement={(cardId) => vm.decrementCard('main', cardId)}
+                onRemove={vm.removeCard}
+              />
+
+              <DeckZonePanel
+                title="Egg deck"
+                hint="Adicione Digi-Eggs (até 5)."
+                total={vm.totalEgg}
+                limit={5}
+                entries={eggEntries}
+                onIncrement={(cardId) => vm.incrementCard('egg', cardId)}
+                onDecrement={(cardId) => vm.decrementCard('egg', cardId)}
+                onRemove={vm.removeEggCard}
+              />
+
+              {vm.legality && vm.legality.violations.length > 0 ? (
+                <ul className="flex flex-col gap-1 border-t border-border pt-3">
+                  {vm.legality.violations.map((violation, index) => (
+                    <li
+                      key={`${violation.code}-${violation.cardId ?? index}`}
+                      className="text-xs text-danger"
+                    >
+                      {violation.message}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {vm.importSummary ? (
+                <p className="border-t border-border pt-3 text-xs text-ink-soft">
+                  Importado: {vm.importSummary.main} main · {vm.importSummary.egg} egg. Ignoradas:{' '}
+                  {vm.importSummary.skipped}. Cortadas: {vm.importSummary.trimmed}.
+                </p>
+              ) : null}
+            </section>
+
+            <section className="flex flex-col gap-3 border border-border bg-surface p-4">
+              <label htmlFor="deck-cover" className="text-xs font-semibold text-ink-soft">
+                Carta de capa (opcional)
+              </label>
+              <div className="flex items-start gap-3">
+                {coverCard ? (
+                  <CardTile card={toCardTileData(coverCard)} className="w-20 shrink-0" />
+                ) : null}
+                <select
+                  id="deck-cover"
+                  value={vm.coverCardId ?? ''}
+                  onChange={(event) => vm.setCoverCard(event.target.value || null)}
+                  className="h-10 min-w-0 flex-1 border border-border bg-surface-2 px-3 text-sm text-ink outline-none focus:border-primary"
+                >
+                  <option value="">Sem capa</option>
+                  {vm.cardList.map((entry) => (
+                    <option key={entry.cardId} value={entry.cardId}>
+                      {vm.resolveCard(entry.cardId)?.name ?? entry.cardId}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            {vm.errors.cardList ? (
+              <p className="text-xs font-semibold text-danger">{vm.errors.cardList}</p>
+            ) : null}
+
+            {errorMessage ? (
+              <p role="alert" className="text-xs font-semibold text-danger">
+                {errorMessage}
+              </p>
+            ) : null}
+
+            <div className="flex flex-col gap-2 border border-border bg-surface p-4">
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                disabled={vm.isPending}
+                onClick={() => submit('draft')}
+              >
+                {vm.isPending ? 'Salvando…' : submitLabel}
+              </Button>
+              <Button
+                type="button"
+                variant="dark"
+                size="md"
+                disabled={vm.isPending}
+                onClick={() => submit('published')}
+              >
+                {vm.isPending ? 'Publicando…' : 'Salvar e publicar'}
+              </Button>
+              <p className="text-center text-[11px] text-ink-faint">
+                Salvar e publicar envia o deck à comunidade (precisa estar legal).
+              </p>
+            </div>
+          </div>
         </div>
-
-        {vm.errors.cardList ? (
-          <p className="text-xs font-semibold text-danger">{vm.errors.cardList}</p>
-        ) : null}
-
-        {errorMessage ? (
-          <p role="alert" className="text-xs font-semibold text-danger">
-            {errorMessage}
-          </p>
-        ) : null}
 
         {vm.result ? (
           <div className="flex flex-col gap-3 border border-border bg-surface-2 px-4 py-3">
@@ -414,22 +702,7 @@ export function DeckFormView({ submitLabel = 'Salvar deck', onSuccess }: DeckFor
             </div>
           </div>
         ) : null}
-
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" variant="primary" size="md" disabled={vm.isPending}>
-            {vm.isPending ? 'Salvando…' : submitLabel}
-          </Button>
-          <Button
-            type="button"
-            variant="dark"
-            size="md"
-            disabled={vm.isPending}
-            onClick={() => submit('published')}
-          >
-            {vm.isPending ? 'Publicando…' : 'Salvar e publicar'}
-          </Button>
-        </div>
-      </form>
+      </div>
 
       <DeckImportModal
         open={importOpen}

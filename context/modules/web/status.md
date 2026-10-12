@@ -392,3 +392,72 @@
 - **Arquivos:** `components/card-tile.tsx`, `features/cards/model/{types,cards-api}.ts`, `features/cards/viewmodels/{card-view,use-admin-cards}.ts`, `features/cards/views/{card-filters,card-detail-view,admin-cards-view}.tsx`.
 - **Decisões:** (1) `<img>` nativo (não `next/image`) — sem `images.remotePatterns` para o domínio da TakaOtaku no `next.config.ts` (config fora do escopo). (2) Custo enviado como match exato `playCost=0..7` (a API usa igualdade); "7+" (≥7) exigiria filtro de faixa no backend — reportado. (3) Set se auto-oculta com lista vazia (task 70 popula `card_sets`). (4) Reuso do painel de importação; gatilho do cabeçalho renomeado para "Importação / curadoria".
 - **Fora do escopo:** nenhum. `packages/**` e `apps/api/**` intocados; `features/decks/**` e `components/**` (exceto `card-tile.tsx`) intocados.
+
+## Fase 31 — Ficha da carta: arte inteira sem corte (task 71)
+- [x] `card-detail-view`: área da arte trocada de altura fixa (`h-72`) + `object-cover` para **proporção de carta** (`aspect-[5/7]`) + `object-contain` — a arte oficial (carta completa) aparece inteira, sem corte
+- [x] Fundo neutro `bg-bg` quando há arte (contraste); gradiente da cor + `Sparkles` preservados como **fallback** (`imageUrl` ausente ou `onError`)
+- [x] Skeleton de loading alinhado à proporção (`aspect-[5/7] w-full max-w-[400px]`) — sem CLS
+- [x] `card-tile`: imagem alinhada para `object-contain` (uniformidade com a ficha; grade já usava `aspect-[5/7]`)
+- [x] `alt` com o nome da carta + `loading="lazy"`/`decoding="async"` preservados
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings; build 30 rotas)
+
+## Handoff (task 71)
+- **Feito:** a ficha da carta passa a exibir a arte oficial inteira. A causa era o container de altura fixa (`h-72`) com `object-cover`, que cortava a carta (proporção ~5:7). Trocado por `aspect-[5/7]` + `object-contain` sobre fundo neutro `bg-bg`; o gradiente da cor + `Sparkles` seguem como fallback em ausência/erro da arte. O skeleton de loading foi alinhado à mesma proporção (sem CLS) e o `CardTile` da grade passou a `object-contain` para uniformizar com a ficha.
+- **Arquivos:** `apps/web/src/features/cards/views/card-detail-view.tsx`, `apps/web/src/components/card-tile.tsx`.
+- **Decisões:** (1) fundo neutro `bg-bg` (token mais escuro) quando há arte — o gradiente de cor fica só no fallback (via `backgroundImage` inline condicional; classe `bg-bg` é sobrescrita pelo inline quando o fallback entra). (2) `bg-bg` dentro do frame `bg-surface` cria o contraste "levemente escurecido" pedido. (3) `object-contain` também no tile (a grade já usa `aspect-[5/7]`, corte era mínimo, mas uniformizar era desejável). (4) Nenhum componente novo, nenhuma `next/image` (mantido `<img>` nativo — sem `remotePatterns` no `next.config.ts`, fora do escopo).
+- **Fora do escopo:** nenhum. `packages/**`, `apps/api/**` e demais `components/**` intocados.
+
+## Fase 32 — Redesenho do formulário de criar deck (UX) (task 72)
+- [x] **Slug fora do fluxo principal**: virou linha secundária "URL: /decks/<slug>" + `<details>` "Avançado: definir slug manualmente"; o slug é **derivado do nome** (slugify do domínio replicado) quando o campo está vazio (`vm.effectiveSlug`)
+- [x] **Sem `<form>` aninhado**: o `<form>` externo e o `<form>` de busca foram removidos — busca por `onKeyDown`/botão, ações por `onClick` em `Button type="button"`; labels/aria preservados
+- [x] **Controle de quantidade (1..4)**: VM ganhou `incrementCard`/`decrementCard`/`setQuantity(zone, cardId, qty)` e `addCard`/`addEggCard` respeitando `maxCountInDeck` (default 4) e os caps de zona (main 50 / egg 5); nada mais desabilita "após 1 cópia"
+- [x] **Steppers +/− nas listas do deck** (main e egg) com miniatura, nome, contador e Remover; contadores `X/50` e `Y/5` no topo do painel
+- [x] **Capa com nomes corretos**: índice de cartas no VM (`resolveCard`) alimentado ao adicionar pela busca + resolução lazy dos ids de import (`cardsApi.getCard` via `useQueries`, cache `['card', id]`); `<select>` de capa e listas usam o índice (cai no `cardId` só se não resolver); preview da capa com `CardTile`
+- [x] **Layout em duas colunas responsivo**: esquerda = busca (filtros tipo/cor + resultados com miniatura + stepper/"Adicionar") + import; direita = painel do deck (main/egg, contadores, legalidade, capa) + rodapé de ações (Salvar / Salvar e publicar), `lg:sticky`
+- [x] `remainingMain`/`remainingEgg` expostos pelo VM; legalidade ao vivo + violações listadas no painel
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings; build 31 rotas, `/decks/novo` presente)
+
+## Handoff (task 72)
+- **Feito:** redesenho de UX do formulário de criar deck (`/decks/novo`, `deck-form-view.tsx`) atendendo os 6 problemas reportados. MVVM estrito mantido: a View só renderiza e dispara callbacks; todo fetch/estado/validação vive nos ViewModels (`useDeckForm` + `useCardList`/`useDeckPublications`/`useDeckImportExport`).
+- **Arquivos:** `apps/web/src/features/decks/views/deck-form-view.tsx`, `apps/web/src/features/decks/viewmodels/use-deck-form.ts`.
+- **Decisões:** (1) **`addCard`/`addEggCard` recebem `CardSummary`** (não só o id) para registrar o metadado no índice — resolve o `maxCountInDeck` sem pré-carregar todos os resultados da busca. (2) **Índice de cartas** como `Record<cardId, CardSummary>` (state) + `useQueries` (`queryKey: ['card', id]`, `staleTime 5min`) só para ids órfãos (import) — mesma estratégia de `use-community-deck`; `resolveCard`/`maxCountFor` derivados por `useMemo`. (3) **Slug derivado**: `effectiveSlug = values.slug || slugify(values.name)`; a validação testa o slug efetivo e `buildInput` envia o derivado. (4) **Sem `<form>`**: removidos o form externo e o interno (evita submit implícito ao teclar Enter na busca); ações via `onClick`. (5) **Steppers com `cap = min(maxCountInDeck, qty + restanteDaZona)`** — o `+` desabilita no limite sem depender do VM (que também faz clamp defensivo). (6) Constantes `MAIN_DECK_SIZE`/`EGG_DECK_SIZE`/`DEFAULT_MAX_COUNT_IN_DECK` locais no VM (o client não importa `@digimon/decks` p/ não arrastar o banco). (7) `CardTile` usado no preview da capa; miniaturas das listas/busca em `<img>` (padrão de `community-deck-detail-view`).
+- **Fora do escopo (reportar):** nenhum. `apps/api/**`, `packages/**` e `components/**` intocados. A página `(member)/decks/novo/page.tsx` (AuthShell/card 420px) não foi tocada — o formulário agora usa duas colunas dentro do card; se o card estreito do shell incomodar, ajustar o wrapper numa task própria.
+
+## Fase 33 — Home: remover torneios hardcoded (task 73)
+- [x] `use-home.ts`: removidos `UPCOMING_TOURNAMENTS`, o import de `TournamentCardData` e o campo `tournaments` de `HomeData`/retorno; comentário do topo atualizado (não menciona mais torneios estáticos)
+- [x] `home-view.tsx`: removida a `<section>` "Próximos torneios no Brasil", o import de `TournamentCard` e o destructuring de `tournaments`; comentário do topo atualizado
+- [x] Nenhum dado falso de torneios introduzido — home mantém herói, categorias, últimas notícias e CTA
+- [x] Sem imports/usos órfãos (grep `tournaments|TournamentCard` em `features/content` = 0)
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings; build 30 rotas)
+
+## Handoff (task 73)
+- **Feito:** removida a seção "Próximos torneios no Brasil" da Home, que renderizava 3 torneios hardcoded (`UPCOMING_TOURNAMENTS`). O ViewModel `useHome` deixou de expor `tournaments` e a View não importa mais `TournamentCard`. A Home permanece com herói, categorias, últimas notícias e CTA.
+- **Arquivos:** `apps/web/src/features/content/viewmodels/use-home.ts`, `apps/web/src/features/content/views/home-view.tsx`.
+- **Decisões:** remover o dado estático em vez de conectá-lo a uma API — o módulo de torneios existe (`/torneios`), mas a Home não foi pedida para consumi-lo nesta task (evita inventar dados e mantém o escopo mínimo).
+- **Fora do escopo:** nenhum. `components/**` (incluindo `TournamentCard`, ainda usado em `/torneios`), `apps/api/**` e `packages/**` intocados.
+
+## Fase 34 — Assets: logo com fundo transparente + fix do rodapé (task 74)
+- [x] `public/dcg-logo.png`: versão transparente `937×266` RGBA validada — 52,77% do canvas com alpha=0, os 4 cantos em `(0,0,0,0)`, nenhuma linha 100% opaca (sem retângulo de fundo), halo quase inexistente (39 px semi-transparentes quase brancos)
+- [x] `site-footer.tsx`: regressão corrigida — `className="h-[38px] w-auto"` restaurado (a logo voltava ao tamanho natural 1280×364 e estourava o rodapé); `loading="eager"` removido (logo abaixo da dobra)
+- [x] `site-header.tsx`: mantida altura controlada `h-9 w-auto` e ausência do texto "Brasil" (`DCG BRASIL` já está na arte); `width/height` intrínsecos alinhados ao asset (937×266)
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` — 3/3 ✅ (0 erros, 0 warnings; build 27 páginas + Proxy)
+
+## Handoff (task 74)
+- **Feito:** `apps/web/public/dcg-logo.png` agora tem fundo transparente (`DCG BRASIL`, 937×266 RGBA) e o rodapé voltou a renderizar a logo em `h-[38px] w-auto`. A logo commitada (`HEAD`) tinha fundo opaco; o working tree já trazia a versão transparente (tentativa anterior não commitada), que foi validada/limpa.
+- **Arquivos:** `apps/web/public/dcg-logo.png`, `apps/web/src/components/site-footer.tsx`, `apps/web/src/components/site-header.tsx`.
+- **Decisões:** (1) usei a versão transparente do working tree em vez de re-derivar do design — a arte do design (`context/project/design/dcg-logo.png`) é "DIGIMON CARD GAME" **sobre um plate opaco** (72,8% opaco), logo re-derivar exigiria remover um fundo multicolorido com risco alto; a arte desejada ("DCG BRASIL", com "BRASIL" embutido) só existe como essa versão transparente. (2) **não** apara o padding horizontal (125 px à esquerda / 99 px à direita): o `crop` pela bbox do alpha deixaria um pixel de arte anti-aliased (alpha=93) encostado no canto superior-direito, violando o critério "cantos alpha=0"; mantive o canvas com os 4 cantos exatamente transparentes (o padding é invisível em `w-auto`). (3) alinhei `width/height` das duas imagens de `1280×364` (dimensões do asset antigo) para `937×266` (asset atual) — evita hint de aspect-ratio desalinhado e o risco de a logo "estourar" se o CSS falhar. (4) removi `loading="eager"` do rodapé (logo abaixo da dobra não deve ser eager; `next/image` volta a lazy) e mantive `priority`/`loading="eager"` no header (acima da dobra).
+- **Verificação da logo:** `PIL` — mode RGBA, 937×266; cantos `(0,0,0,0)`; 52,77% alpha=0; 0 linhas totalmente opacas; halo ≈ 39 px. Tamanho final **937×266** (~195 KB).
+- **Fora do escopo:** `apps/web/next-env.d.ts` regenerado pelo build mantido como está (artefato, como instruído); demais arquivos do working tree (tasks 71–73) intocados.
+
+## Fase 35 — Página /decks/novo com largura adequada ao deck builder (task 75)
+- [x] `(member)/decks/novo/page.tsx`: abandonou o `AuthShell` (card 420px) por um **container largo** `mx-auto w-full max-w-[1440px] px-4 py-10 lg:px-12` + cabeçalho próprio (h1 `font-display` "Criar deck" + subtítulo `text-ink-soft`), no padrão de `decks-list-view`/`profile-view`
+- [x] Gate preservado: a rota permanece sob `(member)` (o layout do grupo é passthrough; nenhuma proteção foi removida/alterada)
+- [x] `deck-form-view.tsx`: raiz com `w-full` e lista de resultados com `lg:max-h-[40rem]` — as 2 colunas respiram no container largo (o `lg:sticky` do painel do deck continua); MVVM intacto
+- [x] `AuthShell`/`features/auth` intocados (tasks bonus zero)
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (3/3; 0 erros, 0 warnings; build 27 rotas, `/decks/novo` estática)
+
+## Handoff (task 75)
+- **Feito:** o formulário de criar deck (2 colunas, task 72) deixa de ficar apertado no card de 420px do `AuthShell`. A página passa a montar um container largo (`max-w-[1440px]`) com cabeçalho tipográfico próprio; a View ganha `w-full` na raiz e uma lista de resultados mais alta no desktop (`lg:max-h-[40rem]`), aproveitando a largura/altura. A View só renderiza (MVVM intacto — nenhum hook de dados foi movido para a View).
+- **Arquivos:** `apps/web/src/app/(member)/decks/novo/page.tsx`, `apps/web/src/features/decks/views/deck-form-view.tsx`, `context/modules/web/status.md`.
+- **Decisões:** (1) **Gate preservado sem alteração** — o `(member)/layout.tsx` é passthrough (não contém gate); a proteção reside no agrupamento `(member)` + login do cliente, e a página continua dentro dele (nada removido/movido). (2) **Não usar `AuthHeader`** de `features/auth` (evita acoplar a página ao shell de auth que a task pediu para abandonar); o cabeçalho segue o padrão tipográfico do design system já usado nas listagens. (3) Ajuste mínimo na View (só classes de layout) — nenhuma lógica/ViewModel alterado.
+- **Fora do escopo (reportar):** nenhum arquivo tocado além do `## Escopo`. `AuthShell`/`features/auth`, `use-deck-form.ts`, `apps/api/**`, `packages/**` e `components/**` intocados. `context/modules/decks/status.md` **não** foi editado (só `web/status.md` estava no escopo desta task); o handoff da task 72 lá registrava que o wrapper da página ainda era o card de 420px — agora resolvido por esta task.

@@ -48,7 +48,7 @@ export function CardTile({ card, className }: CardTileProps) {
               loading="lazy"
               decoding="async"
               onError={() => setImageFailed(true)}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
             <span className="absolute left-2.5 top-2.5 bg-black/60 px-1.5 py-0.5 text-[11px] font-bold text-white">
               {card.number}

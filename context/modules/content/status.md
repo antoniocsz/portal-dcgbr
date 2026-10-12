@@ -94,3 +94,15 @@
 - **Decisões:** (1) `content.ts`/`settings.ts` montam a composição inline (repo Prisma + `eventBus` do container) — não foi possível adicionar um `contentDeps()` ao `container.ts` (fora do escopo). (2) preHandlers `[authenticate, requireRoleHook([...])]` para rotas editoriais — `requireRoleHook` sozinho não injeta `request.auth`, então `authenticate` roda antes. (3) `settings.ts` replica a assimetria do web: GET devolve 401 (não-admin), PATCH devolve 403. (4) `ValidationError` (422) substitui os objetos de erro manuais do web no PATCH do site-gate.
 - **Divergência conhecida (reportar):** JSON malformado no PATCH `/settings/site-gate` o web devolvia 422 `VALIDATION_ERROR` ("Corpo inválido"); no Fastify o parser rejeita antes do handler (400 `FST_ERR_CTP_INVALID_JSON_BODY`). Afeta só corpo sintaticamente inválido; `mode` inválido segue 422 com a mensagem idêntica.
 - **Pendências:** nenhuma neste escopo. `POST /posts/admin/:id/publish` etc. reutilizam `eventBus` in-process do `apps/api` (eventos `post.*` publicados como no web).
+
+## Fase 9 — Home sem torneios hardcoded (task 73)
+- [x] `features/content/viewmodels/use-home.ts`: removidos `UPCOMING_TOURNAMENTS`, o import de `TournamentCardData` e o campo `tournaments` de `HomeData`/retorno
+- [x] `features/content/views/home-view.tsx`: removida a `<section>` "Próximos torneios no Brasil", o import de `TournamentCard` e o destructuring de `tournaments`
+- [x] Home mantém herói, categorias, últimas notícias e CTA — sem dados falsos de torneios
+- [x] `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings)
+
+## Handoff (task 73)
+- **Feito:** a Home do portal deixou de exibir a seção estática "Próximos torneios no Brasil". O `useHome` não expõe mais `tournaments` e a `HomeView` não importa `TournamentCard`.
+- **Arquivos:** `apps/web/src/features/content/viewmodels/use-home.ts`, `apps/web/src/features/content/views/home-view.tsx`.
+- **Decisões:** apenas remoção — a Home não foi conectada à API de torneios nesta task (escopo mínimo; evita inventar dados).
+- **Fora do escopo:** nenhum. `TournamentCard` (components) segue usado pela página `/torneios`; `apps/api/**` e `packages/**` intocados.

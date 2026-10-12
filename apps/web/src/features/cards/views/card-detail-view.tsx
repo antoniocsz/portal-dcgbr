@@ -51,7 +51,7 @@ export function CardDetailView({ id }: CardDetailViewProps) {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-[1000px] px-4 py-10 lg:px-12" aria-busy="true" aria-label="Carregando carta">
-        <div className="h-72 animate-pulse border border-border bg-surface-2" />
+        <div className="aspect-[5/7] w-full max-w-[400px] animate-pulse border border-border bg-surface-2" />
       </div>
     )
   }
@@ -86,8 +86,12 @@ export function CardDetailView({ id }: CardDetailViewProps) {
             ) : null}
           </div>
           <div
-            className="relative flex h-72 flex-col items-center justify-center gap-2.5"
-            style={{ backgroundImage: `linear-gradient(0deg, ${hex} 0%, ${hex}99 100%)` }}
+            className="relative flex aspect-[5/7] flex-col items-center justify-center gap-2.5 bg-bg"
+            style={
+              detail.imageUrl && !artFailed
+                ? undefined
+                : { backgroundImage: `linear-gradient(0deg, ${hex} 0%, ${hex}99 100%)` }
+            }
           >
             {detail.imageUrl && !artFailed ? (
               <img
@@ -96,7 +100,7 @@ export function CardDetailView({ id }: CardDetailViewProps) {
                 loading="lazy"
                 decoding="async"
                 onError={() => setArtFailed(true)}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             ) : (
               <Sparkles className="size-24 text-white/90" aria-hidden="true" />

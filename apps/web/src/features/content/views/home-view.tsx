@@ -1,9 +1,9 @@
 // Path: apps/web/src/features/content/views/home-view.tsx
-// View da Home: destaque, categorias, últimas notícias, torneios e CTA.
+// View da Home: destaque, categorias, últimas notícias e CTA.
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, TournamentCard } from '@/components'
+import { ArrowRight } from '@/components'
 import { useHome } from '../viewmodels/use-home'
 import { Hero } from './hero'
 import { NewsGrid } from './news-grid'
@@ -60,7 +60,7 @@ function CommunityCta() {
 }
 
 export function HomeView() {
-  const { featured, latest, tournaments, isLoading, isError, refetch } = useHome()
+  const { featured, latest, isLoading, isError, refetch } = useHome()
 
   return (
     <div className="flex flex-col">
@@ -93,17 +93,6 @@ export function HomeView() {
         </div>
         <div className="pt-5">
           <NewsGrid posts={latest} isLoading={isLoading} isError={isError} onRetry={refetch} />
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 lg:px-12">
-        <h2 className="mb-5 font-display text-xl font-bold text-ink lg:text-[26px]">
-          Próximos torneios no Brasil
-        </h2>
-        <div className="grid gap-5 lg:grid-cols-3">
-          {tournaments.map((tournament) => (
-            <TournamentCard key={tournament.name} tournament={tournament} />
-          ))}
         </div>
       </section>
 
