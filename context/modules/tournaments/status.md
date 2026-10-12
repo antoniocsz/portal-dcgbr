@@ -77,3 +77,33 @@
 - Testes de integração com Postgres real permanecem fora deste porte (mesma pendência da task 13).
 - `apps/web/src/app/api/tournaments/**` só sai na fase de corte do strangler (task de wiring do
   `api-client`, 44/45).
+
+## Fase 3 — Frontend: detalhe do torneio (`/torneios/[slug]`) + resultados (task 88)
+- [x] Rota `apps/web/src/app/(public)/torneios/[slug]/page.tsx` (conserta o 404; `generateMetadata` SSR + cookie)
+- [x] View `TournamentDetailView`: cabeçalho, informações, classificação (tabela/lista por posição) e ações por papel (registrar/editar resultados + cancelar com confirmação; visitante sem ações destrutivas)
+- [x] View `TournamentResultsForm`: linhas dinâmicas (posição/jogador/deck/record), validação local, feedback de sucesso/erro
+- [x] ViewModel `useTournament`: `isNotFound` (404 sem vazar cancelado de terceiros), papel (`isOrganizer`/`isManager`/`canManage`), ações reusando `use-tournament-actions`, invalidação da query do torneio + listagem
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings)
+
+## Handoff (task 88)
+### Feito
+- Frontend do detalhe do torneio consumindo as rotas reais (`GET /tournaments/:slug`, `POST /tournaments/:slug/results`, `DELETE /tournaments/:slug`). MVVM estrito: View só JSX; fetch/mutations no ViewModel/Model; sem importar `@digimon/tournaments` no client.
+- Cabeçalho (nome/status/formato/local/datas/descrição), seções de informação (`<dl>`), classificação (tabela `sm+` / lista mobile, ordenada por `position`) e estado vazio claro; 404 "Torneio não encontrado" sem vazar cancelado de terceiros; "Voltar para torneios".
+- Ações por papel: organizador OU Admin/Editor registram/editam resultados e cancelam (confirmação inline); visitante não vê ações destrutivas.
+
+### Arquivos
+- `apps/web/src/app/(public)/torneios/[slug]/page.tsx` (novo)
+- `apps/web/src/features/tournaments/views/tournament-detail-view.tsx` (novo)
+- `apps/web/src/features/tournaments/views/tournament-results-form.tsx` (novo)
+- `apps/web/src/features/tournaments/views/index.ts` (barrel)
+- `apps/web/src/features/tournaments/viewmodels/use-tournament.ts` (enriquecido)
+
+### Decisões
+- Cancelar só quando `status === 'published'`; registrar/editar resultados quando `status !== 'cancelled'` (espelha as transições da entidade `Tournament`).
+- Organizador exibido só quando o visitante é o dono (não há `GET /users/:id` público).
+- Invalidação da query `['tournament', slug]` feita no `use-tournament.ts` (o `use-tournament-actions.ts` está fora do escopo e continua invalidando a listagem `['tournaments']`).
+- Form de resultados recebe submit/mutation por props do ViewModel; sucesso controlado localmente no VM.
+
+### Pendências
+- "Editar dados do torneio" não implementado (rota de UI inexistente; `PATCH /tournaments/:slug` já existe) — task própria.
+- Testes de integração com Postgres real seguem pendentes (mesma pendência das tasks 42/13).
