@@ -41,8 +41,8 @@ export function SiteFooter() {
           <Image
             src="/dcg-logo.png"
             alt="Digimon Card Game"
-            width={1280}
-            height={364}
+            width={937}
+            height={266}
             className="h-[38px] w-auto"
           />
           <span className="font-display text-lg font-bold text-ink">DigiTCG Brasil</span>

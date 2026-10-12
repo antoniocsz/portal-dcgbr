@@ -24,16 +24,12 @@ function Brand() {
       <Image
         src="/dcg-logo.png"
         alt="Digimon Card Game"
-        width={1280}
-        height={364}
+        width={937}
+        height={266}
         priority
+        loading="eager"
         className="h-9 w-auto"
       />
-      <span className="font-display text-base font-bold text-ink-soft">Brasil</span>
-      <span className="hidden items-center gap-1 bg-surface-2 px-1.5 py-1 sm:flex" aria-hidden="true">
-        <span className="size-2.5 rounded-full bg-accent" />
-        <span className="h-1 w-10 bg-border" />
-      </span>
     </Link>
   )
 }
