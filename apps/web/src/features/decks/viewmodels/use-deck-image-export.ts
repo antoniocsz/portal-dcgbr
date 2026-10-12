@@ -469,7 +469,12 @@ export function useDeckImageExport(input: DeckImageExportInput) {
     const anchor = document.createElement('a')
     anchor.href = previewUrl
     anchor.download = fileName
+    anchor.style.display = 'none'
+    document.body.appendChild(anchor)
     anchor.click()
+    window.setTimeout(() => {
+      anchor.remove()
+    }, 0)
   }, [previewUrl, fileName])
 
   const reset = useCallback((): void => {

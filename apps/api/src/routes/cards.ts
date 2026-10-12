@@ -6,7 +6,7 @@
 // Erros de domínio (AppError) são traduzidos pelo handler global.
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import type { PaginatedResult } from '@digimon/contracts'
-import { ValidationError } from '@digimon/contracts'
+import { NotFoundError, ValidationError } from '@digimon/contracts'
 import { requireRole } from '@digimon/auth'
 import { importCardsFromSourceSchema, listCardsSchema } from '@digimon/cards'
 import type {
@@ -105,8 +105,14 @@ function requireAdminActor(request: FastifyRequest): CardActor {
   return { id: context.userId, role: context.role }
 }
 
-const { list: listCards, get: getCard, listSets, import: importCards, importFromSource } =
-  cardsDeps()
+const {
+  list: listCards,
+  get: getCard,
+  listSets,
+  import: importCards,
+  importFromSource,
+  importSourceJobs
+} = cardsDeps()
 
 export const cardsRoutes: FastifyPluginAsync = async (app) => {
   // GET /cards — listagem pública (filtros + full-text + paginação).
@@ -169,6 +175,46 @@ export const cardsRoutes: FastifyPluginAsync = async (app) => {
         ...(body.max !== undefined ? { max: body.max } : {})
       })
       return reply.status(201).send(result)
+    }
+  )
+
+  // POST /cards/admin/import-source/jobs — dispara a importação externa em background
+  // (fire-and-forget) e responde 202 com o id do job. O progresso é consultado por
+  // polling em GET .../jobs/:jobId (o handler não aguarda a importação).
+  app.post<{ Body: ImportCardsFromSourceInput }>(
+    '/cards/admin/import-source/jobs',
+    async (request, reply) => {
+      const actor = requireAdminActor(request)
+      const body = importCardsFromSourceSchema.parse(request.body ?? {})
+      if (body.source !== undefined && body.source !== 'taka') {
+        throw new ValidationError(`Fonte externa desconhecida: ${body.source}`)
+      }
+      const jobId = importSourceJobs.start(() =>
+        importFromSource.execute({
+          actor,
+          ...(body.sets !== undefined ? { sets: body.sets } : {}),
+          ...(body.ids !== undefined ? { ids: body.ids } : {}),
+          ...(body.max !== undefined ? { max: body.max } : {})
+        })
+      )
+      return reply.status(202).send({ jobId })
+    }
+  )
+
+  // GET /cards/admin/import-source/jobs — lista os jobs recentes (administrator).
+  app.get('/cards/admin/import-source/jobs', async (request, reply) => {
+    requireAdminActor(request)
+    return reply.send({ items: importSourceJobs.list() })
+  })
+
+  // GET /cards/admin/import-source/jobs/:jobId — progresso/resultado do job.
+  app.get<{ Params: { jobId: string } }>(
+    '/cards/admin/import-source/jobs/:jobId',
+    async (request, reply) => {
+      requireAdminActor(request)
+      const job = importSourceJobs.get(request.params.jobId)
+      if (!job) throw new NotFoundError('Job de importação não encontrado')
+      return reply.send(job)
     }
   )
 }

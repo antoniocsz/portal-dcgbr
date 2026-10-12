@@ -98,6 +98,19 @@ export interface ImportCardsFromSourceResult {
   setsCount?: number
 }
 
+// Importação externa assíncrona (jobs) — espelho das rotas
+// POST /cards/admin/import-source/jobs e GET /cards/admin/import-source/jobs/:jobId.
+export type ImportJobStatus = 'running' | 'done' | 'error'
+
+export interface SourceImportJob {
+  id: string
+  status: ImportJobStatus
+  startedAt: string
+  finishedAt: string | null
+  result?: ImportCardsFromSourceResult
+  error?: string
+}
+
 export interface AdminCardRow {
   id: string
   name: string

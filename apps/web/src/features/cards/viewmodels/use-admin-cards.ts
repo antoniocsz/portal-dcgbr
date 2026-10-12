@@ -5,12 +5,13 @@
 // renderiza.
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { cardsApi } from '../model/cards-api'
 import type { AdminCardRow, CardColor, CardType, ImportCardsInput } from '../model/types'
 
 const ADMIN_PAGE_SIZE = 20
+const SOURCE_IMPORT_POLL_MS = 2000
 
 export interface AdminCardFilters {
   search?: string
@@ -25,6 +26,7 @@ export function useAdminCards() {
   const [importJson, setImportJson] = useState('')
   const [importDraftError, setImportDraftError] = useState<string | null>(null)
   const [importOpen, setImportOpen] = useState(false)
+  const [sourceJobId, setSourceJobId] = useState<string | null>(null)
 
   const query = useQuery({
     queryKey: ['admin-cards', filters, page],
@@ -47,13 +49,31 @@ export function useAdminCards() {
   })
 
   const sourceImportMutation = useMutation({
-    mutationFn: () => cardsApi.importCardsFromSource(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin-cards'] })
-      void queryClient.invalidateQueries({ queryKey: ['cards'] })
-      void queryClient.invalidateQueries({ queryKey: ['card-sets'] })
-    }
+    mutationFn: () => cardsApi.startSourceImport(),
+    onSuccess: (data) => setSourceJobId(data.jobId)
   })
+
+  // Polling do job (a cada 2s) enquanto estiver rodando; para no unmount
+  // (o React Query cancela o interval) e quando `done`/`error`.
+  const sourceJobQuery = useQuery({
+    queryKey: ['source-import-job', sourceJobId],
+    enabled: sourceJobId !== null,
+    queryFn: async () => {
+      if (!sourceJobId) throw new Error('Job de importação sem id')
+      return cardsApi.getSourceImportJob(sourceJobId)
+    },
+    refetchInterval: (query) =>
+      query.state.data?.status === 'running' ? SOURCE_IMPORT_POLL_MS : false
+  })
+
+  const sourceJobStatus = sourceJobQuery.data?.status
+
+  useEffect(() => {
+    if (sourceJobStatus !== 'done') return
+    void queryClient.invalidateQueries({ queryKey: ['admin-cards'] })
+    void queryClient.invalidateQueries({ queryKey: ['cards'] })
+    void queryClient.invalidateQueries({ queryKey: ['card-sets'] })
+  }, [sourceJobStatus, queryClient])
 
   const total = query.data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE))
@@ -94,6 +114,25 @@ export function useAdminCards() {
     importMutation.mutate(parsed as ImportCardsInput)
   }
 
+  const runSourceImport = () => {
+    setSourceJobId(null)
+    sourceImportMutation.reset()
+    sourceImportMutation.mutate()
+  }
+
+  const resetSourceImport = () => {
+    setSourceJobId(null)
+    sourceImportMutation.reset()
+  }
+
+  const sourceImportError: Error | null = sourceImportMutation.error
+    ? sourceImportMutation.error instanceof Error
+      ? sourceImportMutation.error
+      : new Error('Falha ao iniciar a importação externa.')
+    : sourceJobStatus === 'error'
+      ? new Error(sourceJobQuery.data?.error ?? 'Falha na importação externa.')
+      : null
+
   return {
     rows,
     total,
@@ -117,10 +156,10 @@ export function useAdminCards() {
     importError: importMutation.error,
     importResult: importMutation.data,
     resetImport: importMutation.reset,
-    runSourceImport: () => sourceImportMutation.mutate(),
-    isSourceImporting: sourceImportMutation.isPending,
-    sourceImportError: sourceImportMutation.error,
-    sourceImportResult: sourceImportMutation.data,
-    resetSourceImport: sourceImportMutation.reset
+    runSourceImport,
+    isSourceImporting: sourceImportMutation.isPending || sourceJobStatus === 'running',
+    sourceImportError,
+    sourceImportResult: sourceJobStatus === 'done' ? sourceJobQuery.data?.result : undefined,
+    resetSourceImport
   }
 }

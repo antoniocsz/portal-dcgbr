@@ -42,7 +42,7 @@ import {
   PrismaCardSetRepository,
   TakaCardsSourceProvider
 } from '@digimon/cards'
-import type { Card } from '@digimon/cards'
+import type { Card, ImportCardsFromSourceResult } from '@digimon/cards'
 import {
   CheckDeckLegalityUseCase,
   CopyDeckUseCase,
@@ -87,8 +87,16 @@ import {
   UpdateTournamentUseCase
 } from '@digimon/tournaments'
 import { UserAccountAdapter } from './http/user-account-adapter'
+import { ImportJobRegistry } from './jobs'
 
 const eventBus = new InMemoryEventBus()
+
+/**
+ * Registry de jobs de importação externa (process-local — ADR-005, sem Redis).
+ * Singleton por processo: o POST dispara o job e o GET consulta o mesmo estado.
+ * Limitação conhecida: o progresso some em restart da API.
+ */
+const importSourceJobs = new ImportJobRegistry<ImportCardsFromSourceResult>()
 
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
@@ -152,7 +160,8 @@ export function cardsDeps() {
     get: new GetCardUseCase(cardRepository),
     listSets: new ListSetsUseCase(cardSetRepository),
     import: importCards,
-    importFromSource: new ImportCardsFromSourceUseCase(importCards, cardsSource)
+    importFromSource: new ImportCardsFromSourceUseCase(importCards, cardsSource),
+    importSourceJobs
   }
 }
 

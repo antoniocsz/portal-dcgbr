@@ -6,7 +6,7 @@
 - [x] Use cases (DIP): create / update / publish / delete / get / list / copy
 - [x] Implementação Prisma (PrismaDeckRepository)
 - [x] Testes unitários (deck-workflow.spec.ts — 22 testes)
-- [ ] Testes de integração (pendente: exigem Postgres real; cobertos pelos testes de domínio + rotas + smoke test)
+- [x] Testes de integração (task 97: `src/test/decks.integration.spec.ts`, gated por `TEST_DATABASE_URL`)
 
 ## Fase 2 — Refinamentos
 - [x] Integração de eventos (EventBus: created / updated / published / copied)
@@ -118,7 +118,33 @@
 - [x] `views/index.ts` exporta `DeckImageExportButton`
 - [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` não executado)
 
+## Fase 15 — Robustez do download do PNG (task 96)
+- [x] `viewmodels/use-deck-image-export.ts` — `download()` agora anexa o `<a>` ao `document.body` antes do `click()` e remove depois (`setTimeout(0)`); `href`/`download`/PNG inalterados
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` não executado)
+
+## Fase 16 — Testes de integração com Postgres real (task 97)
+- [x] `src/test/integration-db.ts` — helper de conexão **gated por `TEST_DATABASE_URL`** (reusa o padrão do `@digimon/database`: Prisma 7 + `@prisma/adapter-pg`; `truncateTables()` entre testes)
+- [x] `src/test/decks.integration.spec.ts` — `describe.skipIf(!hasTestDatabase)` (pulado sem a env; CI verde)
+- [x] CRUD de deck + `eggList`/`coverCardId` (JSON/null round-trip) via `PrismaDeckRepository`
+- [x] Comunidade via `PrismaPublicDeckRepository`: snapshot, like/unlike (contadores idempotentes), `addCopy` (1 por conta), report (1 aberto por conta) e `moderate hide` (`setStatus`+`dismissReports` fecha a fila)
+- [x] Executado contra Postgres real (`digimon_test`): **9/9 passed** (ver Handoff)
+- [x] `pnpm turbo typecheck lint test --filter=@digimon/decks` verde
+
 ## Handoff
+
+### Handoff task 97 (testes de integração com Postgres real — decks)
+- **Feito (backend, só `src/test/**`):** criada a suíte de integração do `@digimon/decks`, **gated por `TEST_DATABASE_URL`**. `src/test/integration-db.ts` (helper novo; `decks` não tinha `src/test/`): `hasTestDatabase`/`createTestPrisma()`/`truncateTables()`. `src/test/decks.integration.spec.ts` cobre via `PrismaDeckRepository` (CRUD + `eggList`/`coverCardId` JSON/null + `list` com `publicOnly`/`ownerId`/full-text `decks_search_idx`) e via `PrismaPublicDeckRepository` os caminhos com **SQL/transação** que o repo em memória não exercita: snapshot (`create`/`findById` com autor/`findBySourceDeck`), **like/unlike** (contador idempotente, `likedByMe`), **addCopy** (1 por conta, `ON CONFLICT DO NOTHING`), **report** (1 aberto por conta — novo substitui — + `queueReports`) e **moderate hide** (`setStatus('hidden')` + `dismissReports` esvazia a fila). **Sem env** é pulada (`describe.skipIf`) → CI verde.
+- **Arquivos:** `packages/modules/decks/src/test/integration-db.ts` (novo), `packages/modules/decks/src/test/decks.integration.spec.ts` (novo), `context/modules/decks/status.md`.
+- **Decisões:** (1) `@prisma/adapter-pg` é dependência do `@digimon/database` — resolvido via `createRequire` ancorado no próprio pacote (test-only; **sem tocar `package.json`/configs**). (2) Repos exercitados diretamente (não os use cases) — isola a camada SQL/transação. (3) `truncateTables` com `RESTART IDENTITY CASCADE` sobre `User`/`decks`/`public_decks`/likes/copies/reports.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/{cards,decks}` ✅; **com** `TEST_DATABASE_URL` (`digimon_test`, migrado): `pnpm --filter @digimon/decks test` → **89 passed (9 de integração)**; **sem** env: 9 skipped e unit verdes.
+- **Fora do escopo:** nenhum. Nenhum arquivo de produção/`package.json`/config tocado.
+
+### Handoff task 96 (robustez do download do PNG — `<a>` anexado ao DOM)
+- **Feito (frontend, `apps/web`):** no `download()` do VM `useDeckImageExport`, o `<a>` passa a ser anexado ao `document.body` (`anchor.style.display = 'none'` + `appendChild`) **antes** do `anchor.click()` e removido logo depois via `window.setTimeout(..., 0)`. Mantido `href = previewUrl` (blob) e `download = fileName`; a revogação da URL no reset/regenerate segue intacta. Sem mudança do PNG/comportamento visível.
+- **Arquivo:** `apps/web/src/features/decks/viewmodels/use-deck-image-export.ts` (único).
+- **Decisões:** (1) `setTimeout(0)` em vez de remover síncrono — dá tempo do navegador iniciar o download com o nó ainda no DOM (padrão à prova de falhas); (2) `display: none` — o anchor anexado não deve afetar layout.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings; `next build` **não** executado).
+- **Fora do escopo:** nenhum.
 
 ### Handoff task 84 (detalhe do deck — miniatura via next/image + export em PNG)
 - **Feito (frontend, `apps/web`):** (1) o `CardThumb` do decklist do detalhe usa `next/image` (`fill`+`sizes`) com fallback preservado; (2) export do deck em **PNG** via canvas. O VM `useDeckImageExport` carrega as artes pela imagem otimizada same-origin do Next (`/_next/image`), evitando o canvas taint, e desenha cabeçalho (nome/formato/main/egg/total/descrição/cores), capa e decklist com arte+número+nome+quantidade num canvas 1200px (escala 2×); `toBlob('image/png')` → `URL.createObjectURL` → download `deck-<slug>.png`. A View `DeckImageExportButton` expõe os estados (gerando/pronto/falhou) e a prévia; o `DeckExportModal` ganhou a aba "Imagem" via prop opcional `imageExport`.
@@ -277,7 +303,7 @@
 - Admin vê "todos" (sem default de status) quando não filtra — diferente do padrão tournaments que faz default `published` para editorial.
 
 ### Pendências
-- [ ] Testes de integração com Postgres real (não cobertos nesta task; cobertos pelos testes de domínio + rotas + smoke test)
+- [x] Testes de integração com Postgres real — task 97 (`src/test/decks.integration.spec.ts`, gated por `TEST_DATABASE_URL`; 9 testes cobrindo CRUD/egg/capa + comunidade transacional)
 - [ ] `admin/decks` segue com a view sem fallback por autoria — validar visualmente no painel (rotas reais exigem sessão admin/editor)
 
 ### Histórico (task 06 + task 13)

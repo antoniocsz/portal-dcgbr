@@ -10,7 +10,8 @@ import type {
   ImportCardsInput,
   ImportCardsResult,
   ListCardsParams,
-  Paginated
+  Paginated,
+  SourceImportJob
 } from './types'
 
 export { ApiError } from '@digimon/api-client'
@@ -51,5 +52,15 @@ export const cardsApi = {
     input: ImportCardsFromSourceInput = {}
   ): Promise<ImportCardsFromSourceResult> {
     return apiClient.post('/cards/admin/import-source', input)
+  },
+
+  /** Dispara a importação externa em background → { jobId } (202 Accepted). */
+  startSourceImport(input: ImportCardsFromSourceInput = {}): Promise<{ jobId: string }> {
+    return apiClient.post('/cards/admin/import-source/jobs', input)
+  },
+
+  /** Progresso/resultado do job de importação externa. */
+  getSourceImportJob(jobId: string): Promise<SourceImportJob> {
+    return apiClient.get(`/cards/admin/import-source/jobs/${encodeURIComponent(jobId)}`)
   }
 }

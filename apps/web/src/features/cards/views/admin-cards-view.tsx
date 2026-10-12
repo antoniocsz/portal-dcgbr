@@ -185,6 +185,12 @@ export function AdminCardsView({ canImport = true }: { canImport?: boolean }) {
                 não reconhecidos são ignorados. Pode levar alguns minutos.
               </p>
             </div>
+            {vm.isSourceImporting ? (
+              <p className="text-sm font-semibold text-ink-soft" role="status" aria-live="polite">
+                Importando catálogo externo… isso pode levar alguns minutos. O resultado aparece
+                aqui automaticamente.
+              </p>
+            ) : null}
             {vm.sourceImportError ? (
               <p role="alert" className="text-xs font-semibold text-danger">
                 {vm.sourceImportError instanceof Error
@@ -196,7 +202,8 @@ export function AdminCardsView({ canImport = true }: { canImport?: boolean }) {
               <p className="text-sm font-semibold text-success" aria-live="polite">
                 Importação concluída: {vm.sourceImportResult.imported} novas ·{' '}
                 {vm.sourceImportResult.updated} atualizadas · {vm.sourceImportResult.skipped}{' '}
-                ignoradas · {vm.sourceImportResult.sets.length} sets.
+                ignoradas · {vm.sourceImportResult.setsCount ?? vm.sourceImportResult.sets.length}{' '}
+                sets.
               </p>
             ) : null}
             <div className="flex flex-wrap gap-3">
