@@ -93,7 +93,7 @@
 - **Arquivos:** `apps/web/src/features/decks/views/deck-form-view.tsx`, `apps/web/src/features/decks/viewmodels/use-deck-form.ts`, `context/modules/web/status.md`, `context/modules/decks/status.md`.
 - **Decisões:** ver handoff da task 72 em `context/modules/web/status.md` (Fase 32). Destaque: constantes de tamanho locais no VM (não importa `@digimon/decks` no client); nenhuma regra de domínio duplicada — a legalidade continua vindo de `POST /decks/legality`.
 - **Validações:** `pnpm turbo typecheck lint build --filter=@digimon/app-web` ✅ (0 erros, 0 warnings; build com `/decks/novo`).
-- **Fora do escopo (reportar):** `apps/api/**`, `packages/**` e `components/**` intocados. O wrapper da página (`(member)/decks/novo/page.tsx`: `AuthShell`/card ~420px) não foi alterado — o formulário em 2 colunas herda a largura do card do shell.
+- **Fora do escopo (reportar):** `apps/api/**`, `packages/**` e `components/**` intocados. Na ocasião, o wrapper da página (`(member)/decks/novo/page.tsx`: `AuthShell`/card ~420px) não foi alterado — o formulário em 2 colunas herdava a largura do card do shell. **Resolvido na task 75** (`/decks/novo` passou a usar container largo `max-w-[1440px]`, sem o `AuthShell` estreito; ver handoff da 75 em `context/modules/web/status.md`).
 
 ### Handoff task 66 (frontend da comunidade de decks)
 - **Feito:** frontend da comunidade (feed/curtir/publicar/import/export) consumindo as rotas reais da task 65. MVVM estrito — Model (`community-types`/`community-api`), ViewModels (4 novos + helpers), Views só JSX.
