@@ -191,16 +191,24 @@ export function TournamentDetailView({ slug }: TournamentDetailViewProps) {
       {vm.canManage ? (
         <div className="flex flex-wrap items-center gap-3 pb-8">
           {tournament.status !== 'cancelled' ? (
-            <Button
-              variant="dark"
-              size="sm"
-              onClick={() => {
-                vm.resetAddResults()
-                setResultsFormOpen(true)
-              }}
-            >
-              {hasResults ? 'Editar resultados' : 'Registrar resultados'}
-            </Button>
+            <>
+              <Link
+                href={`/torneios/${tournament.slug}/editar`}
+                className="text-[13px] font-semibold text-primary hover:underline"
+              >
+                Editar
+              </Link>
+              <Button
+                variant="dark"
+                size="sm"
+                onClick={() => {
+                  vm.resetAddResults()
+                  setResultsFormOpen(true)
+                }}
+              >
+                {hasResults ? 'Editar resultados' : 'Registrar resultados'}
+              </Button>
+            </>
           ) : null}
           {tournament.status === 'published' ? (
             <Button variant="ghost" size="sm" onClick={() => setConfirmCancel(true)}>

@@ -1,17 +1,24 @@
 // Path: apps/web/src/app/(public)/torneios/[slug]/page.tsx
 // Detalhamento de um torneio (SEO-first): generateMetadata busca o torneio
 // server-side na API separada (base interna, ADR-007) e a View client-side
-// (TournamentDetailView) hidrata os dados e as ações por papel. O fetch SSR
-// encaminha o cookie de sessão para o organizador/Admin verem um torneio
-// cancelado (o GET /tournaments/:slug é 404 para terceiros — sem vazar).
+// (TournamentDetailView) hidrata os dados e as ações por papel.
+// O Server Component responde 404 real (notFound) quando o fetch SSR — que
+// encaminha o cookie de sessão — retorna 404 (slug inexistente ou torneio
+// cancelado de terceiro, sem vazar existência). O organizador/Admin/Editor vê um
+// torneio cancelado (o GET /tournaments/:slug é 404 para terceiros). Erros que
+// não sejam 404 mantêm o comportamento anterior: renderiza a View, que trata o
+// erro no cliente.
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { ACCESS_TOKEN_COOKIE } from '@digimon/auth'
 import { apiBaseUrl } from '@/lib/api-base'
 import { TournamentDetailView } from '@/features/tournaments/views'
 import type { Tournament } from '@/features/tournaments/model/types'
 
-async function fetchTournament(slug: string): Promise<Tournament | null> {
+type FetchResult<T> = { status: 'ok'; data: T } | { status: 'not-found' } | { status: 'error' }
+
+async function fetchTournament(slug: string): Promise<FetchResult<Tournament>> {
   const store = await cookies()
   const token = store.get(ACCESS_TOKEN_COOKIE)?.value
 
@@ -20,10 +27,11 @@ async function fetchTournament(slug: string): Promise<Tournament | null> {
       cache: 'no-store',
       ...(token ? { headers: { cookie: `${ACCESS_TOKEN_COOKIE}=${token}` } } : {})
     })
-    if (!response.ok) return null
-    return (await response.json()) as Tournament
+    if (response.status === 404) return { status: 'not-found' }
+    if (!response.ok) return { status: 'error' }
+    return { status: 'ok', data: (await response.json()) as Tournament }
   } catch {
-    return null
+    return { status: 'error' }
   }
 }
 
@@ -33,12 +41,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const tournament = await fetchTournament(slug)
+  const result = await fetchTournament(slug)
 
-  if (!tournament) {
+  if (result.status !== 'ok') {
     return { title: 'Torneio não encontrado', robots: { index: false } }
   }
 
+  const tournament = result.data
   const description =
     tournament.description ??
     `Torneio de Digimon TCG em ${tournament.location} — formato ${tournament.format}.`
@@ -64,5 +73,7 @@ export default async function TournamentDetailPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const result = await fetchTournament(slug)
+  if (result.status === 'not-found') notFound()
   return <TournamentDetailView slug={slug} />
 }

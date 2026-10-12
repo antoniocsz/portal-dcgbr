@@ -43,7 +43,7 @@ export function SiteFooter() {
             alt="Digimon Card Game"
             width={937}
             height={266}
-            className="h-[38px] w-auto"
+            className="h-[38px] w-auto self-start"
           />
           <span className="font-display text-lg font-bold text-ink">DigiTCG Brasil</span>
           <p className="text-[13px] leading-5 text-ink-soft">

@@ -1,13 +1,19 @@
 // Path: apps/web/src/features/tournaments/views/tournament-form-view.tsx
-// View do formulário de criação de torneio (Member publica direto).
-// Controlada pelo ViewModel useTournamentForm — sem hooks de dados diretos.
+// View do formulário de torneio (criar E editar). Controlada pelo ViewModel
+// useTournamentForm — sem hooks de dados diretos. Em `edit` o título muda, o
+// campo de slug vira somente-leitura (o endereço não muda) e os estados de
+// loading/404/erro/cancelado são tratados; em `create` mantém o fluxo atual.
 'use client'
 
 import type { ChangeEvent, ReactNode } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components'
 import { cn } from '@/lib/utils'
-import { useTournamentForm } from '../viewmodels/use-tournament-form'
+import {
+  useTournamentForm,
+  type TournamentFormMode
+} from '../viewmodels/use-tournament-form'
 
 const FORMAT_SUGGESTIONS = ['Standard', 'Booster Draft', 'Sealed', 'Casual']
 
@@ -70,25 +76,90 @@ function TournamentField({
 }
 
 export interface TournamentFormViewProps {
+  mode?: TournamentFormMode
+  slug?: string
   submitLabel?: string
   onSuccess?: (slug: string) => void
 }
 
 export function TournamentFormView({
-  submitLabel = 'Publicar torneio',
+  mode = 'create',
+  slug,
+  submitLabel,
   onSuccess
 }: TournamentFormViewProps) {
-  const { values, errors, isPending, error, result, handleChange, handleSubmit } =
-    useTournamentForm()
+  const router = useRouter()
+  const vm = useTournamentForm({ mode, slug })
+  const { isEdit, values, errors, isPending, error, result, handleChange, handleSubmit } = vm
   const errorMessage = error instanceof Error ? error.message : null
+  const resolvedSubmitLabel = submitLabel ?? (isEdit ? 'Salvar alterações' : 'Publicar torneio')
+
+  if (vm.isLoading) {
+    return (
+      <div className="flex w-full flex-col gap-4" aria-busy="true" aria-label="Carregando torneio">
+        <div className="h-10 w-2/3 animate-pulse bg-surface-2" />
+        <div className="h-64 animate-pulse bg-surface-2" />
+      </div>
+    )
+  }
+
+  if (vm.isNotFound) {
+    return (
+      <div className="flex flex-col items-center gap-4 border border-border bg-surface px-4 py-16 text-center">
+        <h2 className="font-display text-xl font-bold text-ink">Torneio não encontrado</h2>
+        <p className="text-sm text-ink-soft">
+          Este torneio não existe ou você não tem permissão para editá-lo.
+        </p>
+        <Link href="/torneios" className="text-sm font-semibold text-primary hover:underline">
+          ← Voltar para torneios
+        </Link>
+      </div>
+    )
+  }
+
+  if (vm.loadError) {
+    return (
+      <div className="flex flex-col items-center gap-4 border border-border bg-surface px-4 py-16 text-center">
+        <p role="alert" className="text-sm text-ink-soft">
+          {vm.loadError instanceof Error
+            ? vm.loadError.message
+            : 'Não foi possível carregar o torneio.'}
+        </p>
+        <Button variant="dark" size="sm" onClick={() => void vm.refetchTournament()}>
+          Tentar novamente
+        </Button>
+        <Link href="/torneios" className="text-sm font-semibold text-primary hover:underline">
+          ← Voltar para torneios
+        </Link>
+      </div>
+    )
+  }
+
+  if (vm.isCancelled) {
+    return (
+      <div className="flex flex-col items-center gap-4 border border-danger/40 bg-surface px-4 py-16 text-center">
+        <p role="status" className="text-sm font-semibold text-danger">
+          Este torneio foi cancelado e não pode mais ser editado.
+        </p>
+        <Link
+          href={slug ? `/torneios/${slug}` : '/torneios'}
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          ← Ver torneio
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <form
       className="flex flex-col gap-5"
       onSubmit={(event) => {
         event.preventDefault()
-        void handleSubmit().then((created) => {
-          if (created) onSuccess?.(created.slug)
+        void handleSubmit().then((saved) => {
+          if (!saved) return
+          if (onSuccess) onSuccess(saved.slug)
+          else if (isEdit) router.push(`/torneios/${saved.slug}`)
         })
       }}
     >
@@ -102,14 +173,21 @@ export function TournamentFormView({
         error={errors.name ?? null}
       />
 
-      <TournamentField
-        id="tournament-slug"
-        label="Slug (opcional)"
-        value={values.slug}
-        onChange={(value) => handleChange('slug', value)}
-        placeholder="slug-seo-friendly (gerado do nome se vazio)"
-        error={errors.slug ?? null}
-      />
+      {isEdit ? (
+        <p className="text-xs text-ink-faint">
+          Endereço: <span className="text-ink-soft">{values.slug}</span> — o endereço não muda ao
+          editar.
+        </p>
+      ) : (
+        <TournamentField
+          id="tournament-slug"
+          label="Slug (opcional)"
+          value={values.slug}
+          onChange={(value) => handleChange('slug', value)}
+          placeholder="slug-seo-friendly (gerado do nome se vazio)"
+          error={errors.slug ?? null}
+        />
+      )}
 
       <TournamentField
         id="tournament-format"
@@ -204,7 +282,7 @@ export function TournamentFormView({
       {result ? (
         <div className="border border-border bg-surface-2 px-4 py-3">
           <p className="text-sm font-semibold text-ink">
-            Torneio publicado com sucesso!{' '}
+            {isEdit ? 'Alterações salvas!' : 'Torneio publicado com sucesso!'}{' '}
             <Link href={`/torneios/${result.slug}`} className="text-primary underline">
               Ver torneio
             </Link>
@@ -213,7 +291,7 @@ export function TournamentFormView({
       ) : null}
 
       <Button type="submit" variant="primary" size="md" disabled={isPending}>
-        {isPending ? 'Publicando…' : submitLabel}
+        {isPending ? (isEdit ? 'Salvando…' : 'Publicando…') : resolvedSubmitLabel}
       </Button>
     </form>
   )

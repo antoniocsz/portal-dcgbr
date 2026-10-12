@@ -105,5 +105,37 @@
 - Form de resultados recebe submit/mutation por props do ViewModel; sucesso controlado localmente no VM.
 
 ### Pendências
-- "Editar dados do torneio" não implementado (rota de UI inexistente; `PATCH /tournaments/:slug` já existe) — task própria.
+- [x] "Editar dados do torneio" implementado (rota de UI + PATCH) — task 90.
 - Testes de integração com Postgres real seguem pendentes (mesma pendência das tasks 42/13).
+
+## Fase 3 — Frontend: editar dados do torneio (`/torneios/[slug]/editar`) (task 90)
+- [x] Rota `apps/web/src/app/(member)/torneios/[slug]/editar/page.tsx` (Server Component; container largo + cabeçalho; `getSession` + fetch SSR com cookie; `notFound()` se inexistente; `redirect('/torneios/:slug')` se não autorizado)
+- [x] `useTournamentForm` ganhou modo edição (`{ mode, slug, initial? }`): carrega via `getTournament` e salva via `updateTournament` (PATCH); mantém o fluxo `create`
+- [x] `TournamentFormView` aceita `mode`/`slug` (CTA "Salvar alterações", slug somente-leitura em edição, estados loading/404/erro/cancelado, navega para o detalhe ao salvar)
+- [x] `TournamentDetailView`: link **Editar** (`/torneios/{slug}/editar`) para `canManage` quando `status !== 'cancelled'`
+- [x] Barrel `views/index.ts`: re-export de `TournamentFormMode`
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings)
+
+## Handoff (task 90)
+### Feito
+- Edição de torneio ponta-a-ponta consumindo `PATCH /tournaments/:slug` (já existente). Modo edição no `useTournamentForm`: query por slug (`['tournament', slug]`, dedup com o detalhe), hidratação única do formulário (datas ISO → `datetime-local`) e mutation que alterna `create`/`update` (PATCH).
+- Rota `(member)/torneios/[slug]/editar`: gate de login pelo layout do grupo; gate de dono server-side (organizador OU Admin/Editor) com o cookie de sessão — inexistente → `notFound()`; sem permissão → `redirect` para o detalhe. Layout largo (form de coluna única, `max-w-[760px]`).
+- Detalhe mostra "Editar" para quem gerencia e some para cancelado/visitante.
+
+### Arquivos
+- `apps/web/src/app/(member)/torneios/[slug]/editar/page.tsx` (novo)
+- `apps/web/src/features/tournaments/views/tournament-form-view.tsx`
+- `apps/web/src/features/tournaments/viewmodels/use-tournament-form.ts`
+- `apps/web/src/features/tournaments/views/tournament-detail-view.tsx`
+- `apps/web/src/features/tournaments/views/index.ts`
+
+### Decisões
+- **Slug não é editável**: o PATCH é `.strict()` e aceita `slug`, mas mudar o endereço quebraria URLs/bookmarks e não está no pedido (nome/descrição/formato/local/datas). Em edição o VM **não envia** `slug` e a View mostra o slug atual como texto (o endereço não muda).
+- **Descrição/`dateEnd` vazios → `null`** no PATCH, para permitir limpar os campos (o schema aceita nullable).
+- **Torneio cancelado não é editável**: em vez de deixar o PATCH falhar, a View detecta `isCancelled` (do torneio carregado) e mostra um aviso com link para o detalhe — prevenção + feedback (Nielsen 5/9). O link "Editar" já não aparece para cancelado.
+- Pós-salvar em edição: `router.push('/torneios/{slug}')` (a página server não pode passar `onSuccess`); o fluxo de criação mantém o box de sucesso inline (sem redirect).
+- Reuso de `tournamentsApi.updateTournament` (Model intocado) e dos helpers de data já existentes.
+
+### Pendências/fora do escopo (reportar)
+- Validação SSR/`next build` não executada (a task pediu explicitamente só `typecheck lint`).
+- `(member)/torneios/novo` continua com `AuthShell` (card estreito) — o editor usa container largo; divergência de layout entre criar/editar, aceita por ora.

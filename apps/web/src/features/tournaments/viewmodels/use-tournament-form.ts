@@ -1,12 +1,15 @@
 // Path: apps/web/src/features/tournaments/viewmodels/use-tournament-form.ts
-// ViewModel: formulário de criação de torneio (Member publica direto).
-// Orquestra validação leve (o backend revalida com Zod) e a mutation create.
+// ViewModel do formulário de torneio (criar E editar). Em `edit` carrega o
+// torneio por slug (`GET /tournaments/:slug`) e salva via
+// `tournamentsApi.updateTournament` (PATCH); em `create` mantém o fluxo de
+// publicação direta do Member. Orquestra validação leve (o backend revalida com
+// Zod) e a mutation. A View só renderiza.
 'use client'
 
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { tournamentsApi } from '../model/tournaments-api'
-import type { CreateTournamentResult, TournamentInput } from '../model/types'
+import { useEffect, useRef, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ApiError, tournamentsApi } from '../model/tournaments-api'
+import type { CreateTournamentResult, Tournament, TournamentInput } from '../model/types'
 
 export interface TournamentFormValues {
   name: string
@@ -30,15 +33,77 @@ export const initialTournamentFormValues: TournamentFormValues = {
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-export function useTournamentForm() {
+export type TournamentFormMode = 'create' | 'edit'
+
+export interface UseTournamentFormOptions {
+  mode?: TournamentFormMode
+  slug?: string | undefined
+  /** Semente opcional (evita flash) — usada como `initialData` da query. */
+  initial?: Tournament | undefined
+}
+
+/** Converte um ISO em valor aceito por `<input type="datetime-local">`. */
+function toDateTimeLocal(iso: string | null | undefined): string {
+  if (!iso) return ''
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  )
+}
+
+function valuesFromTournament(tournament?: Tournament): TournamentFormValues {
+  if (!tournament) return initialTournamentFormValues
+  return {
+    name: tournament.name,
+    slug: tournament.slug,
+    description: tournament.description ?? '',
+    format: tournament.format,
+    location: tournament.location,
+    dateStart: toDateTimeLocal(tournament.dateStart),
+    dateEnd: toDateTimeLocal(tournament.dateEnd)
+  }
+}
+
+export function useTournamentForm(options: UseTournamentFormOptions = {}) {
+  const { mode = 'create', initial } = options
+  const isEdit = mode === 'edit'
+  const editSlug = options.slug ?? initial?.slug
+
   const queryClient = useQueryClient()
-  const [values, setValues] = useState<TournamentFormValues>(initialTournamentFormValues)
+  const [values, setValues] = useState<TournamentFormValues>(() =>
+    initial ? valuesFromTournament(initial) : initialTournamentFormValues
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const hydrated = useRef(initial !== undefined)
+
+  // Em edição, carrega o torneio para preencher o formulário.
+  const tournamentQuery = useQuery({
+    queryKey: ['tournament', editSlug],
+    queryFn: () => tournamentsApi.getTournament(editSlug as string),
+    enabled: isEdit && Boolean(editSlug) && initial === undefined,
+    initialData: initial,
+    retry: false
+  })
+  const loadedTournament = tournamentQuery.data
+
+  // Hidrata o formulário uma única vez com o torneio carregado (preserva as edições).
+  useEffect(() => {
+    if (!isEdit || !loadedTournament || hydrated.current) return
+    hydrated.current = true
+    setValues(valuesFromTournament(loadedTournament))
+  }, [isEdit, loadedTournament])
 
   const mutation = useMutation({
-    mutationFn: (input: TournamentInput) => tournamentsApi.createTournament(input),
+    mutationFn: (input: TournamentInput) =>
+      isEdit
+        ? tournamentsApi.updateTournament(editSlug as string, input)
+        : tournamentsApi.createTournament(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      if (isEdit) void queryClient.invalidateQueries({ queryKey: ['tournament', editSlug] })
     }
   })
 
@@ -66,6 +131,18 @@ export function useTournamentForm() {
   }
 
   const buildInput = (): TournamentInput => {
+    if (isEdit) {
+      // PATCH (schema stricto): não envia `slug` (o endereço não muda ao editar)
+      // e converte campos vazios em `null` para permitir limpá-los.
+      return {
+        name: values.name,
+        format: values.format,
+        location: values.location,
+        dateStart: values.dateStart,
+        description: values.description.trim() !== '' ? values.description : null,
+        dateEnd: values.dateEnd.trim() !== '' ? values.dateEnd : null
+      }
+    }
     const input: TournamentInput = {
       name: values.name,
       format: values.format,
@@ -87,7 +164,15 @@ export function useTournamentForm() {
     }
   }
 
+  const loadError = isEdit ? tournamentQuery.error : null
+
   return {
+    isEdit,
+    isLoading: isEdit && tournamentQuery.isLoading,
+    loadError,
+    isNotFound: loadError instanceof ApiError && loadError.status === 404,
+    isCancelled: loadedTournament?.status === 'cancelled',
+    refetchTournament: tournamentQuery.refetch,
     values,
     errors,
     isPending: mutation.isPending,
@@ -96,7 +181,7 @@ export function useTournamentForm() {
     handleChange,
     handleSubmit,
     reset: () => {
-      setValues(initialTournamentFormValues)
+      setValues(isEdit ? valuesFromTournament(loadedTournament) : initialTournamentFormValues)
       setErrors({})
       mutation.reset()
     }
