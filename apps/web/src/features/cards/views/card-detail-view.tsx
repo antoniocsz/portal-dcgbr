@@ -5,6 +5,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Button, Sparkles } from '@/components'
 import { attributeColor, attributeHex, toCardDetailView } from '../viewmodels/card-view'
@@ -94,13 +95,13 @@ export function CardDetailView({ id }: CardDetailViewProps) {
             }
           >
             {detail.imageUrl && !artFailed ? (
-              <img
+              <Image
                 src={detail.imageUrl}
                 alt={`Arte da carta ${detail.name}`}
-                loading="lazy"
-                decoding="async"
+                fill
+                sizes="(min-width: 1024px) 400px, 100vw"
                 onError={() => setArtFailed(true)}
-                className="h-full w-full object-contain"
+                className="object-contain"
               />
             ) : (
               <Sparkles className="size-24 text-white/90" aria-hidden="true" />

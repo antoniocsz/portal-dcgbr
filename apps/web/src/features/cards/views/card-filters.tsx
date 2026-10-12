@@ -1,48 +1,74 @@
 // Path: apps/web/src/features/cards/views/card-filters.tsx
-// View presentacional: barra de filtros do catálogo (busca + tipo + cor + custo
-// + set). Sem estado próprio de filtros: recebe filtros/onChange do ViewModel.
-// A lista de sets vem do ViewModel useCardSets e o filtro só aparece quando há
-// sets cadastrados (o catálogo pode não ter nenhum ainda).
+// View presentacional: barra de filtros do catálogo (busca + selects de tipo,
+// cor, custo e set). Sem estado próprio de filtros: recebe filtros/onChange do
+// ViewModel. A lista de sets vem do ViewModel useCardSets e o filtro só aparece
+// quando há sets cadastrados (o catálogo pode não ter nenhum ainda).
 'use client'
 
-import { cn } from '@/lib/utils'
-import type { CardColor, CardType } from '../model/types'
+import type { CardColor, CardType, ListCardsParams } from '../model/types'
 import { CARD_COLOR_LABELS, CARD_TYPE_LABELS } from '../model/types'
 import { useCardSets, type CardFilters } from '../viewmodels'
 
 const TYPES: CardType[] = ['digimon', 'option', 'tamer', 'digiegg']
 const COLORS: CardColor[] = ['red', 'blue', 'yellow', 'green', 'purple', 'black', 'white']
-const PLAY_COSTS = [0, 1, 2, 3, 4, 5, 6, 7] as const
+const COST_RANGE = ['0', '1', '2', '3', '4', '5', '6', '7+'] as const
+
+const SELECT_CLASS =
+  'border border-border bg-surface px-3 py-2 text-[13px] font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-primary'
+const LABEL_CLASS = 'text-[12px] font-bold text-ink-faint'
+
+/** Filtros da View: `CardFilters` (ViewModel) + faixa de custo (Model). */
+type FilterState = CardFilters & Pick<ListCardsParams, 'minPlayCost' | 'maxPlayCost'>
 
 export interface CardFiltersProps {
-  filters: CardFilters
-  onChange: (filters: CardFilters) => void
+  filters: FilterState
+  onChange: (filters: FilterState) => void
 }
 
-function toggleType(filters: CardFilters, type: CardType): CardFilters {
-  const next: CardFilters = { ...filters }
-  if (next.type === type) delete next.type
-  else next.type = type
+function setType(filters: FilterState, value: string): FilterState {
+  const next: FilterState = { ...filters }
+  if (value) next.type = value as CardType
+  else delete next.type
   return next
 }
 
-function toggleColor(filters: CardFilters, color: CardColor): CardFilters {
-  const next: CardFilters = { ...filters }
-  if (next.color === color) delete next.color
-  else next.color = color
+function setColor(filters: FilterState, value: string): FilterState {
+  const next: FilterState = { ...filters }
+  if (value) next.color = value as CardColor
+  else delete next.color
   return next
 }
 
-function togglePlayCost(filters: CardFilters, playCost: number): CardFilters {
-  const next: CardFilters = { ...filters }
-  if (next.playCost === playCost) delete next.playCost
-  else next.playCost = playCost
+/** Valor do select de custo derivado da faixa (0–6 exatos ou "7+"). */
+function costValue(filters: FilterState): string {
+  if (filters.minPlayCost === 7 && filters.maxPlayCost === undefined) return '7+'
+  if (filters.minPlayCost !== undefined && filters.minPlayCost === filters.maxPlayCost) {
+    return String(filters.minPlayCost)
+  }
+  if (filters.maxPlayCost !== undefined && filters.minPlayCost === undefined) {
+    return String(filters.maxPlayCost)
+  }
+  return ''
+}
+
+/** "7+" → minPlayCost=7; 0–6 → min=max=<n>; vazio → remove a faixa. */
+function setPlayCost(filters: FilterState, value: string): FilterState {
+  const next: FilterState = { ...filters }
+  delete next.minPlayCost
+  delete next.maxPlayCost
+  if (value === '7+') {
+    next.minPlayCost = 7
+  } else if (value) {
+    const cost = Number(value)
+    next.minPlayCost = cost
+    next.maxPlayCost = cost
+  }
   return next
 }
 
-function setSetCode(filters: CardFilters, setCode: string): CardFilters {
-  const next: CardFilters = { ...filters }
-  if (setCode) next.setCode = setCode
+function setSetCode(filters: FilterState, value: string): FilterState {
+  const next: FilterState = { ...filters }
+  if (value) next.setCode = value
   else delete next.setCode
   return next
 }
@@ -58,7 +84,7 @@ export function CardFilters({ filters, onChange }: CardFiltersProps) {
           event.preventDefault()
           const value = new FormData(event.currentTarget).get('search')
           const search = typeof value === 'string' ? value.trim() : ''
-          const next: CardFilters = { ...filters }
+          const next: FilterState = { ...filters }
           if (search) next.search = search
           else delete next.search
           onChange(next)
@@ -80,79 +106,86 @@ export function CardFilters({ filters, onChange }: CardFiltersProps) {
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por tipo">
-        {TYPES.map((type) => (
-          <button
-            key={type}
-            type="button"
-            aria-pressed={filters.type === type}
-            onClick={() => onChange(toggleType(filters, type))}
-            className={cn(
-              'px-3 py-1.5 text-[12px] font-semibold transition-colors',
-              filters.type === type ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
-            )}
-          >
-            {CARD_TYPE_LABELS[type]}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por cor">
-        {COLORS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            aria-pressed={filters.color === color}
-            onClick={() => onChange(toggleColor(filters, color))}
-            className={cn(
-              'px-3 py-1.5 text-[12px] font-semibold transition-colors',
-              filters.color === color ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
-            )}
-          >
-            {CARD_COLOR_LABELS[color]}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por custo de jogo">
-        <span className="text-[12px] font-bold text-ink-faint">Custo:</span>
-        {PLAY_COSTS.map((cost) => (
-          <button
-            key={cost}
-            type="button"
-            aria-pressed={filters.playCost === cost}
-            onClick={() => onChange(togglePlayCost(filters, cost))}
-            className={cn(
-              'min-w-9 px-3 py-1.5 text-[12px] font-semibold transition-colors',
-              filters.playCost === cost ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
-            )}
-          >
-            {cost}
-          </button>
-        ))}
-      </div>
-
-      {sets.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor="card-set-filter" className="text-[12px] font-bold text-ink-faint">
-            Set:
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="card-type-filter" className={LABEL_CLASS}>
+            Tipo
           </label>
           <select
-            id="card-set-filter"
-            value={filters.setCode ?? ''}
-            onChange={(event) => onChange(setSetCode(filters, event.target.value))}
-            className="border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+            id="card-type-filter"
+            value={filters.type ?? ''}
+            onChange={(event) => onChange(setType(filters, event.target.value))}
+            className={SELECT_CLASS}
           >
-            <option value="">Todos os sets</option>
-            {sets.map((set) => (
-              <option key={set.id} value={set.code}>
-                {set.code}
-                {set.name ? ` — ${set.name}` : ''}
+            <option value="">Todos os tipos</option>
+            {TYPES.map((type) => (
+              <option key={type} value={type}>
+                {CARD_TYPE_LABELS[type]}
               </option>
             ))}
           </select>
         </div>
-      ) : null}
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="card-color-filter" className={LABEL_CLASS}>
+            Cor
+          </label>
+          <select
+            id="card-color-filter"
+            value={filters.color ?? ''}
+            onChange={(event) => onChange(setColor(filters, event.target.value))}
+            className={SELECT_CLASS}
+          >
+            <option value="">Todas as cores</option>
+            {COLORS.map((color) => (
+              <option key={color} value={color}>
+                {CARD_COLOR_LABELS[color]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="card-cost-filter" className={LABEL_CLASS}>
+            Custo
+          </label>
+          <select
+            id="card-cost-filter"
+            value={costValue(filters)}
+            onChange={(event) => onChange(setPlayCost(filters, event.target.value))}
+            className={SELECT_CLASS}
+          >
+            <option value="">Todos os custos</option>
+            {COST_RANGE.map((cost) => (
+              <option key={cost} value={cost}>
+                {cost}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {sets.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="card-set-filter" className={LABEL_CLASS}>
+              Set
+            </label>
+            <select
+              id="card-set-filter"
+              value={filters.setCode ?? ''}
+              onChange={(event) => onChange(setSetCode(filters, event.target.value))}
+              className={SELECT_CLASS}
+            >
+              <option value="">Todos os sets</option>
+              {sets.map((set) => (
+                <option key={set.id} value={set.code}>
+                  {set.code}
+                  {set.name ? ` — ${set.name}` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

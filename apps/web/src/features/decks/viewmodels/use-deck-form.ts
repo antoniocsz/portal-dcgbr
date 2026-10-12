@@ -1,21 +1,25 @@
 // Path: apps/web/src/features/decks/viewmodels/use-deck-form.ts
-// ViewModel do formulário de criação de deck: nome/slug/formato/descrição +
+// ViewModel do formulário de deck (criar E editar): nome/slug/formato/descrição +
 // composição (main + egg) com controle de quantidade (+/−) + capa, legalidade AO
 // VIVO (POST /decks/legality) e import de decklist colada.
 //
 // Índice de cartas: guarda os metadados das cartas adicionadas pela busca e
 // resolve sob demanda (via cardsApi.getCard, em cache) os ids vindos de import —
 // a View usa `resolveCard` para nomear/miniaturizar main/egg/capa.
+//
+// Modo edição (`mode: 'edit'`): carrega o deck (`decksApi.getDeck`), preenche o
+// formulário e salva via `decksApi.updateDeck` (PATCH — sem `status`, que o
+// schema stricto do backend não aceita).
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { cardsApi } from '@/features/cards/model/cards-api'
 import type { CardSummary } from '@/features/cards/model/types'
-import { decksApi } from '../model/decks-api'
+import { ApiError, decksApi } from '../model/decks-api'
 import { communityDecksApi } from '../model/community-api'
 import { useDeckImportExport } from './use-deck-import-export'
-import type { CreateDeckResult, DeckCardEntry, DeckInput, DeckStatus } from '../model/types'
+import type { CreateDeckResult, Deck, DeckCardEntry, DeckInput, DeckStatus } from '../model/types'
 import type { DeckLegalityResult, DeckListParseResult } from '../model/community-types'
 
 export type DeckZone = 'main' | 'egg'
@@ -58,6 +62,26 @@ export const initialDeckFormValues: DeckFormValues = {
   status: 'draft'
 }
 
+export type DeckFormMode = 'create' | 'edit'
+
+export interface UseDeckFormOptions {
+  mode?: DeckFormMode
+  slug?: string | undefined
+  /** Semente opcional (evita flash) — usada como `initialData` da query. */
+  initialDeck?: Deck | undefined
+}
+
+function valuesFromDeck(deck?: Deck): DeckFormValues {
+  if (!deck) return initialDeckFormValues
+  return {
+    name: deck.name,
+    slug: deck.slug,
+    description: deck.description ?? '',
+    format: deck.format,
+    status: deck.status
+  }
+}
+
 /** Deriva um slug SEO-friendly do nome (mesma regra do domínio). */
 export function slugify(input: string): string {
   return input
@@ -72,7 +96,11 @@ function sumQuantities(list: DeckCardEntry[]): number {
   return list.reduce((total, entry) => total + entry.quantity, 0)
 }
 
-export function useDeckForm() {
+export function useDeckForm(options: UseDeckFormOptions = {}) {
+  const { mode = 'create', initialDeck } = options
+  const isEdit = mode === 'edit'
+  const editSlug = options.slug ?? initialDeck?.slug
+
   const queryClient = useQueryClient()
   const [values, setValues] = useState<DeckFormValues>(initialDeckFormValues)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -84,10 +112,32 @@ export function useDeckForm() {
   const [importSummary, setImportSummary] = useState<DeckImportSummary | null>(null)
   const [cardMeta, setCardMeta] = useState<Record<string, CardSummary>>({})
   const legalityTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hydrated = useRef(false)
   const importer = useDeckImportExport()
 
+  // Em edição, carrega o deck para preencher o formulário.
+  const deckQuery = useQuery({
+    queryKey: ['decks', editSlug],
+    queryFn: () => decksApi.getDeck(editSlug as string),
+    enabled: isEdit && Boolean(editSlug) && initialDeck === undefined,
+    initialData: initialDeck,
+    retry: false
+  })
+  const loadedDeck = deckQuery.data
+
+  // Hidrata o formulário uma única vez com o deck carregado (preserva as edições).
+  useEffect(() => {
+    if (!isEdit || !loadedDeck || hydrated.current) return
+    hydrated.current = true
+    setValues(valuesFromDeck(loadedDeck))
+    setCardList(loadedDeck.cardList)
+    setEggList(loadedDeck.eggList)
+    setCoverCardId(loadedDeck.coverCardId)
+  }, [isEdit, loadedDeck])
+
   const mutation = useMutation({
-    mutationFn: (input: DeckInput) => decksApi.createDeck(input),
+    mutationFn: (input: DeckInput) =>
+      isEdit ? decksApi.updateDeck(editSlug as string, input) : decksApi.createDeck(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['decks'] })
     }
@@ -326,17 +376,23 @@ export function useDeckForm() {
       format: values.format,
       cardList,
       eggList,
-      coverCardId,
-      status
+      coverCardId
     }
-    if (effectiveSlug !== '') input.slug = effectiveSlug
-    if (values.description.trim() !== '') input.description = values.description
+    if (isEdit) {
+      // PATCH: schema stricto do backend — não envia `status` nem `slug`.
+      // Descrição vazia vira null para permitir limpar o campo.
+      input.description = values.description.trim() !== '' ? values.description : null
+    } else {
+      input.status = status
+      if (effectiveSlug !== '') input.slug = effectiveSlug
+      if (values.description.trim() !== '') input.description = values.description
+    }
     return input
   }
 
   const handleSubmit = async (status?: DeckStatus): Promise<CreateDeckResult | null> => {
     const effectiveStatus = status ?? values.status
-    if (status) setValues((prev) => ({ ...prev, status: effectiveStatus }))
+    if (!isEdit && status) setValues((prev) => ({ ...prev, status: effectiveStatus }))
     if (!validate(effectiveStatus)) return null
     try {
       return await mutation.mutateAsync(buildInput(effectiveStatus))
@@ -347,8 +403,15 @@ export function useDeckForm() {
 
   const totalMain = sumQuantities(cardList)
   const totalEgg = sumQuantities(eggList)
+  const isLoading = isEdit && deckQuery.isLoading
+  const loadError = isEdit ? deckQuery.error : null
 
   return {
+    isEdit,
+    isLoading,
+    loadError,
+    isNotFound: loadError instanceof ApiError && loadError.status === 404,
+    refetchDeck: deckQuery.refetch,
     values,
     errors,
     effectiveSlug,
@@ -388,11 +451,11 @@ export function useDeckForm() {
     setCoverCard,
     handleSubmit,
     reset: () => {
-      setValues(initialDeckFormValues)
+      setValues(valuesFromDeck(loadedDeck))
       setErrors({})
-      setCardList([])
-      setEggList([])
-      setCoverCardId(null)
+      setCardList(loadedDeck?.cardList ?? [])
+      setEggList(loadedDeck?.eggList ?? [])
+      setCoverCardId(loadedDeck?.coverCardId ?? null)
       setLegality(null)
       setImportSummary(null)
       setCardMeta({})

@@ -21,6 +21,8 @@ function buildQuery(params: ListCardsParams): string {
   if (params.type) search.set('type', params.type)
   if (params.color) search.set('color', params.color)
   if (params.playCost !== undefined) search.set('playCost', String(params.playCost))
+  if (params.minPlayCost !== undefined) search.set('minPlayCost', String(params.minPlayCost))
+  if (params.maxPlayCost !== undefined) search.set('maxPlayCost', String(params.maxPlayCost))
   if (params.setCode) search.set('setCode', params.setCode)
   if (params.page !== undefined) search.set('page', String(params.page))
   if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize))

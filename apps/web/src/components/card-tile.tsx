@@ -4,6 +4,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { ATTRIBUTE_COLORS, ATTRIBUTE_LABELS, type AttributeColor } from './attribute-colors'
 import { Sparkles } from './icons'
@@ -42,13 +43,13 @@ export function CardTile({ card, className }: CardTileProps) {
       >
         {showArt ? (
           <>
-            <img
+            <Image
               src={card.imageUrl ?? ''}
               alt={`Arte da carta ${card.name}`}
-              loading="lazy"
-              decoding="async"
+              fill
+              sizes="(min-width: 1024px) 25vw, 50vw"
               onError={() => setImageFailed(true)}
-              className="h-full w-full object-contain"
+              className="object-contain"
             />
             <span className="absolute left-2.5 top-2.5 bg-black/60 px-1.5 py-0.5 text-[11px] font-bold text-white">
               {card.number}

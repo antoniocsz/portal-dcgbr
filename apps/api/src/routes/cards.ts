@@ -111,12 +111,15 @@ const { list: listCards, get: getCard, listSets, import: importCards, importFrom
 export const cardsRoutes: FastifyPluginAsync = async (app) => {
   // GET /cards — listagem pública (filtros + full-text + paginação).
   app.get<{ Querystring: Record<string, unknown> }>('/cards', async (request, reply) => {
-    const { search, type, color, playCost, setCode, page, pageSize } = request.query
+    const { search, type, color, playCost, minPlayCost, maxPlayCost, setCode, page, pageSize } =
+      request.query
     const input = listCardsSchema.parse({
       search: queryString(search),
       type: queryString(type),
       color: queryString(color),
       playCost: queryString(playCost),
+      minPlayCost: queryString(minPlayCost),
+      maxPlayCost: queryString(maxPlayCost),
       setCode: queryString(setCode),
       page: queryString(page),
       pageSize: queryString(pageSize)

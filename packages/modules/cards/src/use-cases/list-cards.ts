@@ -24,6 +24,8 @@ export class ListCardsUseCase {
     if (parsed.type) params.type = parsed.type
     if (parsed.color) params.color = parsed.color
     if (parsed.playCost !== undefined) params.playCost = parsed.playCost
+    if (parsed.minPlayCost !== undefined) params.minPlayCost = parsed.minPlayCost
+    if (parsed.maxPlayCost !== undefined) params.maxPlayCost = parsed.maxPlayCost
     if (parsed.setCode) params.setCode = parsed.setCode
 
     return this.repo.search(params)

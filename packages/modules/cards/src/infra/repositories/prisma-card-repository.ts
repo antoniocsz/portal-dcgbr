@@ -136,6 +136,12 @@ export class PrismaCardRepository implements CardRepository {
     if (params.type) where.type = TYPE_TO_PRISMA[params.type]
     if (params.color) where.colors = { has: COLOR_TO_PRISMA[params.color] }
     if (params.playCost !== undefined) where.playCost = params.playCost
+    else if (params.minPlayCost !== undefined || params.maxPlayCost !== undefined) {
+      where.playCost = {
+        ...(params.minPlayCost !== undefined ? { gte: params.minPlayCost } : {}),
+        ...(params.maxPlayCost !== undefined ? { lte: params.maxPlayCost } : {})
+      }
+    }
     if (params.setCode) where.setCode = params.setCode
 
     const search = params.search?.trim()

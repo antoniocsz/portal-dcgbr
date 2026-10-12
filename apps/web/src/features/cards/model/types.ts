@@ -95,6 +95,7 @@ export interface ImportCardsFromSourceResult {
   updated: number
   skipped: number
   sets: string[]
+  setsCount?: number
 }
 
 export interface AdminCardRow {
@@ -119,6 +120,8 @@ export interface ListCardsParams {
   type?: CardType
   color?: CardColor
   playCost?: number
+  minPlayCost?: number
+  maxPlayCost?: number
   setCode?: string
   page?: number
   pageSize?: number

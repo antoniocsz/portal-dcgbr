@@ -164,6 +164,27 @@ describe('ListCardsUseCase — leitura pública', () => {
     expect(tamer.items.map((c) => c.name)).toEqual(['Tamer Vermelho'])
   })
 
+  it('filtra por faixa de custo (minPlayCost/maxPlayCost)', async () => {
+    const app = setup()
+    await seed(app, [
+      card({ dcgId: 'C-1', name: 'Custo 1', playCost: 1 }),
+      card({ dcgId: 'C-3', name: 'Custo 3', playCost: 3 }),
+      card({ dcgId: 'C-6', name: 'Custo 6', playCost: 6 }),
+      card({ dcgId: 'C-7', name: 'Custo 7', playCost: 7 }),
+      card({ dcgId: 'C-8', name: 'Custo 8', playCost: 8 }),
+      card({ dcgId: 'C-N', name: 'Sem custo', playCost: null })
+    ])
+
+    const high = await app.list.execute({ input: { minPlayCost: 7 } })
+    expect(high.items.map((c) => c.name).sort()).toEqual(['Custo 7', 'Custo 8'])
+
+    const low = await app.list.execute({ input: { maxPlayCost: 2 } })
+    expect(low.items.map((c) => c.name)).toEqual(['Custo 1'])
+
+    const range = await app.list.execute({ input: { minPlayCost: 3, maxPlayCost: 6 } })
+    expect(range.items.map((c) => c.name).sort()).toEqual(['Custo 3', 'Custo 6'])
+  })
+
   it('pagina os resultados', async () => {
     const app = setup()
     await seed(app, [

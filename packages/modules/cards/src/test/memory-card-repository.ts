@@ -47,6 +47,16 @@ export class MemoryCardRepository implements CardRepository {
       if (params.type && d.type !== params.type) return false
       if (params.color && !d.colors.includes(params.color)) return false
       if (params.playCost !== undefined && d.playCost !== params.playCost) return false
+      if (
+        params.minPlayCost !== undefined &&
+        (d.playCost === null || d.playCost < params.minPlayCost)
+      )
+        return false
+      if (
+        params.maxPlayCost !== undefined &&
+        (d.playCost === null || d.playCost > params.maxPlayCost)
+      )
+        return false
       if (params.setCode && d.setCode !== params.setCode) return false
       if (term) {
         const haystack = `${d.name} ${d.effects ?? ''}`.toLowerCase()

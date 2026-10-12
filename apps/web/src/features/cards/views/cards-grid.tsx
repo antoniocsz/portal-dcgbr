@@ -3,7 +3,7 @@
 // para a ficha, controles de paginação e estados de loading/erro/vazio.
 // Sem hooks de dados.
 import Link from 'next/link'
-import { Button, CardTile, type CardTileData } from '@/components'
+import { Button, CardHoverCard, CardTile, type CardTileData } from '@/components'
 
 export type GridCard = CardTileData & { id: string }
 
@@ -107,13 +107,22 @@ export function CardsGrid({
     <>
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {cards.map((card) => (
-          <Link
+          <CardHoverCard
             key={card.id}
-            href={`/cartas/${card.id}`}
-            className="block transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            card={{
+              name: card.name,
+              number: card.number,
+              color: card.color,
+              imageUrl: card.imageUrl
+            }}
           >
-            <CardTile card={card} />
-          </Link>
+            <Link
+              href={`/cartas/${card.id}`}
+              className="block transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              <CardTile card={card} />
+            </Link>
+          </CardHoverCard>
         ))}
       </div>
       {onPageChange ? (

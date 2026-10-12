@@ -9,7 +9,12 @@ export interface ListCardsParams {
   search?: string
   type?: CardType
   color?: CardColor
+  /** Custo exato (compatibilidade). */
   playCost?: number
+  /** Faixa de custo: limite inferior (>=). */
+  minPlayCost?: number
+  /** Faixa de custo: limite superior (<=). */
+  maxPlayCost?: number
   setCode?: string
   page?: number
   pageSize?: number

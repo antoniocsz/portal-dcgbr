@@ -57,6 +57,8 @@ export const listCardsSchema = z.object({
   type: cardTypeSchema.optional(),
   color: cardColorSchema.optional(),
   playCost: z.coerce.number().int().nonnegative().optional(),
+  minPlayCost: z.coerce.number().int().nonnegative().optional(),
+  maxPlayCost: z.coerce.number().int().nonnegative().optional(),
   setCode: z.string().trim().min(1).optional(),
   page: z.coerce.number().int().positive().optional(),
   pageSize: z.coerce.number().int().positive().max(100).optional()
