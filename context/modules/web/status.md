@@ -735,3 +735,18 @@
 - **Decisões:** (1) **`buttonVariants` + `next/link`** para o CTA primário — a arte expõe `Button` como `<button>`, e um link navegável é o padrão já usado no app (`buttonVariants` aplicado a `Link`); sem recriar primitivas. (2) **`metadata` no `not-found.tsx`** (suportado pelo Next ≥15.4/16) com `robots: index:false` — o Next injeta `noindex` e responde HTTP 404 nativamente para a página de not-found. (3) **Sem alterar** `layout.tsx` nem o chrome — o `SiteChrome` do root já envolve o 404 com header/footer (o `not-found` cobre rotas fora de `/admin`/`/em-breve`). (4) "404" com `aria-hidden` (decorativo; o `h1` carrega o significado) — evita ruído para leitores de tela. (5) Lista de seções segue a `NAV_ITEMS` do header (as 4 principais, sem Simuladores/busca) por instrução da task.
 - **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings). `next build` **não** executado (instrução explícita da task). O critério "HTTP 404" decorre do comportamento nativo do `not-found.tsx` do App Router.
 - **Fora do escopo (reportar):** `apps/web/src/app/(member)/torneios/novo/page.tsx` (task 94) e `apps/web/src/features/decks/viewmodels/use-deck-image-export.ts` + `context/modules/decks/status.md` (task 96) aparecem modificados no working tree por tasks concorrentes — **não** tocados por esta task.
+
+## Fase 53 — Home: esconder "Junte-se à comunidade" quando logado (task 100)
+- [x] `features/content/views/home-view.tsx` (client) passa a consumir o ViewModel compartilhado `useSession()` de `@/lib/use-session`
+- [x] O bloco `<CommunityCta />` só renderiza **deslogado**: `!sessionLoading && !user` — some para o usuário logado
+- [x] Sem flash: enquanto `loading` (sessão não resolvida) o CTA **não** é renderizado (alternativa aceita na spec: `loading || user` esconde)
+- [x] `CommunityCta` em si, header/`UserMenu` e o resto da home **não** alterados
+- [x] MVVM: `useSession` é ViewModel compartilhado; a View só decide renderizar (sem fetch próprio)
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` **não** executado, conforme instrução)
+
+## Handoff (task 100)
+- **Feito:** na Home, a área "Junte-se à comunidade" (botões Entrar / Criar conta grátis) deixa de aparecer para o usuário autenticado. A `HomeView` consome `useSession()` (store compartilhado da task 59) e renderiza `<CommunityCta />` apenas quando `!sessionLoading && !user`. Enquanto a sessão ainda está `loading`, o CTA não é renderizado — evita o "flash" de aparecer e sumir logo após o `/auth/me` resolver.
+- **Arquivos:** `apps/web/src/features/content/views/home-view.tsx` *(único arquivo de código tocado)* + `context/modules/web/status.md` + `context/modules/content/status.md`.
+- **Decisões:** (1) Guard `!sessionLoading && !user` (equivalente a "não renderizar quando `loading || user`", como a spec permitiu) — o estado "sessão não resolvida" esconde o CTA em vez de assumir deslogado, eliminando o flash. (2) `useSession` é um ViewModel compartilhado (store de módulo via `useSyncExternalStore`); a View apenas decide renderizar — MVVM preservado (nenhum `useQuery`/fetch na View). (3) `CommunityCta`, header/`UserMenu` e o restante da Home intocados.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings). `next build` **não** executado (instrução explícita da task).
+- **Fora do escopo (reportar):** nenhum. A task 101 (`backend-jobs-ttl-paginacao`) está ativa em paralelo; seus arquivos não foram tocados.

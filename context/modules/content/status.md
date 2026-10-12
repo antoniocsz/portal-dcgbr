@@ -106,3 +106,15 @@
 - **Arquivos:** `apps/web/src/features/content/viewmodels/use-home.ts`, `apps/web/src/features/content/views/home-view.tsx`.
 - **Decisões:** apenas remoção — a Home não foi conectada à API de torneios nesta task (escopo mínimo; evita inventar dados).
 - **Fora do escopo:** nenhum. `TournamentCard` (components) segue usado pela página `/torneios`; `apps/api/**` e `packages/**` intocados.
+
+## Fase 10 — Home: esconder CTA da comunidade quando logado (task 100)
+- [x] `features/content/views/home-view.tsx` consome `useSession()` (`@/lib/use-session`) e renderiza `<CommunityCta />` só quando `!sessionLoading && !user`
+- [x] Sem alteração no `CommunityCta`/`useHome` nem no restante da Home; MVVM estrito (View só decide renderizar)
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` **não** executado)
+
+## Handoff (task 100)
+- **Feito:** a área "Junte-se à comunidade" da Home (feature content) some para usuário logado. A `HomeView` usa o ViewModel compartilhado `useSession` e passa a renderizar o CTA **apenas deslogado**; enquanto `loading`, o CTA não aparece (sem flash). O componente `CommunityCta` e o ViewModel `useHome` não mudaram.
+- **Arquivos:** `apps/web/src/features/content/views/home-view.tsx` (código) + `context/modules/{web,content}/status.md`.
+- **Decisões:** guard `!sessionLoading && !user`; reuso do `useSession` compartilhado (task 59) — sem fetch na View.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings); `next build` **não** executado (instrução da task).
+- **Fora do escopo:** nenhum.

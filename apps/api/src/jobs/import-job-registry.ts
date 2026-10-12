@@ -18,6 +18,16 @@ export interface ImportJobSnapshot<TResult> {
   error?: string
 }
 
+export interface ImportJobRegistryOptions {
+  /** Máximo de jobs mantidos em memória (os mais recentes). Default: 20. */
+  maxJobs?: number
+  /** TTL (ms) de jobs finalizados; mais antigos que isso são descartados. Default: 1h. */
+  finishedTtlMs?: number
+}
+
+const DEFAULT_MAX_JOBS = 20
+const DEFAULT_FINISHED_TTL_MS = 60 * 60 * 1000
+
 /** Erros de domínio (AppError) têm mensagem segura; os demais viram mensagem genérica. */
 function toSafeMessage(error: unknown): string {
   if (error instanceof AppError) return error.message
@@ -26,12 +36,43 @@ function toSafeMessage(error: unknown): string {
 
 export class ImportJobRegistry<TResult> {
   private readonly jobs = new Map<string, ImportJobSnapshot<TResult>>()
+  private readonly maxJobs: number
+  private readonly finishedTtlMs: number
+
+  constructor(options: ImportJobRegistryOptions = {}) {
+    this.maxJobs = options.maxJobs ?? DEFAULT_MAX_JOBS
+    this.finishedTtlMs = options.finishedTtlMs ?? DEFAULT_FINISHED_TTL_MS
+  }
+
+  /**
+   * Expurgo barato (passa no `start()`/`list()`): remove jobs finalizados mais
+   * antigos que o TTL e limita o total aos `maxJobs` mais recentes. Jobs `running`
+   * nunca são descartados (nem por TTL, nem pelo limite).
+   */
+  private prune(): void {
+    const now = Date.now()
+    for (const [id, job] of this.jobs) {
+      if (job.status === 'running' || job.finishedAt === null) continue
+      if (now - Date.parse(job.finishedAt) > this.finishedTtlMs) this.jobs.delete(id)
+    }
+    if (this.jobs.size <= this.maxJobs) return
+    const finished = [...this.jobs.values()]
+      .filter((job) => job.status !== 'running')
+      .sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt))
+    let excess = this.jobs.size - this.maxJobs
+    for (const job of finished) {
+      if (excess <= 0) break
+      this.jobs.delete(job.id)
+      excess -= 1
+    }
+  }
 
   /**
    * Dispara `execute` em background e devolve o id do job imediatamente
    * (sem `await`): o handler responde 202 e o cliente acompanha por polling.
    */
   start(execute: () => Promise<TResult>): string {
+    this.prune()
     const id = randomUUID()
     this.jobs.set(id, {
       id,
@@ -76,6 +117,7 @@ export class ImportJobRegistry<TResult> {
   }
 
   list(): ImportJobSnapshot<TResult>[] {
+    this.prune()
     return [...this.jobs.values()]
   }
 }

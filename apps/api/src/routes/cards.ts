@@ -105,6 +105,23 @@ function requireAdminActor(request: FastifyRequest): CardActor {
   return { id: context.userId, role: context.role }
 }
 
+const DEFAULT_JOBS_LIMIT = 20
+const MAX_JOBS_LIMIT = 100
+
+/** `?limit=` — default 20, teto 100; valor ausente/inválido cai no default. */
+function parseJobsLimit(value: string | undefined): number {
+  const parsed = Number.parseInt(value ?? '', 10)
+  if (!Number.isInteger(parsed) || parsed <= 0) return DEFAULT_JOBS_LIMIT
+  return Math.min(parsed, MAX_JOBS_LIMIT)
+}
+
+/** `?offset=` — default 0; valor ausente/inválido cai no default. */
+function parseJobsOffset(value: string | undefined): number {
+  const parsed = Number.parseInt(value ?? '', 10)
+  if (!Number.isInteger(parsed) || parsed < 0) return 0
+  return parsed
+}
+
 const {
   list: listCards,
   get: getCard,
@@ -202,10 +219,27 @@ export const cardsRoutes: FastifyPluginAsync = async (app) => {
   )
 
   // GET /cards/admin/import-source/jobs — lista os jobs recentes (administrator).
-  app.get('/cards/admin/import-source/jobs', async (request, reply) => {
-    requireAdminActor(request)
-    return reply.send({ items: importSourceJobs.list() })
-  })
+  // Contrato: `?limit=` (default 20, teto 100 — inválido/ausente cai no default) e
+  // `?offset=` (default 0). Ordenado por `startedAt` **decrescente** (mais recentes
+  // primeiro). Resposta: `{ items, total, limit, offset }` — `total` é o número de
+  // jobs disponíveis (após o expurgo do registry), não o tamanho da página.
+  app.get<{ Querystring: Record<string, unknown> }>(
+    '/cards/admin/import-source/jobs',
+    async (request, reply) => {
+      requireAdminActor(request)
+      const limit = parseJobsLimit(queryString(request.query.limit))
+      const offset = parseJobsOffset(queryString(request.query.offset))
+      const jobs = importSourceJobs
+        .list()
+        .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+      return reply.send({
+        items: jobs.slice(offset, offset + limit),
+        total: jobs.length,
+        limit,
+        offset
+      })
+    }
+  )
 
   // GET /cards/admin/import-source/jobs/:jobId — progresso/resultado do job.
   app.get<{ Params: { jobId: string } }>(

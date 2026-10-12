@@ -4,6 +4,7 @@
 
 import Link from 'next/link'
 import { ArrowRight } from '@/components'
+import { useSession } from '@/lib/use-session'
 import { useHome } from '../viewmodels/use-home'
 import { Hero } from './hero'
 import { NewsGrid } from './news-grid'
@@ -61,6 +62,9 @@ function CommunityCta() {
 
 export function HomeView() {
   const { featured, latest, isLoading, isError, refetch } = useHome()
+  const { user, loading: sessionLoading } = useSession()
+
+  const showCommunityCta = !sessionLoading && !user
 
   return (
     <div className="flex flex-col">
@@ -96,7 +100,7 @@ export function HomeView() {
         </div>
       </section>
 
-      <CommunityCta />
+      {showCommunityCta ? <CommunityCta /> : null}
     </div>
   )
 }
