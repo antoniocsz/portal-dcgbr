@@ -585,7 +585,7 @@
 - **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings); `tsc --noEmit` direto também EXIT=0. `next build` **não** executado (instrução da task).
 - **Fora do escopo (reportar):** nenhum. Só `page.tsx` foi tocado no código (diff confinado ao `## Escopo`); `deck-detail-view.tsx`/`use-deck.ts` (task 79), `app/(member)/decks/[slug]/editar/page.tsx` (task 86), `features/cards/**` (task 87) e `apps/api/**`/`packages/**` intocados. Observação: durante a validação o working tree trazia `features/cards/views/card-filters.tsx` (task 87) num estado intermediário que quebrou o `tsc` (identificador `FilterState` removido do import mas ainda referenciado); o erro era **fora do escopo** e já sumiu quando a task 87 concluiu o arquivo.
 
-## Fase 43 — Gate de dono na página de editar deck (task 86)
+## Fase 45 — Gate de dono na página de editar deck (task 86)
 - [x] `(member)/decks/[slug]/editar/page.tsx`: o Server Component passou a ler a sessão (`getSession()` de `@/lib/session`) e o deck via `fetch` SSR encaminhando **o cookie de sessão** (`cookies()` de `next/headers` → header `cookie`), no mesmo padrão da task 85
 - [x] Deck **inexistente** → `notFound()` (`fetchDeck` devolve `null` em `!response.ok`/erro) — não-dono de rascunho não vê existência
 - [x] `deck.ownerId !== session.userId` (ou sessão ausente) → `redirect('/decks/' + slug)` — o form de edição de terceiros nunca é renderizado (antes o não-dono abria o form e só falhava no PATCH 403)
