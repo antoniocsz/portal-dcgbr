@@ -11,7 +11,13 @@
 //   DATABASE_URL=postgresql://digimon:digimon@localhost:5432/digimon_test \
 //     pnpm --filter @digimon/database exec prisma migrate deploy
 //   TEST_DATABASE_URL=postgresql://digimon:digimon@localhost:5432/digimon_test \
-//     pnpm turbo test --filter=@digimon/decks
+//     pnpm --filter @digimon/decks test
+//
+// NOTA (Turbo env strict): NÃO use `pnpm turbo test --filter=@digimon/decks`.
+// No Turbo 2.11.5 o `envMode` é "strict" por default e TEST_DATABASE_URL não está
+// declarada (env/passThroughEnv) no turbo.json — a variável é FILTRADA do
+// ambiente das tasks, `hasTestDatabase` fica falso e a suíte é PULADA em silêncio.
+// Rode o pacote direto (acima) ou, se precisar do Turbo, force `--env-mode=loose`.
 import { createRequire } from 'node:module'
 import { PrismaClient } from '@digimon/database'
 

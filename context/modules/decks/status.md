@@ -130,7 +130,19 @@
 - [x] Executado contra Postgres real (`digimon_test`): **9/9 passed** (ver Handoff)
 - [x] `pnpm turbo typecheck lint test --filter=@digimon/decks` verde
 
+## Fase 17 — Doc do comando correto da suíte de integração (task 99)
+- [x] `src/test/integration-db.ts` — cabeçalho corrigido para `TEST_DATABASE_URL=postgresql://... pnpm --filter @digimon/decks test` + nota do Turbo `envMode: "strict"` (env filtrada → suíte pulada em silêncio)
+- [x] Só comentários/documentação — nenhuma mudança de lógica (`describe.skipIf`, helpers e specs intocados)
+- [x] `pnpm turbo typecheck lint test --filter=@digimon/cards --filter=@digimon/decks` verde (integração pulada sem env: 9 skipped)
+
 ## Handoff
+
+### Handoff task 99 (doc do comando de integração — Turbo env strict)
+- **Feito (backend, só comentários):** `packages/modules/decks/src/test/integration-db.ts` (e o espelho em `@digimon/cards`, mesma task). O cabeçalho documentava `TEST_DATABASE_URL=… pnpm turbo test --filter=@digimon/decks`, mas no **Turbo 2.11.5** o `envMode` é `strict` por default e `turbo.json` não declara `TEST_DATABASE_URL` → a env é **filtrada** das tasks, `hasTestDatabase` fica falso e a suíte é **pulada em silêncio**. Corrigido para `pnpm --filter @digimon/decks test` + nota (`--env-mode=loose` se precisar do Turbo).
+- **Arquivos:** `packages/modules/decks/src/test/integration-db.ts`, `packages/modules/cards/src/test/integration-db.ts` (espelho), `context/modules/{decks,cards}/status.md`.
+- **Decisões:** nenhuma de domínio — task puramente de documentação; lógica de teste intocada.
+- **Validação:** `pnpm turbo typecheck lint test --filter=@digimon/cards --filter=@digimon/decks` — 6/6 ✅ (integração pulada sem env; 80+29 testes unitários verdes).
+- **Fora do escopo:** nenhum.
 
 ### Handoff task 97 (testes de integração com Postgres real — decks)
 - **Feito (backend, só `src/test/**`):** criada a suíte de integração do `@digimon/decks`, **gated por `TEST_DATABASE_URL`**. `src/test/integration-db.ts` (helper novo; `decks` não tinha `src/test/`): `hasTestDatabase`/`createTestPrisma()`/`truncateTables()`. `src/test/decks.integration.spec.ts` cobre via `PrismaDeckRepository` (CRUD + `eggList`/`coverCardId` JSON/null + `list` com `publicOnly`/`ownerId`/full-text `decks_search_idx`) e via `PrismaPublicDeckRepository` os caminhos com **SQL/transação** que o repo em memória não exercita: snapshot (`create`/`findById` com autor/`findBySourceDeck`), **like/unlike** (contador idempotente, `likedByMe`), **addCopy** (1 por conta, `ON CONFLICT DO NOTHING`), **report** (1 aberto por conta — novo substitui — + `queueReports`) e **moderate hide** (`setStatus('hidden')` + `dismissReports` esvazia a fila). **Sem env** é pulada (`describe.skipIf`) → CI verde.
