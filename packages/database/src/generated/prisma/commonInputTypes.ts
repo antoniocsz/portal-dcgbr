@@ -474,6 +474,23 @@ export type EnumPublicDeckStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPublicDeckStatusFilter<$PrismaModel>
 }
 
+export type EnumAdKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.AdKind | Prisma.EnumAdKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAdKindFilter<$PrismaModel> | $Enums.AdKind
+}
+
+export type EnumAdKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AdKind | Prisma.EnumAdKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAdKindWithAggregatesFilter<$PrismaModel> | $Enums.AdKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAdKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAdKindFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -891,6 +908,23 @@ export type NestedEnumPublicDeckStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPublicDeckStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPublicDeckStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumAdKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.AdKind | Prisma.EnumAdKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAdKindFilter<$PrismaModel> | $Enums.AdKind
+}
+
+export type NestedEnumAdKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AdKind | Prisma.EnumAdKindFieldRefInput<$PrismaModel>
+  in?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AdKind[] | Prisma.ListEnumAdKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAdKindWithAggregatesFilter<$PrismaModel> | $Enums.AdKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAdKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAdKindFilter<$PrismaModel>
 }
 
 

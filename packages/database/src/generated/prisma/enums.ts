@@ -111,3 +111,12 @@ export const CardColor = {
 } as const
 
 export type CardColor = (typeof CardColor)[keyof typeof CardColor]
+
+
+export const AdKind = {
+  HOUSE: 'HOUSE',
+  AFFILIATE: 'AFFILIATE',
+  SPONSOR: 'SPONSOR'
+} as const
+
+export type AdKind = (typeof AdKind)[keyof typeof AdKind]

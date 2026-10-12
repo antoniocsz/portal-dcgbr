@@ -86,6 +86,12 @@ enum CardColor {
   WHITE
 }
 
+enum AdKind {
+  HOUSE
+  AFFILIATE
+  SPONSOR
+}
+
 model User {
   id                  String               @id @default(cuid())
   email               String               @unique
@@ -106,6 +112,7 @@ model User {
   publicDeckLikes     PublicDeckLike[]     @relation("PublicDeckLikes")
   publicDeckCopies    PublicDeckCopy[]     @relation("PublicDeckCopies")
   deckReports         CommunityDeckReport[] @relation("DeckReports")
+  createdAds          Ad[]                 @relation("AdCreator")
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
 }
@@ -339,4 +346,35 @@ model CommunityDeckReport {
 
   @@index([publicDeckId, dismissedAt])
   @@map("community_deck_reports")
+}
+
+// Anúncios/patrocínios do portal (@digimon/ads): house ads, patrocínio direto e
+// links de afiliado. `placements` é lista escalar de posições de exibição;
+// `impressions`/`clicks` são contadores simples (sem PII). Curadoria: administrator.
+model Ad {
+  id           String   @id @default(cuid())
+  title        String
+  subtitle     String?
+  imageUrl     String?
+  targetUrl    String
+  kind         AdKind
+  placements   String[]
+  ctaLabel     String?
+  sponsorName  String?
+  disclosure   String?
+  isActive     Boolean  @default(true)
+  priority     Int      @default(0)
+  startAt      DateTime?
+  endAt        DateTime?
+  openInNewTab Boolean  @default(true)
+  impressions  Int      @default(0)
+  clicks       Int      @default(0)
+  createdBy    String
+  creator      User     @relation("AdCreator", fields: [createdBy], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([kind])
+  @@map("ads")
 }

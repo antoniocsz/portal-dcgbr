@@ -1,7 +1,7 @@
 // Path: apps/web/src/features/content/views/post-article.tsx
 // View presentacional (server-safe): leitura completa de um post — tag, título,
 // resumo, autoria, capa e corpo. Sem hooks (renderizável em SSR para SEO).
-import { Avatar, Sparkles, Tag } from '@/components'
+import { AdSlot, Avatar, Sparkles, Tag } from '@/components'
 import type { Post } from '../model/types'
 import { categoryLabel, estimateReadingTime, formatPostDate } from '../viewmodels/post-view'
 import { sanitizePostBody } from '@/lib/sanitize'
@@ -55,6 +55,8 @@ export function PostArticle({ post, authorName }: PostArticleProps) {
         {/* HTML sanitizado no servidor (allowlist) — ver lib/sanitize.ts */}
         <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
       </div>
+
+      <AdSlot placement="article-inline" className="mt-2" />
     </article>
   )
 }

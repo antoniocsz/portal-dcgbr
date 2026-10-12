@@ -3,7 +3,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from '@/components'
+import { AdSlot, ArrowRight } from '@/components'
 import { useSession } from '@/lib/use-session'
 import { useHome } from '../viewmodels/use-home'
 import { Hero } from './hero'
@@ -70,6 +70,11 @@ export function HomeView() {
     <div className="flex flex-col">
       {featured ? <Hero post={featured} /> : <HeroSkeleton />}
 
+      <AdSlot
+        placement="home-top"
+        className="mx-auto w-full max-w-[1440px] px-4 pt-6 lg:px-12"
+      />
+
       <section
         className="mx-auto flex w-full max-w-[1440px] flex-wrap gap-3 px-4 py-8 lg:px-12"
         aria-label="Categorias"
@@ -99,6 +104,12 @@ export function HomeView() {
           <NewsGrid posts={latest} isLoading={isLoading} isError={isError} onRetry={refetch} />
         </div>
       </section>
+
+      <AdSlot
+        placement="home-infeed"
+        count={2}
+        className="mx-auto w-full max-w-[1440px] px-4 pb-10 lg:px-12"
+      />
 
       {showCommunityCta ? <CommunityCta /> : null}
     </div>

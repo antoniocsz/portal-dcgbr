@@ -10,6 +10,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@digimon/ads": "workspace:*",
     "@digimon/auth": "workspace:*",
     "@digimon/cards": "workspace:*",
     "@digimon/comments": "workspace:*",

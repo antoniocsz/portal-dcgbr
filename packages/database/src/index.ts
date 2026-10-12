@@ -19,7 +19,8 @@ export {
   DeckStatus,
   PublicDeckStatus,
   CardType,
-  CardColor
+  CardColor,
+  AdKind
 } from './generated/prisma/client'
 export type {
   User,
@@ -35,5 +36,6 @@ export type {
   PublicDeckCopy,
   CommunityDeckReport,
   Card,
-  CardSet
+  CardSet,
+  Ad
 } from './generated/prisma/client'

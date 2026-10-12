@@ -65,7 +65,8 @@ export const ModelName = {
   PublicDeck: 'PublicDeck',
   PublicDeckLike: 'PublicDeckLike',
   PublicDeckCopy: 'PublicDeckCopy',
-  CommunityDeckReport: 'CommunityDeckReport'
+  CommunityDeckReport: 'CommunityDeckReport',
+  Ad: 'Ad'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -302,6 +303,32 @@ export const CommunityDeckReportScalarFieldEnum = {
 } as const
 
 export type CommunityDeckReportScalarFieldEnum = (typeof CommunityDeckReportScalarFieldEnum)[keyof typeof CommunityDeckReportScalarFieldEnum]
+
+
+export const AdScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  imageUrl: 'imageUrl',
+  targetUrl: 'targetUrl',
+  kind: 'kind',
+  placements: 'placements',
+  ctaLabel: 'ctaLabel',
+  sponsorName: 'sponsorName',
+  disclosure: 'disclosure',
+  isActive: 'isActive',
+  priority: 'priority',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  openInNewTab: 'openInNewTab',
+  impressions: 'impressions',
+  clicks: 'clicks',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AdScalarFieldEnum = (typeof AdScalarFieldEnum)[keyof typeof AdScalarFieldEnum]
 
 
 export const SortOrder = {

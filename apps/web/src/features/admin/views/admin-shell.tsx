@@ -5,7 +5,7 @@
 
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { Settings, ShieldAlert } from 'lucide-react'
+import { Megaphone, Settings, ShieldAlert } from 'lucide-react'
 import {
   AdminNav,
   AdminSidebar,
@@ -33,6 +33,7 @@ const NAV_ITEMS: AdminNavItem[] = [
     label: 'Moderação de decks',
     icon: <ShieldAlert className="size-4.5" />
   },
+  { href: '/admin/anuncios', label: 'Anúncios', icon: <Megaphone className="size-4.5" /> },
   { href: '/admin/comentarios', label: 'Comentários', icon: <MessageSquare className="size-4.5" /> },
   { href: '/admin/usuarios', label: 'Usuários', icon: <Users className="size-4.5" /> },
   { href: '/admin/configuracoes', label: 'Configurações', icon: <Settings className="size-4.5" /> }
@@ -49,7 +50,10 @@ export function AdminShell({ user, isAdmin, children }: AdminShellProps) {
   const items = isAdmin
     ? NAV_ITEMS
     : NAV_ITEMS.filter(
-      (item) => item.href !== '/admin/usuarios' && item.href !== '/admin/configuracoes'
+      (item) =>
+        item.href !== '/admin/usuarios'
+        && item.href !== '/admin/configuracoes'
+        && item.href !== '/admin/anuncios'
     )
 
   return (

@@ -3,6 +3,7 @@
 // fica no ViewModel; esta View só renderiza.
 'use client'
 
+import { AdSlot } from '@/components'
 import { toCardTileData } from '../viewmodels/card-view'
 import { useCardList } from '../viewmodels/use-card-list'
 import { CardFilters } from './card-filters'
@@ -32,6 +33,8 @@ export function CardsView() {
           Busque por nome, efeito, cor ou set. Referência: digimoncard.dev.
         </p>
       </header>
+
+      <AdSlot placement="cards-top" className="pb-6" />
 
       <CardFilters filters={filters} onChange={setFilters} />
 

@@ -750,3 +750,33 @@
 - **Decisões:** (1) Guard `!sessionLoading && !user` (equivalente a "não renderizar quando `loading || user`", como a spec permitiu) — o estado "sessão não resolvida" esconde o CTA em vez de assumir deslogado, eliminando o flash. (2) `useSession` é um ViewModel compartilhado (store de módulo via `useSyncExternalStore`); a View apenas decide renderizar — MVVM preservado (nenhum `useQuery`/fetch na View). (3) `CommunityCta`, header/`UserMenu` e o restante da Home intocados.
 - **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings). `next build` **não** executado (instrução explícita da task).
 - **Fora do escopo (reportar):** nenhum. A task 101 (`backend-jobs-ttl-paginacao`) está ativa em paralelo; seus arquivos não foram tocados.
+
+## Fase 29 — Slots de anúncio no portal (task 104)
+- [x] Feature `ads` (MVVM): `model/{types,ads-api}`, `viewmodels/{use-ads,index}` — sem importar `@digimon/ads` no client (tipos literais)
+- [x] Componente `AdSlot` (`components/ad-slot.tsx`): reserva altura (anti-CLS), `<img>` nativo (host dinâmico), `rel="sponsored nofollow noopener"` p/ affiliate/sponsor + rótulo de divulgação, click tracking best-effort; export no barrel
+- [x] Posições: `home-top` + `home-infeed` (`home-view`), `article-inline` (`post-article`), `cards-top` (`cards-view`)
+- [x] Typecheck + Lint `@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings)
+- [x] `next build` **não** executado (instrução da task)
+
+## Handoff (task 104)
+- **Feito:** portal passa a renderizar anúncios por placement via `<AdSlot>` (house/afiliado/patrocínio), consumindo `GET /ads?placement=&limit=` e `POST /ads/:id/click`.
+- **Arquivos:** `apps/web/src/features/ads/**` (novo), `apps/web/src/components/ad-slot.tsx` (novo), `apps/web/src/components/index.ts`, `apps/web/src/features/content/views/home-view.tsx`, `apps/web/src/features/content/views/post-article.tsx`, `apps/web/src/features/cards/views/cards-view.tsx` + `context/modules/{ads,web}/status.md`.
+- **Decisões:** (1) rotação por peso no cliente (pool default 5 p/ item único; `limit=count` no in-feed); (2) `<img>` nativo — host do criativo é dinâmico, `next.config.ts` intocado; (3) skeleton com altura reservada + `null` quando vazio; (4) `rel` patrocinado só p/ affiliate/sponsor. Detalhes no `context/modules/ads/status.md`.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅. `next build` não executado.
+- **Pendências/fora do escopo (reportar):** nenhuma. Admin de anúncios fica na task 105.
+
+## Fase 30 — Admin de anúncios (task 105)
+- [x] Model `features/admin/model/ads-admin-api.ts`: `adsAdminApi` (list/create/update/remove nas rotas `/ads/admin`) reusando os tipos da feature `ads` (sem `@digimon/ads` no client)
+- [x] ViewModels `features/admin/viewmodels/use-admin-ads.ts`: `useAdminAds` (filtros placement/kind/isActive + paginação + ativar/desativar + excluir) e `useAdminAdForm` (form criar/editar + validação leve)
+- [x] View `features/admin/views/admin-ads-view.tsx` (só JSX): tabela (`AdminTable`) + formulário inline com todos os campos (placements multi-seleção, tipo, link de destino com dica por tipo, janela startAt/endAt, prioridade, disclosure, nova aba)
+- [x] Página `/admin/anuncios` (`app/admin/anuncios/page.tsx`, server, `robots: index:false`) + item **"Anúncios"** (`Megaphone`) no `AdminShell`, oculto para editor
+- [x] Barrel `features/admin/index.ts` atualizado
+- [x] Typecheck + Lint `@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings); `pnpm harness check` ✅
+- [x] `next build` **não** executado (instrução da task)
+
+## Handoff (task 105)
+- **Feito:** painel `/admin/anuncios` com CRUD de anúncios (house/patrocínio/afiliado) via rotas admin reais (`GET/POST /ads/admin`, `PATCH/DELETE /ads/admin/:id`), MVVM estrito. Detalhes de implementação/decisões em `context/modules/ads/status.md` (Handoff task 105).
+- **Arquivos:** `apps/web/src/features/admin/model/ads-admin-api.ts` (novo), `apps/web/src/features/admin/viewmodels/use-admin-ads.ts` (novo), `apps/web/src/features/admin/views/admin-ads-view.tsx` (novo), `apps/web/src/features/admin/views/admin-shell.tsx`, `apps/web/src/features/admin/index.ts`, `apps/web/src/app/admin/anuncios/page.tsx` (novo) + `context/modules/{ads,web}/status.md`.
+- **Decisões:** (1) **escopo estendido a `admin-shell.tsx`** — o item de navegação era exigido pela task mas não constava no `## Escopo`; a instrução do usuário autorizou a extensão (item oculto para editor). (2) formulário **inline** na mesma página (o escopo só prevê uma rota); painel controlado pelo ViewModel (`openCreate`/`openEdit`/`closeForm`) e form remontado por `key`. (3) reuso dos tipos literais de `features/ads` + payload próprio espelhando os schemas do backend. (4) sem RHF/Zustand (consistência com as features admin existentes); validação leve no cliente.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2 — 0 erros/0 warnings). `pnpm harness check` ✅. `next build` não executado (instrução da task).
+- **Pendências/fora do escopo (reportar):** nenhuma. `@digimon/ads` não foi importado no client; sem novas dependências.

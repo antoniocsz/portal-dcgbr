@@ -86,6 +86,15 @@ import {
   PrismaTournamentRepository,
   UpdateTournamentUseCase
 } from '@digimon/tournaments'
+import {
+  CreateAdUseCase,
+  DeleteAdUseCase,
+  GetAdUseCase,
+  ListAdsUseCase,
+  PrismaAdRepository,
+  TrackAdClickUseCase,
+  UpdateAdUseCase
+} from '@digimon/ads'
 import { UserAccountAdapter } from './http/user-account-adapter'
 import { ImportJobRegistry } from './jobs'
 
@@ -302,6 +311,20 @@ export function tournamentsDeps() {
     addResults: new AddResultsUseCase(tournamentRepository, eventBus),
     get: new GetTournamentUseCase(tournamentRepository),
     list: new ListTournamentsUseCase(tournamentRepository)
+  }
+}
+
+export function adsDeps() {
+  const repository = new PrismaAdRepository(prisma)
+  return {
+    // Repositório exposto para o incremento de impressões best-effort da rota pública.
+    repository,
+    list: new ListAdsUseCase(repository),
+    get: new GetAdUseCase(repository),
+    create: new CreateAdUseCase(repository, eventBus),
+    update: new UpdateAdUseCase(repository, eventBus),
+    remove: new DeleteAdUseCase(repository, eventBus),
+    trackClick: new TrackAdClickUseCase(repository)
   }
 }
 

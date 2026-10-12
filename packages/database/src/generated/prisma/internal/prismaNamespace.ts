@@ -411,7 +411,8 @@ export const ModelName = {
   PublicDeck: 'PublicDeck',
   PublicDeckLike: 'PublicDeckLike',
   PublicDeckCopy: 'PublicDeckCopy',
-  CommunityDeckReport: 'CommunityDeckReport'
+  CommunityDeckReport: 'CommunityDeckReport',
+  Ad: 'Ad'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card" | "publicDeck" | "publicDeckLike" | "publicDeckCopy" | "communityDeckReport"
+    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card" | "publicDeck" | "publicDeckLike" | "publicDeckCopy" | "communityDeckReport" | "ad"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1541,6 +1542,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Ad: {
+      payload: Prisma.$AdPayload<ExtArgs>
+      fields: Prisma.AdFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AdFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AdFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        findFirst: {
+          args: Prisma.AdFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AdFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        findMany: {
+          args: Prisma.AdFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>[]
+        }
+        create: {
+          args: Prisma.AdCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        createMany: {
+          args: Prisma.AdCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AdCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>[]
+        }
+        delete: {
+          args: Prisma.AdDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        update: {
+          args: Prisma.AdUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        deleteMany: {
+          args: Prisma.AdDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AdUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AdUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>[]
+        }
+        upsert: {
+          args: Prisma.AdUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdPayload>
+        }
+        aggregate: {
+          args: Prisma.AdAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAd>
+        }
+        groupBy: {
+          args: Prisma.AdGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AdCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1798,6 +1873,32 @@ export const CommunityDeckReportScalarFieldEnum = {
 } as const
 
 export type CommunityDeckReportScalarFieldEnum = (typeof CommunityDeckReportScalarFieldEnum)[keyof typeof CommunityDeckReportScalarFieldEnum]
+
+
+export const AdScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  subtitle: 'subtitle',
+  imageUrl: 'imageUrl',
+  targetUrl: 'targetUrl',
+  kind: 'kind',
+  placements: 'placements',
+  ctaLabel: 'ctaLabel',
+  sponsorName: 'sponsorName',
+  disclosure: 'disclosure',
+  isActive: 'isActive',
+  priority: 'priority',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  openInNewTab: 'openInNewTab',
+  impressions: 'impressions',
+  clicks: 'clicks',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AdScalarFieldEnum = (typeof AdScalarFieldEnum)[keyof typeof AdScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2072,6 +2173,20 @@ export type ListEnumPublicDeckStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'AdKind'
+ */
+export type EnumAdKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdKind'>
+    
+
+
+/**
+ * Reference to a field of type 'AdKind[]'
+ */
+export type ListEnumAdKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdKind[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2250,6 +2365,7 @@ export type GlobalOmitConfig = {
   publicDeckLike?: Prisma.PublicDeckLikeOmit
   publicDeckCopy?: Prisma.PublicDeckCopyOmit
   communityDeckReport?: Prisma.CommunityDeckReportOmit
+  ad?: Prisma.AdOmit
 }
 
 /* Types for Logging */

@@ -17,6 +17,8 @@ export { TournamentCard } from './tournament-card'
 export type { TournamentCardData, TournamentCardProps } from './tournament-card'
 export { CommentRow } from './comment-row'
 export type { CommentRowProps } from './comment-row'
+export { AdSlot } from './ad-slot'
+export type { AdSlotProps } from './ad-slot'
 
 // Chrome público
 export { SiteHeader } from './site-header'

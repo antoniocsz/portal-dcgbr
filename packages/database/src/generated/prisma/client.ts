@@ -116,3 +116,8 @@ export type PublicDeckCopy = Prisma.PublicDeckCopyModel
  * 
  */
 export type CommunityDeckReport = Prisma.CommunityDeckReportModel
+/**
+ * Model Ad
+ * 
+ */
+export type Ad = Prisma.AdModel

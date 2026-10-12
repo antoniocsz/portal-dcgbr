@@ -231,6 +231,7 @@ export type UserWhereInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeListRelationFilter
   publicDeckCopies?: Prisma.PublicDeckCopyListRelationFilter
   deckReports?: Prisma.CommunityDeckReportListRelationFilter
+  createdAds?: Prisma.AdListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }
@@ -255,6 +256,7 @@ export type UserOrderByWithRelationInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeOrderByRelationAggregateInput
   publicDeckCopies?: Prisma.PublicDeckCopyOrderByRelationAggregateInput
   deckReports?: Prisma.CommunityDeckReportOrderByRelationAggregateInput
+  createdAds?: Prisma.AdOrderByRelationAggregateInput
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
   passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
 }
@@ -282,6 +284,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   publicDeckLikes?: Prisma.PublicDeckLikeListRelationFilter
   publicDeckCopies?: Prisma.PublicDeckCopyListRelationFilter
   deckReports?: Prisma.CommunityDeckReportListRelationFilter
+  createdAds?: Prisma.AdListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
 }, "id" | "email">
@@ -338,6 +341,7 @@ export type UserCreateInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -362,6 +366,7 @@ export type UserUncheckedCreateInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -386,6 +391,7 @@ export type UserUpdateInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -410,6 +416,7 @@ export type UserUncheckedUpdateInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -682,6 +689,20 @@ export type UserUpdateOneWithoutDeckReportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeckReportsInput, Prisma.UserUpdateWithoutDeckReportsInput>, Prisma.UserUncheckedUpdateWithoutDeckReportsInput>
 }
 
+export type UserCreateNestedOneWithoutCreatedAdsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedAdsInput, Prisma.UserUncheckedCreateWithoutCreatedAdsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedAdsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCreatedAdsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedAdsInput, Prisma.UserUncheckedCreateWithoutCreatedAdsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedAdsInput
+  upsert?: Prisma.UserUpsertWithoutCreatedAdsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedAdsInput, Prisma.UserUpdateWithoutCreatedAdsInput>, Prisma.UserUncheckedUpdateWithoutCreatedAdsInput>
+}
+
 export type UserCreateWithoutRefreshTokensInput = {
   id?: string
   email: string
@@ -702,6 +723,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
 
@@ -725,6 +747,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -764,6 +787,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -787,6 +811,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -810,6 +835,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
 }
 
@@ -833,6 +859,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
 }
 
@@ -872,6 +899,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
 }
 
@@ -895,6 +923,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -917,6 +946,7 @@ export type UserCreateWithoutPostsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -940,6 +970,7 @@ export type UserUncheckedCreateWithoutPostsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -979,6 +1010,7 @@ export type UserUpdateWithoutPostsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1002,6 +1034,7 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1025,6 +1058,7 @@ export type UserCreateWithoutCommentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1048,6 +1082,7 @@ export type UserUncheckedCreateWithoutCommentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1087,6 +1122,7 @@ export type UserUpdateWithoutCommentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1110,6 +1146,7 @@ export type UserUncheckedUpdateWithoutCommentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1133,6 +1170,7 @@ export type UserCreateWithoutTournamentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1156,6 +1194,7 @@ export type UserUncheckedCreateWithoutTournamentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1195,6 +1234,7 @@ export type UserUpdateWithoutTournamentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1218,6 +1258,7 @@ export type UserUncheckedUpdateWithoutTournamentsInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1241,6 +1282,7 @@ export type UserCreateWithoutDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1264,6 +1306,7 @@ export type UserUncheckedCreateWithoutDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1303,6 +1346,7 @@ export type UserUpdateWithoutDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1326,6 +1370,7 @@ export type UserUncheckedUpdateWithoutDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1349,6 +1394,7 @@ export type UserCreateWithoutDeckCopiesInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1372,6 +1418,7 @@ export type UserUncheckedCreateWithoutDeckCopiesInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1411,6 +1458,7 @@ export type UserUpdateWithoutDeckCopiesInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1434,6 +1482,7 @@ export type UserUncheckedUpdateWithoutDeckCopiesInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1457,6 +1506,7 @@ export type UserCreateWithoutPublicDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1480,6 +1530,7 @@ export type UserUncheckedCreateWithoutPublicDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1519,6 +1570,7 @@ export type UserUpdateWithoutPublicDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1542,6 +1594,7 @@ export type UserUncheckedUpdateWithoutPublicDecksInput = {
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1565,6 +1618,7 @@ export type UserCreateWithoutPublicDeckLikesInput = {
   publicDecks?: Prisma.PublicDeckCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1588,6 +1642,7 @@ export type UserUncheckedCreateWithoutPublicDeckLikesInput = {
   publicDecks?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1627,6 +1682,7 @@ export type UserUpdateWithoutPublicDeckLikesInput = {
   publicDecks?: Prisma.PublicDeckUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1650,6 +1706,7 @@ export type UserUncheckedUpdateWithoutPublicDeckLikesInput = {
   publicDecks?: Prisma.PublicDeckUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1673,6 +1730,7 @@ export type UserCreateWithoutPublicDeckCopiesInput = {
   publicDecks?: Prisma.PublicDeckCreateNestedManyWithoutAccountInput
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1696,6 +1754,7 @@ export type UserUncheckedCreateWithoutPublicDeckCopiesInput = {
   publicDecks?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutAccountInput
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1735,6 +1794,7 @@ export type UserUpdateWithoutPublicDeckCopiesInput = {
   publicDecks?: Prisma.PublicDeckUpdateManyWithoutAccountNestedInput
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1758,6 +1818,7 @@ export type UserUncheckedUpdateWithoutPublicDeckCopiesInput = {
   publicDecks?: Prisma.PublicDeckUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1781,6 +1842,7 @@ export type UserCreateWithoutDeckReportsInput = {
   publicDecks?: Prisma.PublicDeckCreateNestedManyWithoutAccountInput
   publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
+  createdAds?: Prisma.AdCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
 }
@@ -1804,6 +1866,7 @@ export type UserUncheckedCreateWithoutDeckReportsInput = {
   publicDecks?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutAccountInput
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
+  createdAds?: Prisma.AdUncheckedCreateNestedManyWithoutCreatorInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1843,6 +1906,7 @@ export type UserUpdateWithoutDeckReportsInput = {
   publicDecks?: Prisma.PublicDeckUpdateManyWithoutAccountNestedInput
   publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
+  createdAds?: Prisma.AdUpdateManyWithoutCreatorNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
 }
@@ -1866,6 +1930,119 @@ export type UserUncheckedUpdateWithoutDeckReportsInput = {
   publicDecks?: Prisma.PublicDeckUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
   publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
+  createdAds?: Prisma.AdUncheckedUpdateManyWithoutCreatorNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutCreatedAdsInput = {
+  id?: string
+  email: string
+  name: string
+  avatarUrl?: string | null
+  passwordHash: string
+  role?: $Enums.Role
+  emailVerifiedAt?: Date | string | null
+  status?: $Enums.UserStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutAuthorInput
+  comments?: Prisma.CommentCreateNestedManyWithoutAuthorInput
+  tournaments?: Prisma.TournamentCreateNestedManyWithoutOrganizerInput
+  decks?: Prisma.DeckCreateNestedManyWithoutOwnerInput
+  deckCopies?: Prisma.DeckCopyCreateNestedManyWithoutCopiedByInput
+  publicDecks?: Prisma.PublicDeckCreateNestedManyWithoutAccountInput
+  publicDeckLikes?: Prisma.PublicDeckLikeCreateNestedManyWithoutAccountInput
+  publicDeckCopies?: Prisma.PublicDeckCopyCreateNestedManyWithoutAccountInput
+  deckReports?: Prisma.CommunityDeckReportCreateNestedManyWithoutReporterInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutCreatedAdsInput = {
+  id?: string
+  email: string
+  name: string
+  avatarUrl?: string | null
+  passwordHash: string
+  role?: $Enums.Role
+  emailVerifiedAt?: Date | string | null
+  status?: $Enums.UserStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutAuthorInput
+  comments?: Prisma.CommentUncheckedCreateNestedManyWithoutAuthorInput
+  tournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutOrganizerInput
+  decks?: Prisma.DeckUncheckedCreateNestedManyWithoutOwnerInput
+  deckCopies?: Prisma.DeckCopyUncheckedCreateNestedManyWithoutCopiedByInput
+  publicDecks?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutAccountInput
+  publicDeckLikes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutAccountInput
+  publicDeckCopies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutAccountInput
+  deckReports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutReporterInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutCreatedAdsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedAdsInput, Prisma.UserUncheckedCreateWithoutCreatedAdsInput>
+}
+
+export type UserUpsertWithoutCreatedAdsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedAdsInput, Prisma.UserUncheckedUpdateWithoutCreatedAdsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedAdsInput, Prisma.UserUncheckedCreateWithoutCreatedAdsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCreatedAdsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedAdsInput, Prisma.UserUncheckedUpdateWithoutCreatedAdsInput>
+}
+
+export type UserUpdateWithoutCreatedAdsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutAuthorNestedInput
+  comments?: Prisma.CommentUpdateManyWithoutAuthorNestedInput
+  tournaments?: Prisma.TournamentUpdateManyWithoutOrganizerNestedInput
+  decks?: Prisma.DeckUpdateManyWithoutOwnerNestedInput
+  deckCopies?: Prisma.DeckCopyUpdateManyWithoutCopiedByNestedInput
+  publicDecks?: Prisma.PublicDeckUpdateManyWithoutAccountNestedInput
+  publicDeckLikes?: Prisma.PublicDeckLikeUpdateManyWithoutAccountNestedInput
+  publicDeckCopies?: Prisma.PublicDeckCopyUpdateManyWithoutAccountNestedInput
+  deckReports?: Prisma.CommunityDeckReportUpdateManyWithoutReporterNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCreatedAdsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUncheckedUpdateManyWithoutAuthorNestedInput
+  comments?: Prisma.CommentUncheckedUpdateManyWithoutAuthorNestedInput
+  tournaments?: Prisma.TournamentUncheckedUpdateManyWithoutOrganizerNestedInput
+  decks?: Prisma.DeckUncheckedUpdateManyWithoutOwnerNestedInput
+  deckCopies?: Prisma.DeckCopyUncheckedUpdateManyWithoutCopiedByNestedInput
+  publicDecks?: Prisma.PublicDeckUncheckedUpdateManyWithoutAccountNestedInput
+  publicDeckLikes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutAccountNestedInput
+  publicDeckCopies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutAccountNestedInput
+  deckReports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutReporterNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1885,6 +2062,7 @@ export type UserCountOutputType = {
   publicDeckLikes: number
   publicDeckCopies: number
   deckReports: number
+  createdAds: number
   refreshTokens: number
   passwordResetTokens: number
 }
@@ -1899,6 +2077,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   publicDeckLikes?: boolean | UserCountOutputTypeCountPublicDeckLikesArgs
   publicDeckCopies?: boolean | UserCountOutputTypeCountPublicDeckCopiesArgs
   deckReports?: boolean | UserCountOutputTypeCountDeckReportsArgs
+  createdAds?: boolean | UserCountOutputTypeCountCreatedAdsArgs
   refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
   passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
 }
@@ -1979,6 +2158,13 @@ export type UserCountOutputTypeCountDeckReportsArgs<ExtArgs extends runtime.Type
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountCreatedAdsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AdWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountRefreshTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.RefreshTokenWhereInput
 }
@@ -2011,6 +2197,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   publicDeckLikes?: boolean | Prisma.User$publicDeckLikesArgs<ExtArgs>
   publicDeckCopies?: boolean | Prisma.User$publicDeckCopiesArgs<ExtArgs>
   deckReports?: boolean | Prisma.User$deckReportsArgs<ExtArgs>
+  createdAds?: boolean | Prisma.User$createdAdsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -2066,6 +2253,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   publicDeckLikes?: boolean | Prisma.User$publicDeckLikesArgs<ExtArgs>
   publicDeckCopies?: boolean | Prisma.User$publicDeckCopiesArgs<ExtArgs>
   deckReports?: boolean | Prisma.User$deckReportsArgs<ExtArgs>
+  createdAds?: boolean | Prisma.User$createdAdsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -2085,6 +2273,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     publicDeckLikes: Prisma.$PublicDeckLikePayload<ExtArgs>[]
     publicDeckCopies: Prisma.$PublicDeckCopyPayload<ExtArgs>[]
     deckReports: Prisma.$CommunityDeckReportPayload<ExtArgs>[]
+    createdAds: Prisma.$AdPayload<ExtArgs>[]
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
     passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
   }
@@ -2502,6 +2691,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   publicDeckLikes<T extends Prisma.User$publicDeckLikesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$publicDeckLikesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicDeckLikePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   publicDeckCopies<T extends Prisma.User$publicDeckCopiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$publicDeckCopiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicDeckCopyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   deckReports<T extends Prisma.User$deckReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deckReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommunityDeckReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createdAds<T extends Prisma.User$createdAdsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdAdsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -3149,6 +3339,30 @@ export type User$deckReportsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.CommunityDeckReportScalarFieldEnum | Prisma.CommunityDeckReportScalarFieldEnum[]
+}
+
+/**
+ * User.createdAds
+ */
+export type User$createdAdsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Ad
+   */
+  select?: Prisma.AdSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Ad
+   */
+  omit?: Prisma.AdOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdInclude<ExtArgs> | null
+  where?: Prisma.AdWhereInput
+  orderBy?: Prisma.AdOrderByWithRelationInput | Prisma.AdOrderByWithRelationInput[]
+  cursor?: Prisma.AdWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AdScalarFieldEnum | Prisma.AdScalarFieldEnum[]
 }
 
 /**
