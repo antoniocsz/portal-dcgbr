@@ -4,11 +4,14 @@
 // custos/níveis não negativos. A busca full-text é responsabilidade da infra.
 import { ValidationError } from '@digimon/contracts'
 
-export type CardType = 'digimon' | 'option' | 'tamer'
+export type CardType = 'digimon' | 'option' | 'tamer' | 'digiegg'
 
 export type CardColor = 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'black' | 'white'
 
-export const CARD_TYPES: readonly CardType[] = ['digimon', 'option', 'tamer'] as const
+export const CARD_TYPES: readonly CardType[] = ['digimon', 'option', 'tamer', 'digiegg'] as const
+
+/** Limite padrão de cópias de uma carta por deck quando não informado. */
+export const DEFAULT_MAX_COUNT_IN_DECK = 4
 
 export const CARD_COLORS: readonly CardColor[] = [
   'red',
@@ -34,6 +37,7 @@ export interface CardData {
   rarity: string
   type: CardType
   colors: CardColor[]
+  maxCountInDeck: number
   level: number | null
   digiType: string | null
   attribute: string | null
@@ -55,6 +59,7 @@ export interface CardInputData {
   rarity: string
   type: CardType
   colors: CardColor[]
+  maxCountInDeck?: number | null
   level?: number | null
   digiType?: string | null
   attribute?: string | null
@@ -132,6 +137,10 @@ export class Card {
       rarity: requireNonEmpty(props.rarity, 'rarity'),
       type: props.type,
       colors: [...props.colors],
+      maxCountInDeck:
+        props.maxCountInDeck == null
+          ? DEFAULT_MAX_COUNT_IN_DECK
+          : requireNonNegativeInt(props.maxCountInDeck, 'maxCountInDeck'),
       level: props.level == null ? null : requireNonNegativeInt(props.level, 'level'),
       digiType: props.digiType ?? null,
       attribute: props.attribute ?? null,
@@ -172,6 +181,7 @@ export class Card {
     this.data.rarity = updated.data.rarity
     this.data.type = updated.data.type
     this.data.colors = updated.data.colors
+    this.data.maxCountInDeck = updated.data.maxCountInDeck
     this.data.level = updated.data.level
     this.data.digiType = updated.data.digiType
     this.data.attribute = updated.data.attribute

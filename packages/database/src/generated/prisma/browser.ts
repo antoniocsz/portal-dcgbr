@@ -72,3 +72,23 @@ export type CardSet = Prisma.CardSetModel
  * 
  */
 export type Card = Prisma.CardModel
+/**
+ * Model PublicDeck
+ * 
+ */
+export type PublicDeck = Prisma.PublicDeckModel
+/**
+ * Model PublicDeckLike
+ * 
+ */
+export type PublicDeckLike = Prisma.PublicDeckLikeModel
+/**
+ * Model PublicDeckCopy
+ * 
+ */
+export type PublicDeckCopy = Prisma.PublicDeckCopyModel
+/**
+ * Model CommunityDeckReport
+ * 
+ */
+export type CommunityDeckReport = Prisma.CommunityDeckReportModel

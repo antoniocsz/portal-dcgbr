@@ -21,13 +21,15 @@ import type { CardRepository, ListCardsParams } from '../../domain/repositories/
 const TYPE_TO_PRISMA: Record<CardType, PrismaCardType> = {
   digimon: 'DIGIMON',
   option: 'OPTION',
-  tamer: 'TAMER'
+  tamer: 'TAMER',
+  digiegg: 'DIGIEGG'
 }
 
 const TYPE_FROM_PRISMA: Record<PrismaCardType, CardType> = {
   DIGIMON: 'digimon',
   OPTION: 'option',
-  TAMER: 'tamer'
+  TAMER: 'tamer',
+  DIGIEGG: 'digiegg'
 }
 
 const COLOR_TO_PRISMA: Record<CardColor, PrismaCardColor> = {
@@ -61,6 +63,7 @@ function mapToDomain(row: CardRow): Card {
     rarity: row.rarity,
     type: TYPE_FROM_PRISMA[row.type],
     colors: row.colors.map((color) => COLOR_FROM_PRISMA[color]),
+    maxCountInDeck: row.maxCountInDeck,
     level: row.level,
     digiType: row.digiType,
     attribute: row.attribute,
@@ -95,6 +98,7 @@ export class PrismaCardRepository implements CardRepository {
         rarity: d.rarity,
         type: TYPE_TO_PRISMA[d.type],
         colors: d.colors.map((color) => COLOR_TO_PRISMA[color]),
+        maxCountInDeck: d.maxCountInDeck,
         level: d.level,
         digiType: d.digiType,
         attribute: d.attribute,
@@ -185,6 +189,7 @@ export class PrismaCardRepository implements CardRepository {
       rarity: d.rarity,
       type: TYPE_TO_PRISMA[d.type],
       colors: d.colors.map((color) => COLOR_TO_PRISMA[color]),
+      maxCountInDeck: d.maxCountInDeck,
       level: d.level,
       digiType: d.digiType,
       attribute: d.attribute,

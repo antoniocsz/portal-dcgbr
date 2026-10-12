@@ -1,15 +1,18 @@
 // Path: apps/web/src/features/cards/views/card-filters.tsx
-// View presentacional: barra de filtros do catálogo (busca + tipo + cor).
-// Sem estado próprio: recebe os filtros e o callback do ViewModel.
+// View presentacional: barra de filtros do catálogo (busca + tipo + cor + custo
+// + set). Sem estado próprio de filtros: recebe filtros/onChange do ViewModel.
+// A lista de sets vem do ViewModel useCardSets e o filtro só aparece quando há
+// sets cadastrados (o catálogo pode não ter nenhum ainda).
 'use client'
 
 import { cn } from '@/lib/utils'
 import type { CardColor, CardType } from '../model/types'
 import { CARD_COLOR_LABELS, CARD_TYPE_LABELS } from '../model/types'
-import type { CardFilters } from '../viewmodels'
+import { useCardSets, type CardFilters } from '../viewmodels'
 
-const TYPES: CardType[] = ['digimon', 'option', 'tamer']
+const TYPES: CardType[] = ['digimon', 'option', 'tamer', 'digiegg']
 const COLORS: CardColor[] = ['red', 'blue', 'yellow', 'green', 'purple', 'black', 'white']
+const PLAY_COSTS = [0, 1, 2, 3, 4, 5, 6, 7] as const
 
 export interface CardFiltersProps {
   filters: CardFilters
@@ -30,7 +33,23 @@ function toggleColor(filters: CardFilters, color: CardColor): CardFilters {
   return next
 }
 
+function togglePlayCost(filters: CardFilters, playCost: number): CardFilters {
+  const next: CardFilters = { ...filters }
+  if (next.playCost === playCost) delete next.playCost
+  else next.playCost = playCost
+  return next
+}
+
+function setSetCode(filters: CardFilters, setCode: string): CardFilters {
+  const next: CardFilters = { ...filters }
+  if (setCode) next.setCode = setCode
+  else delete next.setCode
+  return next
+}
+
 export function CardFilters({ filters, onChange }: CardFiltersProps) {
+  const { sets } = useCardSets()
+
   return (
     <div className="flex flex-col gap-4 pb-6">
       <form
@@ -94,6 +113,46 @@ export function CardFilters({ filters, onChange }: CardFiltersProps) {
           </button>
         ))}
       </div>
+
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar por custo de jogo">
+        <span className="text-[12px] font-bold text-ink-faint">Custo:</span>
+        {PLAY_COSTS.map((cost) => (
+          <button
+            key={cost}
+            type="button"
+            aria-pressed={filters.playCost === cost}
+            onClick={() => onChange(togglePlayCost(filters, cost))}
+            className={cn(
+              'min-w-9 px-3 py-1.5 text-[12px] font-semibold transition-colors',
+              filters.playCost === cost ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
+            )}
+          >
+            {cost}
+          </button>
+        ))}
+      </div>
+
+      {sets.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="card-set-filter" className="text-[12px] font-bold text-ink-faint">
+            Set:
+          </label>
+          <select
+            id="card-set-filter"
+            value={filters.setCode ?? ''}
+            onChange={(event) => onChange(setSetCode(filters, event.target.value))}
+            className="border border-border bg-surface px-3 py-1.5 text-[12px] font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">Todos os sets</option>
+            {sets.map((set) => (
+              <option key={set.id} value={set.code}>
+                {set.code}
+                {set.name ? ` — ${set.name}` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
     </div>
   )
 }

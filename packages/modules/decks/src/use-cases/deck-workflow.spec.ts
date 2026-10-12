@@ -21,11 +21,15 @@ import {
   type DeckData
 } from '../domain/entities/deck'
 import type { DeckCopyData } from '../domain/entities/deck-copy'
-import type { CardReferenceValidator } from '../domain/repositories/card-reference-validator'
+import type {
+  CardReferenceInfo,
+  CardReferenceValidator
+} from '../domain/repositories/card-reference-validator'
 import type {
   DeckRepository,
   ListDecksParams
 } from '../domain/repositories/deck-repository'
+import { CheckDeckLegalityUseCase } from './check-deck-legality'
 import { CopyDeckUseCase } from './copy-deck'
 import { CreateDeckUseCase, type CreateDeckCommand } from './create-deck'
 import { DeleteDeckUseCase } from './delete-deck'
@@ -34,15 +38,49 @@ import { ListDecksUseCase } from './list-decks'
 import { PublishDeckUseCase } from './publish-deck'
 import { UpdateDeckUseCase } from './update-deck'
 
-const EXISTING_CARD_IDS = ['card-1', 'card-2', 'card-3']
+type FakeCardType = 'digimon' | 'option' | 'tamer' | 'digiegg'
+
+interface FakeCard {
+  id: string
+  type: FakeCardType
+  maxCountInDeck: number
+}
+
+const CATALOG: FakeCard[] = [
+  { id: 'card-1', type: 'digimon', maxCountInDeck: 4 },
+  { id: 'card-2', type: 'digimon', maxCountInDeck: 4 },
+  { id: 'card-3', type: 'option', maxCountInDeck: 4 },
+  ...Array.from(
+    { length: 13 },
+    (_, index): FakeCard => ({ id: `main-${index + 1}`, type: 'digimon', maxCountInDeck: 4 })
+  ),
+  { id: 'egg-1', type: 'digiegg', maxCountInDeck: 4 },
+  { id: 'egg-2', type: 'digiegg', maxCountInDeck: 4 },
+  { id: 'limited-1', type: 'digimon', maxCountInDeck: 1 }
+]
+
+const CATALOG_BY_ID = new Map(CATALOG.map((card) => [card.id, card]))
 
 class FakeCardReferenceValidator implements CardReferenceValidator {
-  async assertCardsExist(cardList: DeckCardEntry[]): Promise<void> {
-    for (const entry of cardList) {
-      if (!EXISTING_CARD_IDS.includes(entry.cardId)) {
+  async assertCardsExist(entries: DeckCardEntry[]): Promise<void> {
+    for (const entry of entries) {
+      if (!CATALOG_BY_ID.has(entry.cardId)) {
         throw new ValidationError(`Carta não encontrada: ${entry.cardId}`)
       }
     }
+  }
+
+  async inspect(entries: DeckCardEntry[]): Promise<CardReferenceInfo[]> {
+    return entries.map((entry) => {
+      const card = CATALOG_BY_ID.get(entry.cardId)
+      return {
+        cardId: entry.cardId,
+        quantity: entry.quantity,
+        exists: card !== undefined,
+        maxCountInDeck: card?.maxCountInDeck ?? 4,
+        isDigiEgg: card?.type === 'digiegg'
+      }
+    })
   }
 }
 
@@ -120,6 +158,7 @@ function setup() {
   const repo = new InMemoryDeckRepository()
   const cards = new FakeCardReferenceValidator()
   const eventBus = new InMemoryEventBus()
+  const checkLegality = new CheckDeckLegalityUseCase(cards)
   const events: string[] = []
   for (const type of ['deck.created', 'deck.updated', 'deck.published', 'deck.copied']) {
     eventBus.subscribe(type, (event) => {
@@ -129,14 +168,31 @@ function setup() {
   return {
     repo,
     events,
+    checkLegality,
     create: new CreateDeckUseCase(repo, cards, eventBus),
     update: new UpdateDeckUseCase(repo, cards, eventBus),
-    publish: new PublishDeckUseCase(repo, eventBus),
+    publish: new PublishDeckUseCase(repo, checkLegality, eventBus),
     remove: new DeleteDeckUseCase(repo),
     get: new GetDeckUseCase(repo),
     list: new ListDecksUseCase(repo),
     copy: new CopyDeckUseCase(repo, eventBus)
   }
+}
+
+/** Main deck legal: 12 cartas ×4 + 1 carta ×2 = 50. */
+function legalMainDeck(): DeckCardEntry[] {
+  return [
+    ...Array.from(
+      { length: 12 },
+      (_, index): DeckCardEntry => ({ cardId: `main-${index + 1}`, quantity: 4 })
+    ),
+    { cardId: 'main-13', quantity: 2 }
+  ]
+}
+
+/** Egg deck legal: 4 cópias de uma Digi-Egg (≤5). */
+function legalEggDeck(): DeckCardEntry[] {
+  return [{ cardId: 'egg-1', quantity: 4 }]
 }
 
 function createCommand(overrides: Partial<CreateDeckCommand['input']> = {}): CreateDeckCommand {
@@ -206,7 +262,9 @@ describe('CreateDeckUseCase', () => {
 describe('Edição e exclusão — dono vs outros Members', () => {
   it('dono edita e publica; eventos são publicados', async () => {
     const { create, update, publish, repo, events } = setup()
-    const created = await create.execute(createCommand())
+    const created = await create.execute(
+      createCommand({ cardList: legalMainDeck(), eggList: legalEggDeck() })
+    )
 
     await update.execute({ actor: member, slug: created.slug, input: { name: 'Deck Renomeado' } })
     expect((await repo.findBySlug(created.slug))?.data.name).toBe('Deck Renomeado')
@@ -415,5 +473,143 @@ describe('GetDeckUseCase — leitura pública', () => {
 
     await expect(get.execute({ slug: created.slug })).rejects.toBeInstanceOf(NotFoundError)
     await expect(get.execute({ slug: created.slug, actor: member })).resolves.toBeDefined()
+  })
+})
+
+describe('CheckDeckLegalityUseCase — legalidade de composição (main + egg)', () => {
+  it('deck legal (main 50 + egg ≤5, dentro do limite) é legal', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: legalMainDeck(),
+      eggList: legalEggDeck()
+    })
+
+    expect(result).toEqual({ legal: true, mainCount: 50, eggCount: 4, violations: [] })
+  })
+
+  it('main deck diferente de 50 é ilegal (main_deck_size)', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: [{ cardId: 'card-1', quantity: 4 }],
+      eggList: []
+    })
+
+    expect(result.legal).toBe(false)
+    expect(result.mainCount).toBe(4)
+    expect(result.violations.some((v) => v.code === 'main_deck_size')).toBe(true)
+  })
+
+  it('egg deck acima de 5 é ilegal (egg_deck_size)', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: legalMainDeck(),
+      eggList: [
+        { cardId: 'egg-1', quantity: 4 },
+        { cardId: 'egg-2', quantity: 2 }
+      ]
+    })
+
+    expect(result.eggCount).toBe(6)
+    expect(result.violations.some((v) => v.code === 'egg_deck_size')).toBe(true)
+  })
+
+  it('carta acima de maxCountInDeck (main+egg) é ilegal (copy_limit)', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: [
+        ...legalMainDeck().filter((entry) => entry.cardId !== 'main-13'),
+        { cardId: 'limited-1', quantity: 2 }
+      ],
+      eggList: []
+    })
+
+    expect(result.mainCount).toBe(50)
+    expect(
+      result.violations.some((v) => v.code === 'copy_limit' && v.cardId === 'limited-1')
+    ).toBe(true)
+  })
+
+  it('carta inexistente no catálogo é ilegal (unknown_card)', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: [{ cardId: 'card-999', quantity: 1 }],
+      eggList: []
+    })
+
+    expect(
+      result.violations.some((v) => v.code === 'unknown_card' && v.cardId === 'card-999')
+    ).toBe(true)
+  })
+
+  it('Digi-Egg no main e carta comum na egg deck são ilegais (wrong_zone)', async () => {
+    const { checkLegality } = setup()
+    const result = await checkLegality.execute({
+      cardList: [{ cardId: 'egg-1', quantity: 4 }],
+      eggList: [{ cardId: 'card-1', quantity: 1 }]
+    })
+
+    const zones = result.violations.filter((v) => v.code === 'wrong_zone')
+    expect(zones.map((v) => v.cardId).sort()).toEqual(['card-1', 'egg-1'])
+  })
+})
+
+describe('PublishDeckUseCase — exige deck legal', () => {
+  it('publica deck legal e emite deck.published', async () => {
+    const { create, publish, repo, events } = setup()
+    const created = await create.execute(
+      createCommand({ cardList: legalMainDeck(), eggList: legalEggDeck() })
+    )
+
+    await publish.execute({ actor: member, slug: created.slug })
+
+    expect((await repo.findBySlug(created.slug))?.status).toBe('published')
+    expect(events).toContain('deck.published')
+  })
+
+  it('bloqueia publicar deck ilegal (ValidationError)', async () => {
+    const { create, publish, repo } = setup()
+    const created = await create.execute(createCommand())
+
+    await expect(publish.execute({ actor: member, slug: created.slug })).rejects.toBeInstanceOf(
+      ValidationError
+    )
+    expect((await repo.findBySlug(created.slug))?.status).toBe('draft')
+  })
+})
+
+describe('Deck — eggList e coverCardId', () => {
+  it('persiste e lê eggList/coverCardId (round-trip)', async () => {
+    const { create, repo } = setup()
+    const created = await create.execute(
+      createCommand({ eggList: legalEggDeck(), coverCardId: 'egg-1' })
+    )
+
+    const deck = await repo.findBySlug(created.slug)
+    expect(deck?.data.eggList).toEqual([{ cardId: 'egg-1', quantity: 4 }])
+    expect(deck?.data.coverCardId).toBe('egg-1')
+  })
+
+  it('eggList default [] e coverCardId null quando omitidos', async () => {
+    const { create, repo } = setup()
+    const created = await create.execute(createCommand())
+
+    const deck = await repo.findBySlug(created.slug)
+    expect(deck?.data.eggList).toEqual([])
+    expect(deck?.data.coverCardId).toBeNull()
+  })
+
+  it('update propaga eggList e coverCardId', async () => {
+    const { create, update, repo } = setup()
+    const created = await create.execute(createCommand())
+
+    await update.execute({
+      actor: member,
+      slug: created.slug,
+      input: { eggList: legalEggDeck(), coverCardId: 'egg-1' }
+    })
+
+    const deck = await repo.findBySlug(created.slug)
+    expect(deck?.data.eggList).toEqual([{ cardId: 'egg-1', quantity: 4 }])
+    expect(deck?.data.coverCardId).toBe('egg-1')
   })
 })

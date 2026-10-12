@@ -2,7 +2,7 @@
 // Tipos da feature cards (espelho dos DTOs da API /api/cards).
 // Decisão: o frontend não importa @digimon/cards no client (evita arrastar
 // @digimon/database para o bundle) — tipos literais mantidos em sync com o backend.
-export type CardType = 'digimon' | 'option' | 'tamer'
+export type CardType = 'digimon' | 'option' | 'tamer' | 'digiegg'
 
 export type CardColor = 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'black' | 'white'
 
@@ -20,6 +20,7 @@ export interface CardSummary {
   rarity: string
   type: CardType
   colors: CardColor[]
+  maxCountInDeck: number
   level: number | null
   digiType: string | null
   attribute: string | null
@@ -51,6 +52,7 @@ export interface CardImportInput {
   rarity: string
   type: CardType
   colors: CardColor[]
+  maxCountInDeck?: number | null
   level?: number | null
   digiType?: string | null
   attribute?: string | null
@@ -78,6 +80,21 @@ export interface ImportCardsResult {
   imported: number
   updated: number
   sets: number
+}
+
+// Payload da importação por fonte externa (espelho de ImportCardsFromSourceInput).
+export interface ImportCardsFromSourceInput {
+  source?: string
+  sets?: string[]
+  ids?: string[]
+  max?: number
+}
+
+export interface ImportCardsFromSourceResult {
+  imported: number
+  updated: number
+  skipped: number
+  sets: string[]
 }
 
 export interface AdminCardRow {
@@ -110,7 +127,8 @@ export interface ListCardsParams {
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   digimon: 'Digimon',
   option: 'Option',
-  tamer: 'Tamer'
+  tamer: 'Tamer',
+  digiegg: 'Digi-Egg'
 }
 
 export const CARD_COLOR_LABELS: Record<CardColor, string> = {

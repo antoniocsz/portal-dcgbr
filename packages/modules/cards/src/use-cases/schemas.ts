@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { CARD_COLORS, CARD_TYPES } from '../domain/entities/card'
 
-export const cardTypeSchema = z.enum(['digimon', 'option', 'tamer'])
+export const cardTypeSchema = z.enum(['digimon', 'option', 'tamer', 'digiegg'])
 
 export const cardColorSchema = z.enum(['red', 'blue', 'yellow', 'green', 'purple', 'black', 'white'])
 
@@ -20,6 +20,7 @@ export const cardInputSchema = z.object({
   rarity: z.string().trim().min(1, 'Raridade é obrigatória'),
   type: cardTypeSchema,
   colors: z.array(cardColorSchema).min(1, 'Informe ao menos uma cor'),
+  maxCountInDeck: z.number().int().nonnegative().optional(),
   level: z.number().int().nonnegative().nullable().optional(),
   digiType: z.string().trim().nullable().optional(),
   attribute: z.string().trim().nullable().optional(),
@@ -43,6 +44,14 @@ export const importCardsSchema = z.object({
   sets: z.array(cardSetInputSchema).optional()
 })
 
+// Body da importação por fonte externa (POST /cards/admin/import-source).
+export const importCardsFromSourceSchema = z.object({
+  source: z.string().trim().min(1).optional(),
+  sets: z.array(z.string().trim().min(1)).optional(),
+  ids: z.array(z.string().trim().min(1)).optional(),
+  max: z.number().int().positive().optional()
+})
+
 export const listCardsSchema = z.object({
   search: z.string().trim().min(1).optional(),
   type: cardTypeSchema.optional(),
@@ -56,6 +65,7 @@ export const listCardsSchema = z.object({
 export type CardInput = z.infer<typeof cardInputSchema>
 export type CardSetInput = z.infer<typeof cardSetInputSchema>
 export type ImportCardsInput = z.infer<typeof importCardsSchema>
+export type ImportCardsFromSourceInput = z.infer<typeof importCardsFromSourceSchema>
 export type ListCardsInput = z.infer<typeof listCardsSchema>
 
 // Garante em compile-time que os enums do schema espelham o domínio.

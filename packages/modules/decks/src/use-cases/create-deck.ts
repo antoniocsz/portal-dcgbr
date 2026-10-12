@@ -35,6 +35,10 @@ export class CreateDeckUseCase {
       cardId: entry.cardId,
       quantity: entry.quantity
     }))
+    const eggList = parsed.data.eggList.map((entry): DeckCardEntry => ({
+      cardId: entry.cardId,
+      quantity: entry.quantity
+    }))
 
     const status: DeckStatus = parsed.data.status ?? 'draft'
     if (status === 'published' && cardList.length === 0) {
@@ -42,6 +46,7 @@ export class CreateDeckUseCase {
     }
 
     await this.cards.assertCardsExist(cardList)
+    await this.cards.assertCardsExist(eggList)
 
     const existing = await this.repo.findBySlug(slug)
     if (existing) throw new ConflictError(`Já existe um deck com o slug "${slug}"`)
@@ -53,6 +58,8 @@ export class CreateDeckUseCase {
       ownerId: command.actor.id,
       description: parsed.data.description ?? null,
       cardList,
+      eggList,
+      coverCardId: parsed.data.coverCardId ?? null,
       format,
       status,
       isPublic: parsed.data.isPublic ?? status === 'published'

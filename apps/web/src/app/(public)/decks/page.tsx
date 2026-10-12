@@ -23,12 +23,20 @@ export default function DecksPage() {
       title="Decks da comunidade"
       description="Publique o seu sem revisão. Copie decks de outros membros."
       headerAction={
-        <Link
-          href="/decks/novo"
-          className="inline-flex bg-primary px-4.5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
-        >
-          + Novo deck
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/decks/comunidade"
+            className="inline-flex border border-border bg-surface px-4.5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-ink-faint"
+          >
+            Comunidade
+          </Link>
+          <Link
+            href="/decks/novo"
+            className="inline-flex bg-primary px-4.5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+          >
+            + Novo deck
+          </Link>
+        </div>
       }
     />
   )

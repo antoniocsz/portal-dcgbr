@@ -30,12 +30,14 @@ export type CardAvgAggregateOutputType = {
   level: number | null
   dp: number | null
   playCost: number | null
+  maxCountInDeck: number | null
 }
 
 export type CardSumAggregateOutputType = {
   level: number | null
   dp: number | null
   playCost: number | null
+  maxCountInDeck: number | null
 }
 
 export type CardMinAggregateOutputType = {
@@ -54,6 +56,7 @@ export type CardMinAggregateOutputType = {
   imageUrl: string | null
   setCode: string | null
   releaseDate: Date | null
+  maxCountInDeck: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -74,6 +77,7 @@ export type CardMaxAggregateOutputType = {
   imageUrl: string | null
   setCode: string | null
   releaseDate: Date | null
+  maxCountInDeck: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -96,6 +100,7 @@ export type CardCountAggregateOutputType = {
   imageUrl: number
   setCode: number
   releaseDate: number
+  maxCountInDeck: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -106,12 +111,14 @@ export type CardAvgAggregateInputType = {
   level?: true
   dp?: true
   playCost?: true
+  maxCountInDeck?: true
 }
 
 export type CardSumAggregateInputType = {
   level?: true
   dp?: true
   playCost?: true
+  maxCountInDeck?: true
 }
 
 export type CardMinAggregateInputType = {
@@ -130,6 +137,7 @@ export type CardMinAggregateInputType = {
   imageUrl?: true
   setCode?: true
   releaseDate?: true
+  maxCountInDeck?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -150,6 +158,7 @@ export type CardMaxAggregateInputType = {
   imageUrl?: true
   setCode?: true
   releaseDate?: true
+  maxCountInDeck?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -172,6 +181,7 @@ export type CardCountAggregateInputType = {
   imageUrl?: true
   setCode?: true
   releaseDate?: true
+  maxCountInDeck?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -281,6 +291,7 @@ export type CardGroupByOutputType = {
   imageUrl: string | null
   setCode: string | null
   releaseDate: Date | null
+  maxCountInDeck: number
   createdAt: Date
   updatedAt: Date
   _count: CardCountAggregateOutputType | null
@@ -326,6 +337,7 @@ export type CardWhereInput = {
   imageUrl?: Prisma.StringNullableFilter<"Card"> | string | null
   setCode?: Prisma.StringNullableFilter<"Card"> | string | null
   releaseDate?: Prisma.DateTimeNullableFilter<"Card"> | Date | string | null
+  maxCountInDeck?: Prisma.IntFilter<"Card"> | number
   createdAt?: Prisma.DateTimeFilter<"Card"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Card"> | Date | string
 }
@@ -348,6 +360,7 @@ export type CardOrderByWithRelationInput = {
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   setCode?: Prisma.SortOrderInput | Prisma.SortOrder
   releaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -373,6 +386,7 @@ export type CardWhereUniqueInput = Prisma.AtLeast<{
   imageUrl?: Prisma.StringNullableFilter<"Card"> | string | null
   setCode?: Prisma.StringNullableFilter<"Card"> | string | null
   releaseDate?: Prisma.DateTimeNullableFilter<"Card"> | Date | string | null
+  maxCountInDeck?: Prisma.IntFilter<"Card"> | number
   createdAt?: Prisma.DateTimeFilter<"Card"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Card"> | Date | string
 }, "id" | "dcgId">
@@ -395,6 +409,7 @@ export type CardOrderByWithAggregationInput = {
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   setCode?: Prisma.SortOrderInput | Prisma.SortOrder
   releaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CardCountOrderByAggregateInput
@@ -425,6 +440,7 @@ export type CardScalarWhereWithAggregatesInput = {
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Card"> | string | null
   setCode?: Prisma.StringNullableWithAggregatesFilter<"Card"> | string | null
   releaseDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Card"> | Date | string | null
+  maxCountInDeck?: Prisma.IntWithAggregatesFilter<"Card"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Card"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Card"> | Date | string
 }
@@ -447,6 +463,7 @@ export type CardCreateInput = {
   imageUrl?: string | null
   setCode?: string | null
   releaseDate?: Date | string | null
+  maxCountInDeck?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -469,6 +486,7 @@ export type CardUncheckedCreateInput = {
   imageUrl?: string | null
   setCode?: string | null
   releaseDate?: Date | string | null
+  maxCountInDeck?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -491,6 +509,7 @@ export type CardUpdateInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   setCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   releaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxCountInDeck?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -513,6 +532,7 @@ export type CardUncheckedUpdateInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   setCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   releaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxCountInDeck?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -535,6 +555,7 @@ export type CardCreateManyInput = {
   imageUrl?: string | null
   setCode?: string | null
   releaseDate?: Date | string | null
+  maxCountInDeck?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -557,6 +578,7 @@ export type CardUpdateManyMutationInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   setCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   releaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxCountInDeck?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -579,6 +601,7 @@ export type CardUncheckedUpdateManyInput = {
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   setCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   releaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maxCountInDeck?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -609,6 +632,7 @@ export type CardCountOrderByAggregateInput = {
   imageUrl?: Prisma.SortOrder
   setCode?: Prisma.SortOrder
   releaseDate?: Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -617,6 +641,7 @@ export type CardAvgOrderByAggregateInput = {
   level?: Prisma.SortOrder
   dp?: Prisma.SortOrder
   playCost?: Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
 }
 
 export type CardMaxOrderByAggregateInput = {
@@ -635,6 +660,7 @@ export type CardMaxOrderByAggregateInput = {
   imageUrl?: Prisma.SortOrder
   setCode?: Prisma.SortOrder
   releaseDate?: Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -655,6 +681,7 @@ export type CardMinOrderByAggregateInput = {
   imageUrl?: Prisma.SortOrder
   setCode?: Prisma.SortOrder
   releaseDate?: Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -663,6 +690,7 @@ export type CardSumOrderByAggregateInput = {
   level?: Prisma.SortOrder
   dp?: Prisma.SortOrder
   playCost?: Prisma.SortOrder
+  maxCountInDeck?: Prisma.SortOrder
 }
 
 export type CardCreatecolorsInput = {
@@ -680,6 +708,14 @@ export type CardUpdatecolorsInput = {
 
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
   increment?: number
   decrement?: number
   multiply?: number
@@ -706,6 +742,7 @@ export type CardSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   imageUrl?: boolean
   setCode?: boolean
   releaseDate?: boolean
+  maxCountInDeck?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["card"]>
@@ -728,6 +765,7 @@ export type CardSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   imageUrl?: boolean
   setCode?: boolean
   releaseDate?: boolean
+  maxCountInDeck?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["card"]>
@@ -750,6 +788,7 @@ export type CardSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   imageUrl?: boolean
   setCode?: boolean
   releaseDate?: boolean
+  maxCountInDeck?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["card"]>
@@ -772,11 +811,12 @@ export type CardSelectScalar = {
   imageUrl?: boolean
   setCode?: boolean
   releaseDate?: boolean
+  maxCountInDeck?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CardOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dcgId" | "name" | "number" | "rarity" | "type" | "colors" | "level" | "digiType" | "attribute" | "dp" | "playCost" | "evolutionConditions" | "effects" | "imageUrl" | "setCode" | "releaseDate" | "createdAt" | "updatedAt", ExtArgs["result"]["card"]>
+export type CardOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "dcgId" | "name" | "number" | "rarity" | "type" | "colors" | "level" | "digiType" | "attribute" | "dp" | "playCost" | "evolutionConditions" | "effects" | "imageUrl" | "setCode" | "releaseDate" | "maxCountInDeck" | "createdAt" | "updatedAt", ExtArgs["result"]["card"]>
 
 export type $CardPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Card"
@@ -799,6 +839,7 @@ export type $CardPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     imageUrl: string | null
     setCode: string | null
     releaseDate: Date | null
+    maxCountInDeck: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["card"]>
@@ -1241,6 +1282,7 @@ export interface CardFieldRefs {
   readonly imageUrl: Prisma.FieldRef<"Card", 'String'>
   readonly setCode: Prisma.FieldRef<"Card", 'String'>
   readonly releaseDate: Prisma.FieldRef<"Card", 'DateTime'>
+  readonly maxCountInDeck: Prisma.FieldRef<"Card", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Card", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Card", 'DateTime'>
 }

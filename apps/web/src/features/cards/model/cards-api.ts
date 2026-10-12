@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/api-base'
 import type {
   Card,
   CardSet,
+  ImportCardsFromSourceInput,
+  ImportCardsFromSourceResult,
   ImportCardsInput,
   ImportCardsResult,
   ListCardsParams,
@@ -41,5 +43,11 @@ export const cardsApi = {
 
   importCards(input: ImportCardsInput): Promise<ImportCardsResult> {
     return apiClient.post('/cards/admin/import', input)
+  },
+
+  importCardsFromSource(
+    input: ImportCardsFromSourceInput = {}
+  ): Promise<ImportCardsFromSourceResult> {
+    return apiClient.post('/cards/admin/import-source', input)
   }
 }

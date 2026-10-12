@@ -40,7 +40,8 @@ export function toCardTileData(card: CardSummary): CardTileData {
     name: card.name,
     number: card.number,
     type: cardTypeLabel(card.type),
-    color: attributeColor(card)
+    color: attributeColor(card),
+    imageUrl: card.imageUrl
   }
   if (card.level != null) data.level = `Lv.${card.level}`
   if (card.dp != null) data.dp = `${card.dp} DP`

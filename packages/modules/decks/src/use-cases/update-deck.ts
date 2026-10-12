@@ -48,6 +48,14 @@ export class UpdateDeckUseCase {
       await this.cards.assertCardsExist(cardList)
     }
 
+    if (parsed.data.eggList !== undefined) {
+      const eggList: DeckCardEntry[] = parsed.data.eggList.map((entry) => ({
+        cardId: entry.cardId,
+        quantity: entry.quantity
+      }))
+      await this.cards.assertCardsExist(eggList)
+    }
+
     const patch: UpdateDeckData = {}
     if (parsed.data.slug !== undefined) patch.slug = parsed.data.slug
     if (parsed.data.name !== undefined) patch.name = parsed.data.name
@@ -58,6 +66,13 @@ export class UpdateDeckUseCase {
         quantity: entry.quantity
       }))
     }
+    if (parsed.data.eggList !== undefined) {
+      patch.eggList = parsed.data.eggList.map((entry) => ({
+        cardId: entry.cardId,
+        quantity: entry.quantity
+      }))
+    }
+    if (parsed.data.coverCardId !== undefined) patch.coverCardId = parsed.data.coverCardId
     if (parsed.data.format !== undefined) patch.format = parsed.data.format
     if (parsed.data.isPublic !== undefined) patch.isPublic = parsed.data.isPublic
 

@@ -63,10 +63,17 @@ enum DeckStatus {
   PUBLISHED
 }
 
+enum PublicDeckStatus {
+  PUBLIC
+  HIDDEN
+  UNPUBLISHED
+}
+
 enum CardType {
   DIGIMON
   OPTION
   TAMER
+  DIGIEGG
 }
 
 enum CardColor {
@@ -95,6 +102,10 @@ model User {
   tournaments         Tournament[]
   decks               Deck[]
   deckCopies          DeckCopy[]
+  publicDecks         PublicDeck[]         @relation("PublicDecks")
+  publicDeckLikes     PublicDeckLike[]     @relation("PublicDeckLikes")
+  publicDeckCopies    PublicDeckCopy[]     @relation("PublicDeckCopies")
+  deckReports         CommunityDeckReport[] @relation("DeckReports")
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
 }
@@ -183,22 +194,25 @@ model Tournament {
 }
 
 // Deckbuilder (@digimon/decks) — colaborativo: Member publica decks próprios
-// direto (sem revisão). cardList é JSON (cardId + quantity) validado contra as
-// Cartas do @digimon/cards. Rascunhos visíveis só ao dono.
+// direto (sem revisão). cardList/eggList são JSON (cardId + quantity) validados
+// contra as Cartas do @digimon/cards. Rascunhos visíveis só ao dono.
 model Deck {
-  id          String     @id @default(cuid())
-  slug        String     @unique
-  name        String
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id])
-  description String?
-  cardList    Json
-  format      String
-  status      DeckStatus @default(DRAFT)
-  isPublic    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  copies      DeckCopy[]
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  ownerId      String
+  owner        User         @relation(fields: [ownerId], references: [id])
+  description  String?
+  cardList     Json
+  eggList      Json         @default("[]")
+  coverCardId  String?
+  format       String
+  status       DeckStatus   @default(DRAFT)
+  isPublic     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  copies       DeckCopy[]
+  publications PublicDeck[]
 
   @@index([status, isPublic])
   @@index([ownerId])
@@ -250,10 +264,79 @@ model Card {
   imageUrl            String?
   setCode             String?
   releaseDate         DateTime?
+  maxCountInDeck      Int         @default(4)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
   @@index([type])
   @@index([setCode])
   @@map("cards")
+}
+
+// Comunidade de decks (@digimon/decks) — snapshot congelado de um deck publicado
+// pelo Member, com engajamento (likes/cópias) e moderação (reportes). O snapshot
+// não acompanha edições do deck de origem; `sourceDeckId` aponta para a origem.
+model PublicDeck {
+  id           String           @id @default(cuid())
+  accountId    String
+  account      User             @relation("PublicDecks", fields: [accountId], references: [id])
+  sourceDeckId String
+  sourceDeck   Deck             @relation(fields: [sourceDeckId], references: [id], onDelete: Cascade)
+  name         String
+  colors       Json             @default("[]")
+  cardList     Json
+  eggList      Json             @default("[]")
+  coverCardId  String?
+  likeCount    Int              @default(0)
+  copyCount    Int              @default(0)
+  status       PublicDeckStatus @default(PUBLIC)
+  publishedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  likes        PublicDeckLike[]
+  copies       PublicDeckCopy[]
+  reports      CommunityDeckReport[]
+
+  @@unique([accountId, sourceDeckId])
+  @@index([status, likeCount])
+  @@index([status, publishedAt])
+  @@map("public_decks")
+}
+
+model PublicDeckLike {
+  id           String     @id @default(cuid())
+  publicDeckId String
+  publicDeck   PublicDeck @relation(fields: [publicDeckId], references: [id], onDelete: Cascade)
+  accountId    String
+  account      User       @relation("PublicDeckLikes", fields: [accountId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  @@unique([publicDeckId, accountId])
+  @@map("public_deck_likes")
+}
+
+model PublicDeckCopy {
+  id           String     @id @default(cuid())
+  publicDeckId String
+  publicDeck   PublicDeck @relation(fields: [publicDeckId], references: [id], onDelete: Cascade)
+  accountId    String
+  account      User       @relation("PublicDeckCopies", fields: [accountId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  @@unique([publicDeckId, accountId])
+  @@map("public_deck_copies")
+}
+
+model CommunityDeckReport {
+  id                String     @id @default(cuid())
+  publicDeckId      String
+  publicDeck        PublicDeck @relation(fields: [publicDeckId], references: [id], onDelete: Cascade)
+  reporterAccountId String?
+  reporter          User?      @relation("DeckReports", fields: [reporterAccountId], references: [id], onDelete: SetNull)
+  reason            String
+  details           String?
+  createdAt         DateTime   @default(now())
+  dismissedAt       DateTime?
+
+  @@index([publicDeckId, dismissedAt])
+  @@map("community_deck_reports")
 }

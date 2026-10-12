@@ -407,7 +407,11 @@ export const ModelName = {
   Deck: 'Deck',
   DeckCopy: 'DeckCopy',
   CardSet: 'CardSet',
-  Card: 'Card'
+  Card: 'Card',
+  PublicDeck: 'PublicDeck',
+  PublicDeckLike: 'PublicDeckLike',
+  PublicDeckCopy: 'PublicDeckCopy',
+  CommunityDeckReport: 'CommunityDeckReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card"
+    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card" | "publicDeck" | "publicDeckLike" | "publicDeckCopy" | "communityDeckReport"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1241,6 +1245,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PublicDeck: {
+      payload: Prisma.$PublicDeckPayload<ExtArgs>
+      fields: Prisma.PublicDeckFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicDeckFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicDeckFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicDeckFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicDeckFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        findMany: {
+          args: Prisma.PublicDeckFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>[]
+        }
+        create: {
+          args: Prisma.PublicDeckCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        createMany: {
+          args: Prisma.PublicDeckCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicDeckCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicDeckDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        update: {
+          args: Prisma.PublicDeckUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicDeckDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicDeckUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicDeckUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicDeckUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicDeckAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicDeck>
+        }
+        groupBy: {
+          args: Prisma.PublicDeckGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicDeckCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckCountAggregateOutputType> | number
+        }
+      }
+    }
+    PublicDeckLike: {
+      payload: Prisma.$PublicDeckLikePayload<ExtArgs>
+      fields: Prisma.PublicDeckLikeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicDeckLikeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicDeckLikeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        findFirst: {
+          args: Prisma.PublicDeckLikeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicDeckLikeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        findMany: {
+          args: Prisma.PublicDeckLikeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>[]
+        }
+        create: {
+          args: Prisma.PublicDeckLikeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        createMany: {
+          args: Prisma.PublicDeckLikeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicDeckLikeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>[]
+        }
+        delete: {
+          args: Prisma.PublicDeckLikeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        update: {
+          args: Prisma.PublicDeckLikeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicDeckLikeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicDeckLikeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicDeckLikeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicDeckLikeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckLikePayload>
+        }
+        aggregate: {
+          args: Prisma.PublicDeckLikeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicDeckLike>
+        }
+        groupBy: {
+          args: Prisma.PublicDeckLikeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckLikeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicDeckLikeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckLikeCountAggregateOutputType> | number
+        }
+      }
+    }
+    PublicDeckCopy: {
+      payload: Prisma.$PublicDeckCopyPayload<ExtArgs>
+      fields: Prisma.PublicDeckCopyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicDeckCopyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicDeckCopyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicDeckCopyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicDeckCopyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        findMany: {
+          args: Prisma.PublicDeckCopyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>[]
+        }
+        create: {
+          args: Prisma.PublicDeckCopyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        createMany: {
+          args: Prisma.PublicDeckCopyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicDeckCopyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicDeckCopyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        update: {
+          args: Prisma.PublicDeckCopyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicDeckCopyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicDeckCopyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicDeckCopyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicDeckCopyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicDeckCopyPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicDeckCopyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicDeckCopy>
+        }
+        groupBy: {
+          args: Prisma.PublicDeckCopyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckCopyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicDeckCopyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicDeckCopyCountAggregateOutputType> | number
+        }
+      }
+    }
+    CommunityDeckReport: {
+      payload: Prisma.$CommunityDeckReportPayload<ExtArgs>
+      fields: Prisma.CommunityDeckReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CommunityDeckReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CommunityDeckReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        findFirst: {
+          args: Prisma.CommunityDeckReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CommunityDeckReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        findMany: {
+          args: Prisma.CommunityDeckReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>[]
+        }
+        create: {
+          args: Prisma.CommunityDeckReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        createMany: {
+          args: Prisma.CommunityDeckReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CommunityDeckReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>[]
+        }
+        delete: {
+          args: Prisma.CommunityDeckReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        update: {
+          args: Prisma.CommunityDeckReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.CommunityDeckReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CommunityDeckReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CommunityDeckReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.CommunityDeckReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CommunityDeckReportPayload>
+        }
+        aggregate: {
+          args: Prisma.CommunityDeckReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCommunityDeckReport>
+        }
+        groupBy: {
+          args: Prisma.CommunityDeckReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityDeckReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CommunityDeckReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CommunityDeckReportCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1388,6 +1688,8 @@ export const DeckScalarFieldEnum = {
   ownerId: 'ownerId',
   description: 'description',
   cardList: 'cardList',
+  eggList: 'eggList',
+  coverCardId: 'coverCardId',
   format: 'format',
   status: 'status',
   isPublic: 'isPublic',
@@ -1438,11 +1740,64 @@ export const CardScalarFieldEnum = {
   imageUrl: 'imageUrl',
   setCode: 'setCode',
   releaseDate: 'releaseDate',
+  maxCountInDeck: 'maxCountInDeck',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type CardScalarFieldEnum = (typeof CardScalarFieldEnum)[keyof typeof CardScalarFieldEnum]
+
+
+export const PublicDeckScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  sourceDeckId: 'sourceDeckId',
+  name: 'name',
+  colors: 'colors',
+  cardList: 'cardList',
+  eggList: 'eggList',
+  coverCardId: 'coverCardId',
+  likeCount: 'likeCount',
+  copyCount: 'copyCount',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PublicDeckScalarFieldEnum = (typeof PublicDeckScalarFieldEnum)[keyof typeof PublicDeckScalarFieldEnum]
+
+
+export const PublicDeckLikeScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  accountId: 'accountId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicDeckLikeScalarFieldEnum = (typeof PublicDeckLikeScalarFieldEnum)[keyof typeof PublicDeckLikeScalarFieldEnum]
+
+
+export const PublicDeckCopyScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  accountId: 'accountId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicDeckCopyScalarFieldEnum = (typeof PublicDeckCopyScalarFieldEnum)[keyof typeof PublicDeckCopyScalarFieldEnum]
+
+
+export const CommunityDeckReportScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  reporterAccountId: 'reporterAccountId',
+  reason: 'reason',
+  details: 'details',
+  createdAt: 'createdAt',
+  dismissedAt: 'dismissedAt'
+} as const
+
+export type CommunityDeckReportScalarFieldEnum = (typeof CommunityDeckReportScalarFieldEnum)[keyof typeof CommunityDeckReportScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1703,6 +2058,20 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'PublicDeckStatus'
+ */
+export type EnumPublicDeckStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicDeckStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PublicDeckStatus[]'
+ */
+export type ListEnumPublicDeckStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PublicDeckStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1877,6 +2246,10 @@ export type GlobalOmitConfig = {
   deckCopy?: Prisma.DeckCopyOmit
   cardSet?: Prisma.CardSetOmit
   card?: Prisma.CardOmit
+  publicDeck?: Prisma.PublicDeckOmit
+  publicDeckLike?: Prisma.PublicDeckLikeOmit
+  publicDeckCopy?: Prisma.PublicDeckCopyOmit
+  communityDeckReport?: Prisma.CommunityDeckReportOmit
 }
 
 /* Types for Logging */

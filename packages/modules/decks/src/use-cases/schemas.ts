@@ -19,6 +19,8 @@ export const createDeckSchema = z.object({
     .optional(),
   description: z.string().trim().max(2000).nullable().optional(),
   cardList: z.array(deckCardSchema).max(200, 'cardList com limite de 200 cartas'),
+  eggList: z.array(deckCardSchema).max(200, 'eggList com limite de 200 cartas').default([]),
+  coverCardId: z.string().trim().min(1).max(200).nullable().optional(),
   format: z.string().trim().min(2, 'Formato é obrigatório').max(80),
   status: deckStatusSchema.optional(),
   isPublic: z.boolean().optional()
@@ -34,6 +36,8 @@ export const updateDeckSchema = z
       .optional(),
     description: z.string().trim().max(2000).nullable().optional(),
     cardList: z.array(deckCardSchema).max(200, 'cardList com limite de 200 cartas').optional(),
+    eggList: z.array(deckCardSchema).max(200, 'eggList com limite de 200 cartas').optional(),
+    coverCardId: z.string().trim().min(1).max(200).nullable().optional(),
     format: z.string().trim().min(2, 'Formato é obrigatório').max(80).optional(),
     isPublic: z.boolean().optional()
   })
@@ -47,6 +51,7 @@ export const listDecksSchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).optional()
 })
 
-export type CreateDeckInput = z.infer<typeof createDeckSchema>
+// Entrada (wire): `eggList` é opcional (o schema aplica default `[]`).
+export type CreateDeckInput = z.input<typeof createDeckSchema>
 export type UpdateDeckInput = z.infer<typeof updateDeckSchema>
 export type ListDecksInput = z.infer<typeof listDecksSchema>

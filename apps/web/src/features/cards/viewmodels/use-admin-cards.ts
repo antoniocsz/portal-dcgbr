@@ -46,6 +46,15 @@ export function useAdminCards() {
     }
   })
 
+  const sourceImportMutation = useMutation({
+    mutationFn: () => cardsApi.importCardsFromSource(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin-cards'] })
+      void queryClient.invalidateQueries({ queryKey: ['cards'] })
+      void queryClient.invalidateQueries({ queryKey: ['card-sets'] })
+    }
+  })
+
   const total = query.data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE))
 
@@ -107,6 +116,11 @@ export function useAdminCards() {
     isImporting: importMutation.isPending,
     importError: importMutation.error,
     importResult: importMutation.data,
-    resetImport: importMutation.reset
+    resetImport: importMutation.reset,
+    runSourceImport: () => sourceImportMutation.mutate(),
+    isSourceImporting: sourceImportMutation.isPending,
+    sourceImportError: sourceImportMutation.error,
+    sourceImportResult: sourceImportMutation.data,
+    resetSourceImport: sourceImportMutation.reset
   }
 }

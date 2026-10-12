@@ -6,9 +6,16 @@
 // Erros de domínio (AppError) são traduzidos pelo handler global.
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import type { PaginatedResult } from '@digimon/contracts'
+import { ValidationError } from '@digimon/contracts'
 import { requireRole } from '@digimon/auth'
-import { listCardsSchema } from '@digimon/cards'
-import type { Card, CardActor, CardSet, ImportCardsInput } from '@digimon/cards'
+import { importCardsFromSourceSchema, listCardsSchema } from '@digimon/cards'
+import type {
+  Card,
+  CardActor,
+  CardSet,
+  ImportCardsFromSourceInput,
+  ImportCardsInput
+} from '@digimon/cards'
 import { cardsDeps } from '../container'
 import { getAuthContext } from '../plugins/auth'
 
@@ -20,6 +27,7 @@ interface CardDTO {
   rarity: string
   type: string
   colors: string[]
+  maxCountInDeck: number
   level: number | null
   digiType: string | null
   attribute: string | null
@@ -50,6 +58,7 @@ function serializeCard(card: Card): CardDTO {
     rarity: d.rarity,
     type: d.type,
     colors: d.colors,
+    maxCountInDeck: d.maxCountInDeck,
     level: d.level,
     digiType: d.digiType,
     attribute: d.attribute,
@@ -96,7 +105,8 @@ function requireAdminActor(request: FastifyRequest): CardActor {
   return { id: context.userId, role: context.role }
 }
 
-const { list: listCards, get: getCard, listSets, import: importCards } = cardsDeps()
+const { list: listCards, get: getCard, listSets, import: importCards, importFromSource } =
+  cardsDeps()
 
 export const cardsRoutes: FastifyPluginAsync = async (app) => {
   // GET /cards — listagem pública (filtros + full-text + paginação).
@@ -139,4 +149,23 @@ export const cardsRoutes: FastifyPluginAsync = async (app) => {
     const result = await importCards.execute({ actor, input: request.body })
     return reply.status(201).send(result)
   })
+
+  // POST /cards/admin/import-source — importa o catálogo de uma fonte externa (administrator).
+  app.post<{ Body: ImportCardsFromSourceInput }>(
+    '/cards/admin/import-source',
+    async (request, reply) => {
+      const actor = requireAdminActor(request)
+      const body = importCardsFromSourceSchema.parse(request.body ?? {})
+      if (body.source !== undefined && body.source !== 'taka') {
+        throw new ValidationError(`Fonte externa desconhecida: ${body.source}`)
+      }
+      const result = await importFromSource.execute({
+        actor,
+        ...(body.sets !== undefined ? { sets: body.sets } : {}),
+        ...(body.ids !== undefined ? { ids: body.ids } : {}),
+        ...(body.max !== undefined ? { max: body.max } : {})
+      })
+      return reply.status(201).send(result)
+    }
+  )
 }

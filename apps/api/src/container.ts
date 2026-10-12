@@ -34,23 +34,49 @@ import {
 } from '@digimon/comments'
 import {
   GetCardUseCase,
+  ImportCardsFromSourceUseCase,
   ImportCardsUseCase,
   ListCardsUseCase,
   ListSetsUseCase,
   PrismaCardRepository,
-  PrismaCardSetRepository
+  PrismaCardSetRepository,
+  TakaCardsSourceProvider
 } from '@digimon/cards'
+import type { Card } from '@digimon/cards'
 import {
+  CheckDeckLegalityUseCase,
   CopyDeckUseCase,
   CreateDeckUseCase,
   DeleteDeckUseCase,
+  DismissDeckReportsUseCase,
+  GetCommunityDeckUseCase,
   GetDeckUseCase,
+  LikeCommunityDeckUseCase,
+  ListCommunityDecksUseCase,
   ListDecksUseCase,
+  ListPublicationsUseCase,
+  ListReportedDecksUseCase,
+  ModerateCommunityDeckUseCase,
+  OpenDeckReportsUseCase,
   PrismaDeckRepository,
+  PrismaPublicDeckRepository,
+  PublishDeckToCommunityUseCase,
   PublishDeckUseCase,
+  RecordDeckCopyUseCase,
+  ReportCommunityDeckUseCase,
+  UnlikeCommunityDeckUseCase,
+  UnpublishDeckFromCommunityUseCase,
   UpdateDeckUseCase
 } from '@digimon/decks'
-import type { DeckCardEntry } from '@digimon/decks'
+import type {
+  CardColorInfo,
+  CardReferenceInfo,
+  CardReferenceValidator,
+  DeckCardEntry,
+  DeckCardResolver,
+  DeckColorResolver,
+  ResolvedDeckCard
+} from '@digimon/decks'
 import {
   AddResultsUseCase,
   CancelTournamentUseCase,
@@ -119,16 +145,19 @@ export function commentsDeps() {
 export function cardsDeps() {
   const cardRepository = new PrismaCardRepository(prisma)
   const cardSetRepository = new PrismaCardSetRepository(prisma)
+  const importCards = new ImportCardsUseCase(cardRepository, cardSetRepository, eventBus)
+  const cardsSource = new TakaCardsSourceProvider()
   return {
     list: new ListCardsUseCase(cardRepository),
     get: new GetCardUseCase(cardRepository),
     listSets: new ListSetsUseCase(cardSetRepository),
-    import: new ImportCardsUseCase(cardRepository, cardSetRepository, eventBus)
+    import: importCards,
+    importFromSource: new ImportCardsFromSourceUseCase(importCards, cardsSource)
   }
 }
 
 /** Referência do cardList validada contra o catálogo @digimon/cards (tabela cards). */
-class PrismaCardReferenceValidator {
+class PrismaCardReferenceValidator implements CardReferenceValidator {
   async assertCardsExist(cardList: DeckCardEntry[]): Promise<void> {
     const ids = [...new Set(cardList.map((entry) => entry.cardId))]
     if (ids.length === 0) return
@@ -143,19 +172,115 @@ class PrismaCardReferenceValidator {
       throw new ValidationError(`Cartas não encontradas no catálogo: ${missing.join(', ')}`)
     }
   }
+
+  async inspect(entries: DeckCardEntry[]): Promise<CardReferenceInfo[]> {
+    const ids = [...new Set(entries.map((entry) => entry.cardId))]
+    const found = await prisma.card.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, type: true, maxCountInDeck: true }
+    })
+    const byId = new Map(found.map((card) => [card.id, card]))
+
+    return entries.map((entry) => {
+      const card = byId.get(entry.cardId)
+      return {
+        cardId: entry.cardId,
+        quantity: entry.quantity,
+        exists: card !== undefined,
+        maxCountInDeck: card?.maxCountInDeck ?? 4,
+        isDigiEgg: card?.type === 'DIGIEGG'
+      }
+    })
+  }
 }
 
 export function decksDeps() {
   const deckRepository = new PrismaDeckRepository(prisma)
   const cardValidator = new PrismaCardReferenceValidator()
+  const checkLegality = new CheckDeckLegalityUseCase(cardValidator)
   return {
     create: new CreateDeckUseCase(deckRepository, cardValidator, eventBus),
     update: new UpdateDeckUseCase(deckRepository, cardValidator, eventBus),
-    publish: new PublishDeckUseCase(deckRepository, eventBus),
+    publish: new PublishDeckUseCase(deckRepository, checkLegality, eventBus),
     remove: new DeleteDeckUseCase(deckRepository),
     get: new GetDeckUseCase(deckRepository),
     list: new ListDecksUseCase(deckRepository),
-    copy: new CopyDeckUseCase(deckRepository, eventBus)
+    copy: new CopyDeckUseCase(deckRepository, eventBus),
+    checkLegality
+  }
+}
+
+/** Carta do catálogo → dados usados no parse/serialização de decklist. */
+function toResolvedDeckCard(card: Card | null): ResolvedDeckCard | undefined {
+  if (!card) return undefined
+  const d = card.data
+  return {
+    cardId: d.id,
+    number: d.number,
+    name: d.name,
+    isDigiEgg: d.type === 'digiegg',
+    maxCountInDeck: d.maxCountInDeck
+  }
+}
+
+/** DeckCardResolver (DIP) sobre @digimon/cards — código ↔ cardId do catálogo. */
+class PrismaDeckCardResolver implements DeckCardResolver {
+  constructor(private readonly cards: PrismaCardRepository) {}
+
+  async resolveByNumber(number: string): Promise<ResolvedDeckCard | undefined> {
+    return toResolvedDeckCard(await this.cards.findByNumber(number))
+  }
+
+  async resolveById(cardId: string): Promise<ResolvedDeckCard | undefined> {
+    return toResolvedDeckCard(await this.cards.findById(cardId))
+  }
+}
+
+/** DeckColorResolver (DIP) sobre @digimon/cards — cores das cartas do snapshot. */
+class PrismaDeckColorResolver implements DeckColorResolver {
+  constructor(private readonly cards: PrismaCardRepository) {}
+
+  async resolveColors(entries: DeckCardEntry[]): Promise<CardColorInfo[]> {
+    const infos: CardColorInfo[] = []
+    for (const entry of entries) {
+      const card = await this.cards.findById(entry.cardId)
+      infos.push({ cardId: entry.cardId, colors: card ? [...card.data.colors] : [] })
+    }
+    return infos
+  }
+}
+
+export function communityDecksDeps() {
+  const deckRepository = new PrismaDeckRepository(prisma)
+  const publicDecks = new PrismaPublicDeckRepository(prisma)
+  const cardValidator = new PrismaCardReferenceValidator()
+  const cardRepository = new PrismaCardRepository(prisma)
+  const colors = new PrismaDeckColorResolver(cardRepository)
+  const cardResolver = new PrismaDeckCardResolver(cardRepository)
+  const checkLegality = new CheckDeckLegalityUseCase(cardValidator)
+
+  return {
+    publish: new PublishDeckToCommunityUseCase(
+      deckRepository,
+      publicDecks,
+      checkLegality,
+      colors,
+      eventBus
+    ),
+    unpublish: new UnpublishDeckFromCommunityUseCase(deckRepository, publicDecks, eventBus),
+    listPublications: new ListPublicationsUseCase(publicDecks),
+    list: new ListCommunityDecksUseCase(publicDecks, checkLegality),
+    get: new GetCommunityDeckUseCase(publicDecks, checkLegality),
+    like: new LikeCommunityDeckUseCase(publicDecks, eventBus),
+    unlike: new UnlikeCommunityDeckUseCase(publicDecks),
+    copy: new RecordDeckCopyUseCase(publicDecks),
+    report: new ReportCommunityDeckUseCase(publicDecks, eventBus),
+    moderate: new ModerateCommunityDeckUseCase(publicDecks, eventBus),
+    listReported: new ListReportedDecksUseCase(publicDecks),
+    openReports: new OpenDeckReportsUseCase(publicDecks),
+    dismissReports: new DismissDeckReportsUseCase(publicDecks),
+    cardResolver,
+    checkLegality
   }
 }
 

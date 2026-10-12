@@ -81,10 +81,20 @@ export const DeckStatus = {
 export type DeckStatus = (typeof DeckStatus)[keyof typeof DeckStatus]
 
 
+export const PublicDeckStatus = {
+  PUBLIC: 'PUBLIC',
+  HIDDEN: 'HIDDEN',
+  UNPUBLISHED: 'UNPUBLISHED'
+} as const
+
+export type PublicDeckStatus = (typeof PublicDeckStatus)[keyof typeof PublicDeckStatus]
+
+
 export const CardType = {
   DIGIMON: 'DIGIMON',
   OPTION: 'OPTION',
-  TAMER: 'TAMER'
+  TAMER: 'TAMER',
+  DIGIEGG: 'DIGIEGG'
 } as const
 
 export type CardType = (typeof CardType)[keyof typeof CardType]

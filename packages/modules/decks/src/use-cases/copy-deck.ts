@@ -32,6 +32,10 @@ export class CopyDeckUseCase {
       cardId: entry.cardId,
       quantity: entry.quantity
     }))
+    const eggList: DeckCardEntry[] = source.data.eggList.map((entry) => ({
+      cardId: entry.cardId,
+      quantity: entry.quantity
+    }))
 
     const slug = await this.uniqueSlug(slugify(`${source.data.name}-copia`))
     const deck = Deck.create({
@@ -41,6 +45,8 @@ export class CopyDeckUseCase {
       ownerId: command.actor.id,
       description: source.data.description,
       cardList,
+      eggList,
+      coverCardId: source.data.coverCardId,
       format: source.data.format,
       status: 'draft',
       isPublic: false

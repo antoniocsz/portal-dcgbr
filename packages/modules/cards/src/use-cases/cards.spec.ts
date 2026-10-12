@@ -3,6 +3,7 @@
 // set); importação rejeita duplicata (dcgId único); leitura pública liberada,
 // escrita só admin.
 import { describe, expect, it } from 'vitest'
+import { ZodError } from 'zod'
 import type { Role } from '@digimon/contracts'
 import { ForbiddenError, InMemoryEventBus, NotFoundError, ValidationError } from '@digimon/contracts'
 import type { CardActor } from '../domain/actor'
@@ -177,6 +178,54 @@ describe('ListCardsUseCase — leitura pública', () => {
 
     const second = await app.list.execute({ input: { page: 2, pageSize: 2 } })
     expect(second.items).toHaveLength(1)
+  })
+})
+
+describe('Cards — deckbuild (DigiEgg + maxCountInDeck)', () => {
+  it('importa carta do tipo digiegg com maxCountInDeck informado', async () => {
+    const app = setup()
+    const result = await app.import.execute({
+      actor: admin,
+      input: {
+        cards: [
+          card({ dcgId: 'BT1-EGG', name: 'Botamon', type: 'digiegg', maxCountInDeck: 2 })
+        ]
+      }
+    })
+
+    expect(result).toEqual({ imported: 1, updated: 0, sets: 0 })
+    const stored = await app.repo.findByDcgId('BT1-EGG')
+    expect(stored?.type).toBe('digiegg')
+    expect(stored?.data.maxCountInDeck).toBe(2)
+  })
+
+  it('usa maxCountInDeck = 4 quando omitido', async () => {
+    const app = setup()
+    await seed(app, [card({ dcgId: 'BT1-001', name: 'Agumon' })])
+
+    const stored = await app.repo.findByDcgId('BT1-001')
+    expect(stored?.data.maxCountInDeck).toBe(4)
+  })
+
+  it('rejeita maxCountInDeck negativo no schema de importação', async () => {
+    const app = setup()
+    await expect(
+      app.import.execute({
+        actor: admin,
+        input: { cards: [card({ dcgId: 'BT1-001', name: 'Agumon', maxCountInDeck: -1 })] }
+      })
+    ).rejects.toBeInstanceOf(ZodError)
+  })
+
+  it('ListCards filtra por digiegg', async () => {
+    const app = setup()
+    await seed(app, [
+      card({ dcgId: 'BT1-001', name: 'Agumon', type: 'digimon' }),
+      card({ dcgId: 'BT1-EGG', name: 'Botamon', type: 'digiegg' })
+    ])
+
+    const result = await app.list.execute({ input: { type: 'digiegg' } })
+    expect(result.items.map((c) => c.name)).toEqual(['Botamon'])
   })
 })
 

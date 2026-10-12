@@ -30,6 +30,7 @@ export type DeckMinAggregateOutputType = {
   name: string | null
   ownerId: string | null
   description: string | null
+  coverCardId: string | null
   format: string | null
   status: $Enums.DeckStatus | null
   isPublic: boolean | null
@@ -43,6 +44,7 @@ export type DeckMaxAggregateOutputType = {
   name: string | null
   ownerId: string | null
   description: string | null
+  coverCardId: string | null
   format: string | null
   status: $Enums.DeckStatus | null
   isPublic: boolean | null
@@ -57,6 +59,8 @@ export type DeckCountAggregateOutputType = {
   ownerId: number
   description: number
   cardList: number
+  eggList: number
+  coverCardId: number
   format: number
   status: number
   isPublic: number
@@ -72,6 +76,7 @@ export type DeckMinAggregateInputType = {
   name?: true
   ownerId?: true
   description?: true
+  coverCardId?: true
   format?: true
   status?: true
   isPublic?: true
@@ -85,6 +90,7 @@ export type DeckMaxAggregateInputType = {
   name?: true
   ownerId?: true
   description?: true
+  coverCardId?: true
   format?: true
   status?: true
   isPublic?: true
@@ -99,6 +105,8 @@ export type DeckCountAggregateInputType = {
   ownerId?: true
   description?: true
   cardList?: true
+  eggList?: true
+  coverCardId?: true
   format?: true
   status?: true
   isPublic?: true
@@ -186,6 +194,8 @@ export type DeckGroupByOutputType = {
   ownerId: string
   description: string | null
   cardList: runtime.JsonValue
+  eggList: runtime.JsonValue
+  coverCardId: string | null
   format: string
   status: $Enums.DeckStatus
   isPublic: boolean
@@ -221,6 +231,8 @@ export type DeckWhereInput = {
   ownerId?: Prisma.StringFilter<"Deck"> | string
   description?: Prisma.StringNullableFilter<"Deck"> | string | null
   cardList?: Prisma.JsonFilter<"Deck">
+  eggList?: Prisma.JsonFilter<"Deck">
+  coverCardId?: Prisma.StringNullableFilter<"Deck"> | string | null
   format?: Prisma.StringFilter<"Deck"> | string
   status?: Prisma.EnumDeckStatusFilter<"Deck"> | $Enums.DeckStatus
   isPublic?: Prisma.BoolFilter<"Deck"> | boolean
@@ -228,6 +240,7 @@ export type DeckWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Deck"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   copies?: Prisma.DeckCopyListRelationFilter
+  publications?: Prisma.PublicDeckListRelationFilter
 }
 
 export type DeckOrderByWithRelationInput = {
@@ -237,6 +250,8 @@ export type DeckOrderByWithRelationInput = {
   ownerId?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   cardList?: Prisma.SortOrder
+  eggList?: Prisma.SortOrder
+  coverCardId?: Prisma.SortOrderInput | Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
@@ -244,6 +259,7 @@ export type DeckOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   owner?: Prisma.UserOrderByWithRelationInput
   copies?: Prisma.DeckCopyOrderByRelationAggregateInput
+  publications?: Prisma.PublicDeckOrderByRelationAggregateInput
 }
 
 export type DeckWhereUniqueInput = Prisma.AtLeast<{
@@ -256,6 +272,8 @@ export type DeckWhereUniqueInput = Prisma.AtLeast<{
   ownerId?: Prisma.StringFilter<"Deck"> | string
   description?: Prisma.StringNullableFilter<"Deck"> | string | null
   cardList?: Prisma.JsonFilter<"Deck">
+  eggList?: Prisma.JsonFilter<"Deck">
+  coverCardId?: Prisma.StringNullableFilter<"Deck"> | string | null
   format?: Prisma.StringFilter<"Deck"> | string
   status?: Prisma.EnumDeckStatusFilter<"Deck"> | $Enums.DeckStatus
   isPublic?: Prisma.BoolFilter<"Deck"> | boolean
@@ -263,6 +281,7 @@ export type DeckWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Deck"> | Date | string
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   copies?: Prisma.DeckCopyListRelationFilter
+  publications?: Prisma.PublicDeckListRelationFilter
 }, "id" | "slug">
 
 export type DeckOrderByWithAggregationInput = {
@@ -272,6 +291,8 @@ export type DeckOrderByWithAggregationInput = {
   ownerId?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   cardList?: Prisma.SortOrder
+  eggList?: Prisma.SortOrder
+  coverCardId?: Prisma.SortOrderInput | Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
@@ -292,6 +313,8 @@ export type DeckScalarWhereWithAggregatesInput = {
   ownerId?: Prisma.StringWithAggregatesFilter<"Deck"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Deck"> | string | null
   cardList?: Prisma.JsonWithAggregatesFilter<"Deck">
+  eggList?: Prisma.JsonWithAggregatesFilter<"Deck">
+  coverCardId?: Prisma.StringNullableWithAggregatesFilter<"Deck"> | string | null
   format?: Prisma.StringWithAggregatesFilter<"Deck"> | string
   status?: Prisma.EnumDeckStatusWithAggregatesFilter<"Deck"> | $Enums.DeckStatus
   isPublic?: Prisma.BoolWithAggregatesFilter<"Deck"> | boolean
@@ -305,6 +328,8 @@ export type DeckCreateInput = {
   name: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
@@ -312,6 +337,7 @@ export type DeckCreateInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutDecksInput
   copies?: Prisma.DeckCopyCreateNestedManyWithoutSourceDeckInput
+  publications?: Prisma.PublicDeckCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckUncheckedCreateInput = {
@@ -321,12 +347,15 @@ export type DeckUncheckedCreateInput = {
   ownerId: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   copies?: Prisma.DeckCopyUncheckedCreateNestedManyWithoutSourceDeckInput
+  publications?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckUpdateInput = {
@@ -335,6 +364,8 @@ export type DeckUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -342,6 +373,7 @@ export type DeckUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutDecksNestedInput
   copies?: Prisma.DeckCopyUpdateManyWithoutSourceDeckNestedInput
+  publications?: Prisma.PublicDeckUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckUncheckedUpdateInput = {
@@ -351,12 +383,15 @@ export type DeckUncheckedUpdateInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   copies?: Prisma.DeckCopyUncheckedUpdateManyWithoutSourceDeckNestedInput
+  publications?: Prisma.PublicDeckUncheckedUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckCreateManyInput = {
@@ -366,6 +401,8 @@ export type DeckCreateManyInput = {
   ownerId: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
@@ -379,6 +416,8 @@ export type DeckUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -393,6 +432,8 @@ export type DeckUncheckedUpdateManyInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -417,6 +458,8 @@ export type DeckCountOrderByAggregateInput = {
   ownerId?: Prisma.SortOrder
   description?: Prisma.SortOrder
   cardList?: Prisma.SortOrder
+  eggList?: Prisma.SortOrder
+  coverCardId?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
@@ -430,6 +473,7 @@ export type DeckMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverCardId?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
@@ -443,6 +487,7 @@ export type DeckMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   ownerId?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  coverCardId?: Prisma.SortOrder
   format?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
@@ -519,18 +564,35 @@ export type DeckUpdateOneRequiredWithoutCopiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DeckUpdateToOneWithWhereWithoutCopiesInput, Prisma.DeckUpdateWithoutCopiesInput>, Prisma.DeckUncheckedUpdateWithoutCopiesInput>
 }
 
+export type DeckCreateNestedOneWithoutPublicationsInput = {
+  create?: Prisma.XOR<Prisma.DeckCreateWithoutPublicationsInput, Prisma.DeckUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.DeckCreateOrConnectWithoutPublicationsInput
+  connect?: Prisma.DeckWhereUniqueInput
+}
+
+export type DeckUpdateOneRequiredWithoutPublicationsNestedInput = {
+  create?: Prisma.XOR<Prisma.DeckCreateWithoutPublicationsInput, Prisma.DeckUncheckedCreateWithoutPublicationsInput>
+  connectOrCreate?: Prisma.DeckCreateOrConnectWithoutPublicationsInput
+  upsert?: Prisma.DeckUpsertWithoutPublicationsInput
+  connect?: Prisma.DeckWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DeckUpdateToOneWithWhereWithoutPublicationsInput, Prisma.DeckUpdateWithoutPublicationsInput>, Prisma.DeckUncheckedUpdateWithoutPublicationsInput>
+}
+
 export type DeckCreateWithoutOwnerInput = {
   id?: string
   slug: string
   name: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   copies?: Prisma.DeckCopyCreateNestedManyWithoutSourceDeckInput
+  publications?: Prisma.PublicDeckCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckUncheckedCreateWithoutOwnerInput = {
@@ -539,12 +601,15 @@ export type DeckUncheckedCreateWithoutOwnerInput = {
   name: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   copies?: Prisma.DeckCopyUncheckedCreateNestedManyWithoutSourceDeckInput
+  publications?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckCreateOrConnectWithoutOwnerInput = {
@@ -583,6 +648,8 @@ export type DeckScalarWhereInput = {
   ownerId?: Prisma.StringFilter<"Deck"> | string
   description?: Prisma.StringNullableFilter<"Deck"> | string | null
   cardList?: Prisma.JsonFilter<"Deck">
+  eggList?: Prisma.JsonFilter<"Deck">
+  coverCardId?: Prisma.StringNullableFilter<"Deck"> | string | null
   format?: Prisma.StringFilter<"Deck"> | string
   status?: Prisma.EnumDeckStatusFilter<"Deck"> | $Enums.DeckStatus
   isPublic?: Prisma.BoolFilter<"Deck"> | boolean
@@ -596,12 +663,15 @@ export type DeckCreateWithoutCopiesInput = {
   name: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutDecksInput
+  publications?: Prisma.PublicDeckCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckUncheckedCreateWithoutCopiesInput = {
@@ -611,11 +681,14 @@ export type DeckUncheckedCreateWithoutCopiesInput = {
   ownerId: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  publications?: Prisma.PublicDeckUncheckedCreateNestedManyWithoutSourceDeckInput
 }
 
 export type DeckCreateOrConnectWithoutCopiesInput = {
@@ -640,12 +713,15 @@ export type DeckUpdateWithoutCopiesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutDecksNestedInput
+  publications?: Prisma.PublicDeckUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckUncheckedUpdateWithoutCopiesInput = {
@@ -655,11 +731,98 @@ export type DeckUncheckedUpdateWithoutCopiesInput = {
   ownerId?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  publications?: Prisma.PublicDeckUncheckedUpdateManyWithoutSourceDeckNestedInput
+}
+
+export type DeckCreateWithoutPublicationsInput = {
+  id?: string
+  slug: string
+  name: string
+  description?: string | null
+  cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
+  format: string
+  status?: $Enums.DeckStatus
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutDecksInput
+  copies?: Prisma.DeckCopyCreateNestedManyWithoutSourceDeckInput
+}
+
+export type DeckUncheckedCreateWithoutPublicationsInput = {
+  id?: string
+  slug: string
+  name: string
+  ownerId: string
+  description?: string | null
+  cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
+  format: string
+  status?: $Enums.DeckStatus
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  copies?: Prisma.DeckCopyUncheckedCreateNestedManyWithoutSourceDeckInput
+}
+
+export type DeckCreateOrConnectWithoutPublicationsInput = {
+  where: Prisma.DeckWhereUniqueInput
+  create: Prisma.XOR<Prisma.DeckCreateWithoutPublicationsInput, Prisma.DeckUncheckedCreateWithoutPublicationsInput>
+}
+
+export type DeckUpsertWithoutPublicationsInput = {
+  update: Prisma.XOR<Prisma.DeckUpdateWithoutPublicationsInput, Prisma.DeckUncheckedUpdateWithoutPublicationsInput>
+  create: Prisma.XOR<Prisma.DeckCreateWithoutPublicationsInput, Prisma.DeckUncheckedCreateWithoutPublicationsInput>
+  where?: Prisma.DeckWhereInput
+}
+
+export type DeckUpdateToOneWithWhereWithoutPublicationsInput = {
+  where?: Prisma.DeckWhereInput
+  data: Prisma.XOR<Prisma.DeckUpdateWithoutPublicationsInput, Prisma.DeckUncheckedUpdateWithoutPublicationsInput>
+}
+
+export type DeckUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  format?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutDecksNestedInput
+  copies?: Prisma.DeckCopyUpdateManyWithoutSourceDeckNestedInput
+}
+
+export type DeckUncheckedUpdateWithoutPublicationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  format?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  copies?: Prisma.DeckCopyUncheckedUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckCreateManyOwnerInput = {
@@ -668,6 +831,8 @@ export type DeckCreateManyOwnerInput = {
   name: string
   description?: string | null
   cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: string | null
   format: string
   status?: $Enums.DeckStatus
   isPublic?: boolean
@@ -681,12 +846,15 @@ export type DeckUpdateWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   copies?: Prisma.DeckCopyUpdateManyWithoutSourceDeckNestedInput
+  publications?: Prisma.PublicDeckUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckUncheckedUpdateWithoutOwnerInput = {
@@ -695,12 +863,15 @@ export type DeckUncheckedUpdateWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   copies?: Prisma.DeckCopyUncheckedUpdateManyWithoutSourceDeckNestedInput
+  publications?: Prisma.PublicDeckUncheckedUpdateManyWithoutSourceDeckNestedInput
 }
 
 export type DeckUncheckedUpdateManyWithoutOwnerInput = {
@@ -709,6 +880,8 @@ export type DeckUncheckedUpdateManyWithoutOwnerInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   format?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumDeckStatusFieldUpdateOperationsInput | $Enums.DeckStatus
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -723,10 +896,12 @@ export type DeckUncheckedUpdateManyWithoutOwnerInput = {
 
 export type DeckCountOutputType = {
   copies: number
+  publications: number
 }
 
 export type DeckCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   copies?: boolean | DeckCountOutputTypeCountCopiesArgs
+  publications?: boolean | DeckCountOutputTypeCountPublicationsArgs
 }
 
 /**
@@ -746,6 +921,13 @@ export type DeckCountOutputTypeCountCopiesArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.DeckCopyWhereInput
 }
 
+/**
+ * DeckCountOutputType without action
+ */
+export type DeckCountOutputTypeCountPublicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicDeckWhereInput
+}
+
 
 export type DeckSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -754,6 +936,8 @@ export type DeckSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   ownerId?: boolean
   description?: boolean
   cardList?: boolean
+  eggList?: boolean
+  coverCardId?: boolean
   format?: boolean
   status?: boolean
   isPublic?: boolean
@@ -761,6 +945,7 @@ export type DeckSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   copies?: boolean | Prisma.Deck$copiesArgs<ExtArgs>
+  publications?: boolean | Prisma.Deck$publicationsArgs<ExtArgs>
   _count?: boolean | Prisma.DeckCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["deck"]>
 
@@ -771,6 +956,8 @@ export type DeckSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   ownerId?: boolean
   description?: boolean
   cardList?: boolean
+  eggList?: boolean
+  coverCardId?: boolean
   format?: boolean
   status?: boolean
   isPublic?: boolean
@@ -786,6 +973,8 @@ export type DeckSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   ownerId?: boolean
   description?: boolean
   cardList?: boolean
+  eggList?: boolean
+  coverCardId?: boolean
   format?: boolean
   status?: boolean
   isPublic?: boolean
@@ -801,6 +990,8 @@ export type DeckSelectScalar = {
   ownerId?: boolean
   description?: boolean
   cardList?: boolean
+  eggList?: boolean
+  coverCardId?: boolean
   format?: boolean
   status?: boolean
   isPublic?: boolean
@@ -808,10 +999,11 @@ export type DeckSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DeckOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "ownerId" | "description" | "cardList" | "format" | "status" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["deck"]>
+export type DeckOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "ownerId" | "description" | "cardList" | "eggList" | "coverCardId" | "format" | "status" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["deck"]>
 export type DeckInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   copies?: boolean | Prisma.Deck$copiesArgs<ExtArgs>
+  publications?: boolean | Prisma.Deck$publicationsArgs<ExtArgs>
   _count?: boolean | Prisma.DeckCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DeckIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -826,6 +1018,7 @@ export type $DeckPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     owner: Prisma.$UserPayload<ExtArgs>
     copies: Prisma.$DeckCopyPayload<ExtArgs>[]
+    publications: Prisma.$PublicDeckPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -834,6 +1027,8 @@ export type $DeckPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     ownerId: string
     description: string | null
     cardList: runtime.JsonValue
+    eggList: runtime.JsonValue
+    coverCardId: string | null
     format: string
     status: $Enums.DeckStatus
     isPublic: boolean
@@ -1235,6 +1430,7 @@ export interface Prisma__DeckClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   copies<T extends Prisma.Deck$copiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Deck$copiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeckCopyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  publications<T extends Prisma.Deck$publicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Deck$publicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicDeckPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1270,6 +1466,8 @@ export interface DeckFieldRefs {
   readonly ownerId: Prisma.FieldRef<"Deck", 'String'>
   readonly description: Prisma.FieldRef<"Deck", 'String'>
   readonly cardList: Prisma.FieldRef<"Deck", 'Json'>
+  readonly eggList: Prisma.FieldRef<"Deck", 'Json'>
+  readonly coverCardId: Prisma.FieldRef<"Deck", 'String'>
   readonly format: Prisma.FieldRef<"Deck", 'String'>
   readonly status: Prisma.FieldRef<"Deck", 'DeckStatus'>
   readonly isPublic: Prisma.FieldRef<"Deck", 'Boolean'>
@@ -1697,6 +1895,30 @@ export type Deck$copiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.DeckCopyScalarFieldEnum | Prisma.DeckCopyScalarFieldEnum[]
+}
+
+/**
+ * Deck.publications
+ */
+export type Deck$publicationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PublicDeck
+   */
+  select?: Prisma.PublicDeckSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PublicDeck
+   */
+  omit?: Prisma.PublicDeckOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicDeckInclude<ExtArgs> | null
+  where?: Prisma.PublicDeckWhereInput
+  orderBy?: Prisma.PublicDeckOrderByWithRelationInput | Prisma.PublicDeckOrderByWithRelationInput[]
+  cursor?: Prisma.PublicDeckWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicDeckScalarFieldEnum | Prisma.PublicDeckScalarFieldEnum[]
 }
 
 /**

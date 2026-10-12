@@ -38,6 +38,7 @@ function toCardInput(input: CardInput): CardInputData {
     type: input.type,
     colors: input.colors
   }
+  if (input.maxCountInDeck !== undefined) data.maxCountInDeck = input.maxCountInDeck
   if (input.level !== undefined) data.level = input.level
   if (input.digiType !== undefined) data.digiType = input.digiType
   if (input.attribute !== undefined) data.attribute = input.attribute

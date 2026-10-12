@@ -12,7 +12,7 @@ import { CARD_COLOR_LABELS, CARD_TYPE_LABELS } from '../model/types'
 import { AdminPageHeader, AdminTable, type AdminTableColumn } from '@/features/admin'
 import { useAdminCards, type AdminCardFilters } from '../viewmodels/use-admin-cards'
 
-const TYPE_FILTERS = ['digimon', 'option', 'tamer'] as const
+const TYPE_FILTERS = ['digimon', 'option', 'tamer', 'digiegg'] as const
 const COLOR_FILTERS = ['red', 'blue', 'yellow', 'green', 'purple', 'black', 'white'] as const
 
 function toggleType(filters: AdminCardFilters, type: CardType): AdminCardFilters {
@@ -116,7 +116,7 @@ export function AdminCardsView({ canImport = true }: { canImport?: boolean }) {
         actions={
           canImport ? (
             <Button variant="dark" size="sm" onClick={vm.toggleImport} aria-expanded={vm.importOpen}>
-              {vm.importOpen ? 'Fechar importação' : 'Importar JSON'}
+              {vm.importOpen ? 'Fechar importação' : 'Importação / curadoria'}
             </Button>
           ) : undefined
         }
@@ -172,6 +172,53 @@ export function AdminCardsView({ canImport = true }: { canImport?: boolean }) {
             >
               Limpar
             </Button>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-border pt-4">
+            <div className="flex flex-col gap-1">
+              <h3 className="font-display text-base font-bold text-ink">
+                Catálogo externo (TakaOtaku)
+              </h3>
+              <p className="text-[13px] leading-5 text-ink-soft">
+                Baixa e sincroniza o catálogo oficial completo. Cartas com{' '}
+                <code className="text-primary">dcgId</code> existente são atualizadas e registros
+                não reconhecidos são ignorados. Pode levar alguns minutos.
+              </p>
+            </div>
+            {vm.sourceImportError ? (
+              <p role="alert" className="text-xs font-semibold text-danger">
+                {vm.sourceImportError instanceof Error
+                  ? vm.sourceImportError.message
+                  : 'Falha na importação externa.'}
+              </p>
+            ) : null}
+            {vm.sourceImportResult ? (
+              <p className="text-sm font-semibold text-success" aria-live="polite">
+                Importação concluída: {vm.sourceImportResult.imported} novas ·{' '}
+                {vm.sourceImportResult.updated} atualizadas · {vm.sourceImportResult.skipped}{' '}
+                ignoradas · {vm.sourceImportResult.sets.length} sets.
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={vm.runSourceImport}
+                disabled={vm.isSourceImporting}
+              >
+                {vm.isSourceImporting ? 'Importando catálogo…' : 'Importar catálogo externo (TakaOtaku)'}
+              </Button>
+              {vm.sourceImportResult || vm.sourceImportError ? (
+                <Button
+                  variant="dark"
+                  size="sm"
+                  onClick={vm.resetSourceImport}
+                  disabled={vm.isSourceImporting}
+                >
+                  Limpar
+                </Button>
+              ) : null}
+            </div>
           </div>
         </Card>
       ) : null}

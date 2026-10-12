@@ -17,6 +17,7 @@ export {
   CommentTargetType,
   TournamentStatus,
   DeckStatus,
+  PublicDeckStatus,
   CardType,
   CardColor
 } from './generated/prisma/client'
@@ -29,6 +30,10 @@ export type {
   Tournament,
   Deck,
   DeckCopy,
+  PublicDeck,
+  PublicDeckLike,
+  PublicDeckCopy,
+  CommunityDeckReport,
   Card,
   CardSet
 } from './generated/prisma/client'

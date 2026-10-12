@@ -18,6 +18,8 @@ export interface DeckData {
   ownerId: string
   description: string | null
   cardList: DeckCardEntry[]
+  eggList: DeckCardEntry[]
+  coverCardId: string | null
   format: string
   status: DeckStatus
   isPublic: boolean
@@ -32,6 +34,8 @@ export interface CreateDeckData {
   ownerId: string
   description: string | null
   cardList: DeckCardEntry[]
+  eggList: DeckCardEntry[]
+  coverCardId: string | null
   format: string
   status: DeckStatus
   isPublic: boolean
@@ -42,6 +46,8 @@ export interface UpdateDeckData {
   name?: string
   description?: string | null
   cardList?: DeckCardEntry[]
+  eggList?: DeckCardEntry[]
+  coverCardId?: string | null
   format?: string
   isPublic?: boolean
 }
@@ -57,8 +63,10 @@ export function slugify(input: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-function assertValidCardList(cardList: DeckCardEntry[]): void {
-  for (const entry of cardList) {
+// Valida UMA lista de cartas (main `cardList` ou `eggList`): cardId não-vazio e
+// quantidade inteira positiva.
+function assertValidCardList(list: DeckCardEntry[]): void {
+  for (const entry of list) {
     if (entry.cardId.trim() === '') {
       throw new ValidationError('cardList contém uma carta sem cardId')
     }
@@ -73,6 +81,7 @@ export class Deck {
 
   static create(props: CreateDeckData): Deck {
     assertValidCardList(props.cardList)
+    assertValidCardList(props.eggList)
     const now = new Date()
     return new Deck({
       ...props,
@@ -107,13 +116,16 @@ export class Deck {
     return this.data.status === 'published' && this.data.isPublic
   }
 
-  /** Edita dados do deck. cardList deve conter ao menos uma carta ao publicar. */
+  /** Edita dados do deck. cardList/eggList validados (cardId + quantidade). */
   update(patch: UpdateDeckData): void {
     if (patch.cardList !== undefined) assertValidCardList(patch.cardList)
+    if (patch.eggList !== undefined) assertValidCardList(patch.eggList)
     if (patch.slug !== undefined) this.data.slug = patch.slug
     if (patch.name !== undefined) this.data.name = patch.name
     if (patch.description !== undefined) this.data.description = patch.description
     if (patch.cardList !== undefined) this.data.cardList = patch.cardList
+    if (patch.eggList !== undefined) this.data.eggList = patch.eggList
+    if (patch.coverCardId !== undefined) this.data.coverCardId = patch.coverCardId
     if (patch.format !== undefined) this.data.format = patch.format
     if (patch.isPublic !== undefined) this.data.isPublic = patch.isPublic
     this.data.updatedAt = new Date()

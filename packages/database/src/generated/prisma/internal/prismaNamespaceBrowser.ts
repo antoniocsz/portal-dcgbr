@@ -61,7 +61,11 @@ export const ModelName = {
   Deck: 'Deck',
   DeckCopy: 'DeckCopy',
   CardSet: 'CardSet',
-  Card: 'Card'
+  Card: 'Card',
+  PublicDeck: 'PublicDeck',
+  PublicDeckLike: 'PublicDeckLike',
+  PublicDeckCopy: 'PublicDeckCopy',
+  CommunityDeckReport: 'CommunityDeckReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -188,6 +192,8 @@ export const DeckScalarFieldEnum = {
   ownerId: 'ownerId',
   description: 'description',
   cardList: 'cardList',
+  eggList: 'eggList',
+  coverCardId: 'coverCardId',
   format: 'format',
   status: 'status',
   isPublic: 'isPublic',
@@ -238,11 +244,64 @@ export const CardScalarFieldEnum = {
   imageUrl: 'imageUrl',
   setCode: 'setCode',
   releaseDate: 'releaseDate',
+  maxCountInDeck: 'maxCountInDeck',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type CardScalarFieldEnum = (typeof CardScalarFieldEnum)[keyof typeof CardScalarFieldEnum]
+
+
+export const PublicDeckScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  sourceDeckId: 'sourceDeckId',
+  name: 'name',
+  colors: 'colors',
+  cardList: 'cardList',
+  eggList: 'eggList',
+  coverCardId: 'coverCardId',
+  likeCount: 'likeCount',
+  copyCount: 'copyCount',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PublicDeckScalarFieldEnum = (typeof PublicDeckScalarFieldEnum)[keyof typeof PublicDeckScalarFieldEnum]
+
+
+export const PublicDeckLikeScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  accountId: 'accountId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicDeckLikeScalarFieldEnum = (typeof PublicDeckLikeScalarFieldEnum)[keyof typeof PublicDeckLikeScalarFieldEnum]
+
+
+export const PublicDeckCopyScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  accountId: 'accountId',
+  createdAt: 'createdAt'
+} as const
+
+export type PublicDeckCopyScalarFieldEnum = (typeof PublicDeckCopyScalarFieldEnum)[keyof typeof PublicDeckCopyScalarFieldEnum]
+
+
+export const CommunityDeckReportScalarFieldEnum = {
+  id: 'id',
+  publicDeckId: 'publicDeckId',
+  reporterAccountId: 'reporterAccountId',
+  reason: 'reason',
+  details: 'details',
+  createdAt: 'createdAt',
+  dismissedAt: 'dismissedAt'
+} as const
+
+export type CommunityDeckReportScalarFieldEnum = (typeof CommunityDeckReportScalarFieldEnum)[keyof typeof CommunityDeckReportScalarFieldEnum]
 
 
 export const SortOrder = {

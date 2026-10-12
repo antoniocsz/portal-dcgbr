@@ -46,6 +46,8 @@ interface DeckDTO {
   ownerId: string
   description: string | null
   cardList: DeckCardEntry[]
+  eggList: DeckCardEntry[]
+  coverCardId: string | null
   format: string
   status: string
   isPublic: boolean
@@ -73,6 +75,8 @@ function serializeDeck(deck: Deck): DeckDTO {
     ownerId: d.ownerId,
     description: d.description,
     cardList: d.cardList,
+    eggList: d.eggList,
+    coverCardId: d.coverCardId,
     format: d.format,
     status: d.status,
     isPublic: d.isPublic,

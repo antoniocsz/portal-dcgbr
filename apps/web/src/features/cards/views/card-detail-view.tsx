@@ -4,6 +4,7 @@
 // ViewModel useCard — View só renderiza.
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button, Sparkles } from '@/components'
 import { attributeColor, attributeHex, toCardDetailView } from '../viewmodels/card-view'
@@ -45,6 +46,7 @@ function EvoNode({ level, label }: { level: string; label: string }) {
 
 export function CardDetailView({ id }: CardDetailViewProps) {
   const { card, isLoading, isError, refetch } = useCard(id)
+  const [artFailed, setArtFailed] = useState(false)
 
   if (isLoading) {
     return (
@@ -87,8 +89,15 @@ export function CardDetailView({ id }: CardDetailViewProps) {
             className="relative flex h-72 flex-col items-center justify-center gap-2.5"
             style={{ backgroundImage: `linear-gradient(0deg, ${hex} 0%, ${hex}99 100%)` }}
           >
-            {detail.imageUrl ? (
-              <img src={detail.imageUrl} alt={`Arte da carta ${detail.name}`} className="h-full w-full object-cover" />
+            {detail.imageUrl && !artFailed ? (
+              <img
+                src={detail.imageUrl}
+                alt={`Arte da carta ${detail.name}`}
+                loading="lazy"
+                decoding="async"
+                onError={() => setArtFailed(true)}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <Sparkles className="size-24 text-white/90" aria-hidden="true" />
             )}

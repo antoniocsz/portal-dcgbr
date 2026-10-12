@@ -10,7 +10,7 @@ export interface Actor {
   role: Role
 }
 
-/** Dono do deck (única regra de gerenciamento no módulo decks). */
+/** Dono do deck (regra padrão de gerenciamento no módulo decks). */
 export function isOwner(actor: Actor, ownerId: string): boolean {
   return actor.id === ownerId
 }
@@ -18,5 +18,18 @@ export function isOwner(actor: Actor, ownerId: string): boolean {
 export function requireOwner(actor: Actor, ownerId: string): void {
   if (!isOwner(actor, ownerId)) {
     throw new ForbiddenError('Somente o dono pode gerenciar este deck')
+  }
+}
+
+/** Papéis com poderes de gestão/moderação (ADR-004 — papéis globais). */
+export const MANAGER_ROLES: readonly Role[] = ['administrator', 'editor']
+
+export function isManager(actor: Actor | null): boolean {
+  return actor !== null && MANAGER_ROLES.includes(actor.role)
+}
+
+export function requireManager(actor: Actor | null): void {
+  if (!isManager(actor)) {
+    throw new ForbiddenError('Somente administradores e editores podem moderar publicações')
   }
 }

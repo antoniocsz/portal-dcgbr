@@ -334,3 +334,61 @@
 - **Segurança:** o `apps/web/.env` (com `JWT_SECRET`/`DATABASE_URL` reais) deixava de vazar para `.next/standalone/apps/web/.env` na imagem publicada. **PENDÊNCIA CRÍTICA (ação do usuário):** se alguma imagem do web já foi construída/publicada antes desta correção, **rotacionar o `JWT_SECRET`** (e quaisquer credenciais do `apps/web/.env`) — o segredo esteve embutido na imagem/camada publicada.
 - **Decisões:** manter `.env`/`.env.*` (raiz) **e** `**/.env`/`**/.env.*` (belt-and-suspenders; não dependemos de o `**` casar a raiz em toda versão do Docker, embora o teste confirme que casa). `!.env.example`/`!**/.env.example` ficam após as exclusões (ordem importa no `.dockerignore`).
 - **Escopo:** único arquivo tocado = `.dockerignore`. Imagens/containers de teste limpos; nada publicado.
+
+## Fase 27 — Fix da sessão pós-login (task 59)
+- [x] `lib/use-session.ts` reescrito como **store compartilhado** (`useSyncExternalStore` + listeners) com `refreshSession()` — todas as instâncias (UserMenu desktop/mobile) reagem à mesma sessão
+- [x] `lib/session.ts` (NOVO, server-only): `getSession()` genérico; `features/admin/model/session.ts` delega para ele (dedupe)
+- [x] Login/registro: após sucesso, `refreshSession()` + `router.push('/')` — o header mostra o UserMenu **sem F5**
+- [x] Guard: `/login` e `/registro` (Server Components) redirecionam para `/` se já houver sessão
+- [x] typecheck + lint + build `@digimon/app-web` ok
+- [x] `pnpm harness check --barrel --db` ok
+
+## Handoff (task 59)
+- **Feito:** corrigidos os 2 bugs de sessão. (1) **header reativo** — store compartilhado + `refreshSession()` após login/registro; (2) **guard de rota** para usuário logado.
+- **Decisões:** (1) store de módulo com listeners via `useSyncExternalStore` (o cache por instância não propagava entre o formulário de login e o UserMenu). (2) `getSession()` genérico em `lib/session.ts`; o admin delega. (3) após login/registro, `router.push('/')` (as telas "Login efetuado"/"Conta criada" ficam como fallback). (4) guard só em `/login` e `/registro` — `/esqueci-senha` e `/reset-senha` continuam acessíveis logado (link de e-mail).
+- **Pendências:** nenhuma.
+
+## Fase 28 — Comunidade de decks no web (task 66)
+- [x] Model: `model/community-types.ts` (contrato literal) + `model/community-api.ts` (client das rotas `/decks/community*`, `/decks/legality`, `/decks/import`, `/decks/:slug/export`)
+- [x] Helpers `viewmodels/deck-sections.ts`: seções (Eggs → Digimon por nível → Tamers → Options → Outros), curva de custo e cores dominantes
+- [x] ViewModels: `use-community-decks` (feed + like otimista com rollback), `use-community-deck` (detalhe + metadados + copiar pra mim), `use-deck-publications` (publicar/atualizar/despublicar, `outdated`), `use-deck-import-export` (colar/serializar/baixar)
+- [x] Views: `community-decks-view`, `community-deck-detail-view`, `deck-publish-modal`, `deck-import-modal`, `deck-export-modal`; `deck-form-view` evoluída (eggList + coverCardId + legalidade ao vivo + import + publicar após salvar)
+- [x] Componente `DeckCard` ganhou props aditivas (href/like/contadores/legal) — retrocompatível
+- [x] Páginas: `(public)/decks/comunidade` (feed) e `(public)/decks/comunidade/[id]` (detalhe); atalho "Comunidade" no `(public)/decks`
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ | lint ✅ (0 erros, 0 warnings) | build ✅ (rotas `/decks/comunidade`, `/decks/comunidade/[id]`)
+- [x] `pnpm harness check --barrel --db` ✅
+
+## Handoff (task 66)
+- **Feito:** frontend completo da comunidade de decks (feed, página do deck, like, publicar, import/export) consumindo as rotas reais de `apps/api/src/routes/community-decks.ts`. MVVM estrito: Model (`community-types`/`community-api`), ViewModels (`use-community-decks`/`use-community-deck`/`use-deck-publications`/`use-deck-import-export` + `deck-sections`/`deck-view`), Views (só JSX). `DeckCard` estendido com props aditivas.
+- **Decisões:** (1) `exportDeckList` usa `fetch` cru na `apiBaseUrl` (o client JSON de `@digimon/api-client` não lê `text/plain`) — mantém-se na camada Model. (2) Like otimista atualiza todas as páginas do feed no cache (`applyLikeState`) com rollback em `onError` e reconciliação em `onSuccess`. (3) `PUT`/`DELETE` via `apiClient.request` (o client não expõe `put`). (4) "Copiar pra mim" = cria um rascunho próprio (`decksApi.createDeck`) a partir do snapshot congelado + `POST .../copies` para contabilizar. (5) Estado efêmero de abertura de modal fica na View (`useState`); todo fetch/mutação/validação vive nos ViewModels. (6) `generateMetadata` do detalhe busca o deck via API (`cache: 'no-store'`) para SEO sem tornar a rota estática.
+- **Fora do escopo / limitações (reportar):** (a) **Exportar da comunidade é só para o dono** — a rota `GET /decks/:slug/export` exige o slug do deck de ORIGEM, que o payload da comunidade não expõe (só `id`/`ownerName`); o slug é resolvido cruzando `use-deck-publications` (sourceDeckId→slug via meus decks). Não-owners não têm como exportar sem uma rota de export da comunidade. (b) **Página de detalhe do deck próprio (`/decks/[slug]`)** continua inexistente — fora do escopo desta task; o `DecksListView` segue linkando para ela (dívida pré-existente). (c) `next-env.d.ts` é regenerado pelo `next build` (mudança `dev → types`); artefato revertido para não sair do escopo.
+- **Pendências:** oferecer export da comunidade a não-owners exigiria rota nova no backend (task futura).
+
+## Fase 29 — Admin: moderação de decks da comunidade (task 67)
+- [x] Model `features/admin/model/deck-moderation-api.ts`: client das rotas admin de moderação (`reportedDecks` → `GET /admin/decks/community/reports`, `openReports` → `GET /admin/decks/community/:id/reports`, `dismissReports` → `POST .../reports/dismiss`, `moderate` → `POST .../moderation`) + tipos literais em sync (`ReportedCommunityDeck`/`CommunityDeckReport`/`CommunityModerationAction`) — sem importar `@digimon/decks`
+- [x] ViewModel `use-admin-deck-moderation`: fila de reportes, seleção + reportes abertos por deck (query `enabled`), `dismiss`/`moderate` (hide/restore) com invalidação; estados loading/erro
+- [x] View `AdminDeckModerationView`: tabela da fila (deck, autor, status, nº de reportes, último reporte) com ações Ocultar/Restaurar/Dispensar (confirmação `window.confirm` nas destrutivas) + painel de reportes abertos por deck; estados vazio/erro
+- [x] Página `app/admin/decks/moderacao/page.tsx` (gate administrator/editor herdado de `admin/layout.tsx`) montando a View
+- [x] Sidebar `AdminShell`: item **Moderação de decks** (`ShieldAlert`) após Decks; Cartas/Torneios já existiam (pendência da `context/modules/cards/status.md` resolvida na task 15)
+- [x] Barrel `features/admin/index.ts`: `deckModerationApi` + tipos + `AdminDeckModerationView` + `useAdminDeckModeration`
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ | lint ✅ (0 erros, 0 warnings) | build ✅ (rota `/admin/decks/moderacao` no build)
+- [x] `pnpm harness finish 67` ✅
+
+## Handoff (task 67)
+- **Feito:** telas admin de moderação de decks da comunidade consumindo as rotas reais de `apps/api/src/routes/community-decks.ts`. MVVM estrito: Model (`deck-moderation-api`), ViewModel (`use-admin-deck-moderation`), View (`AdminDeckModerationView` só JSX) + página + item de sidebar + barrel.
+- **Arquivos:** `apps/web/src/features/admin/model/deck-moderation-api.ts` (novo), `viewmodels/use-admin-deck-moderation.ts` (novo), `views/admin-deck-moderation-view.tsx` (novo), `views/admin-shell.tsx` (item nav), `apps/web/src/features/admin/index.ts` (barrel), `apps/web/src/app/admin/decks/moderacao/page.tsx` (novo).
+- **Decisões:** (1) Tipos de moderação literais no Model do admin (sem `@digimon/decks`); `CommunityDeckStatus`/`COMMUNITY_STATUS_LABELS` reaproveitados de `@/features/decks/model/community-types` (model de feature frontend — mesmo padrão de `adminDecksApi` importando de `features/decks/model/types`). (2) `reportedDecks` mapeia `{ decks }` → array. (3) Ação destrutiva (hide) e "dispensar reportes" usam `window.confirm` (padrão da feature — sem modal no design system); restore não confirma. (4) Painel de reportes abertos é inline (abaixo da tabela) via deck selecionado — sem modal. (5) `views/index.ts`/`viewmodels/index.ts` **não existem** nesta feature (barrel único = `features/admin/index.ts`) — atualizado conforme o padrão das tasks 15/17/21.
+- **Fora do escopo:** nenhum. `features/decks/**` apenas consumido por tipos/labels (não editado); `apps/api/**` e `packages/**` intocados.
+
+## Fase 30 — Cartas: arte, filtros e importação externa (task 69)
+- [x] `CardTile` mostra a arte da carta (`aspect-[5/7]`, `loading="lazy"`, `decoding="async"`) com fallback gradiente + `Sparkles` em ausência **ou** erro (`onError`); `CardTileData.imageUrl` propagado por `toCardTileData`
+- [x] Ficha (`card-detail-view`) com o mesmo fallback de erro da arte
+- [x] Filtros públicos: custo de jogo (0–7) + set (`use-card-sets`, oculto quando vazio); busca/tipo/cor mantidos; filtro reseta para a página 1
+- [x] Admin: importação do catálogo externo (TakaOtaku) via `POST /cards/admin/import-source` (só administrator) reusando o painel de importação; JSON preservado
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ | lint ✅ (0 erros, 0 warnings) | build ✅ (27 páginas; rota `/cartas` estática)
+
+## Handoff (task 69)
+- **Feito:** catálogo real (4.480 cartas com `imageUrl` oficial) agora exibe a arte na grade e na ficha, com fallback robusto (ausência/erro). Filtros de custo e set expostos no catálogo público. Importação do catálogo externo (TakaOtaku) disponível no admin, reusando o painel existente. MVVM estrito: `CardTile` (view; sem hooks de dados — só estado local de erro), `card-view` (helper de apresentação), ViewModels `use-card-list`/`use-card-sets`/`use-admin-cards`, Model `cards-api`/`types`.
+- **Arquivos:** `components/card-tile.tsx`, `features/cards/model/{types,cards-api}.ts`, `features/cards/viewmodels/{card-view,use-admin-cards}.ts`, `features/cards/views/{card-filters,card-detail-view,admin-cards-view}.tsx`.
+- **Decisões:** (1) `<img>` nativo (não `next/image`) — sem `images.remotePatterns` para o domínio da TakaOtaku no `next.config.ts` (config fora do escopo). (2) Custo enviado como match exato `playCost=0..7` (a API usa igualdade); "7+" (≥7) exigiria filtro de faixa no backend — reportado. (3) Set se auto-oculta com lista vazia (task 70 popula `card_sets`). (4) Reuso do painel de importação; gatilho do cabeçalho renomeado para "Importação / curadoria".
+- **Fora do escopo:** nenhum. `packages/**` e `apps/api/**` intocados; `features/decks/**` e `components/**` (exceto `card-tile.tsx`) intocados.

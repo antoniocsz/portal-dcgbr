@@ -23,6 +23,8 @@ export interface DeckSummary {
 export interface Deck extends DeckSummary {
   description: string | null
   cardList: DeckCardEntry[]
+  eggList: DeckCardEntry[]
+  coverCardId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +34,8 @@ export interface DeckInput {
   slug?: string
   description?: string | null
   cardList: DeckCardEntry[]
+  eggList?: DeckCardEntry[]
+  coverCardId?: string | null
   format: string
   status?: DeckStatus
   isPublic?: boolean
