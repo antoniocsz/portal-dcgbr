@@ -15,6 +15,8 @@ export interface CardFilters {
   type?: CardType
   color?: CardColor
   playCost?: number
+  minPlayCost?: number
+  maxPlayCost?: number
   setCode?: string
 }
 

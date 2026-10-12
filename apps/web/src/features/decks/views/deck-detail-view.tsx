@@ -5,6 +5,7 @@
 // Só JSX — dados e callbacks vêm do ViewModel useDeck(slug).
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -19,8 +20,10 @@ import {
 } from '@/components'
 import type { CardHoverCardData, StatusTone } from '@/components'
 import { formatRelativeDate, statusLabel } from '../viewmodels/deck-view'
+import type { DeckImageCardVisual } from '../viewmodels/use-deck-image-export'
 import { useDeck } from '../viewmodels/use-deck'
 import { DeckExportModal } from './deck-export-modal'
+import { DeckImageExportButton } from './deck-image-export-button'
 import { DeckPublishModal } from './deck-publish-modal'
 
 export interface DeckDetailViewProps {
@@ -50,15 +53,20 @@ function CardThumb({
   number: string
   name: string
 }) {
-  if (imageUrl) {
+  const [failed, setFailed] = useState(false)
+
+  if (imageUrl && !failed) {
     return (
-      <img
-        src={imageUrl}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        className="h-14 w-10 shrink-0 border border-border bg-surface-2 object-cover"
-      />
+      <span className="relative h-14 w-10 shrink-0 border border-border bg-surface-2">
+        <Image
+          src={imageUrl}
+          alt=""
+          fill
+          sizes="40px"
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      </span>
     )
   }
   return (
@@ -167,6 +175,10 @@ export function DeckDetailView({ slug }: DeckDetailViewProps) {
   const group = vm.group
   const maxBucket = Math.max(1, ...(vm.curve?.buckets.map((bucket) => bucket.count) ?? [1]))
   const isPublishedToCommunity = vm.publicationStatus === 'public'
+  const resolveImageCard = (cardId: string): DeckImageCardVisual | null => {
+    const hover = vm.resolveHoverCard(cardId)
+    return hover ? { imageUrl: hover.imageUrl ?? null, color: hover.color } : null
+  }
   const actionError =
     vm.publishError instanceof Error
       ? vm.publishError.message
@@ -401,6 +413,14 @@ export function DeckDetailView({ slug }: DeckDetailViewProps) {
           vm.exporter.resetExport()
           setExportOpen(false)
         }}
+        imageExport={
+          <DeckImageExportButton
+            deck={deck}
+            group={group}
+            coverImageUrl={vm.coverCard?.imageUrl ?? null}
+            resolveCard={resolveImageCard}
+          />
+        }
       />
 
       <DeckPublishModal

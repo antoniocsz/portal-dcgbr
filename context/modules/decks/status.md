@@ -103,7 +103,36 @@
 - [x] Fluxo de criação (`mode: 'create'` default) inalterado
 - [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` não executado)
 
+## Fase 13 — Gate de dono na página de editar deck (task 86)
+- [x] `apps/web/src/app/(member)/decks/[slug]/editar/page.tsx`: gate de dono no Server Component — `getSession()` + deck via `fetch` SSR com o cookie de sessão encaminhado
+- [x] Deck inexistente → `notFound()`; `deck.ownerId !== session.userId` (ou sessão ausente) → `redirect('/decks/' + slug)` — não-dono nunca vê o form de edição (antes só falhava no `PATCH` 403)
+- [x] Rascunho do dono acessível (cookie encaminhado → `GET /decks/:slug` 200); gate de Member herdado de `(member)` intacto
+- [x] ViewModel/View do form intocados
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings)
+
+## Fase 14 — Detalhe do deck: `CardThumb` via `next/image` + export em PNG (task 84)
+- [x] `deck-detail-view.tsx`: `CardThumb` migrado de `<img>` para `next/image` (`fill`/`sizes`, fallback `onError`/sem `imageUrl` preservado)
+- [x] Novo ViewModel `viewmodels/use-deck-image-export.ts` — gera o deck completo em PNG via canvas (título/formato/cores/capa + seções com arte + nome + quantidade), estados idle/generating/ready/error, download `deck-<slug>.png`
+- [x] Arte carregada pela imagem otimizada **same-origin** do Next (`/_next/image?url=…`) — evita o canvas taint no `toBlob`; falha de imagem individual cai em placeholder (degradação segura)
+- [x] Nova View `views/deck-image-export-button.tsx` (botão + prévia + estados) + aba **"Imagem"** no `DeckExportModal` (prop opcional `imageExport`, retrocompatível)
+- [x] `views/index.ts` exporta `DeckImageExportButton`
+- [x] `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` não executado)
+
 ## Handoff
+
+### Handoff task 84 (detalhe do deck — miniatura via next/image + export em PNG)
+- **Feito (frontend, `apps/web`):** (1) o `CardThumb` do decklist do detalhe usa `next/image` (`fill`+`sizes`) com fallback preservado; (2) export do deck em **PNG** via canvas. O VM `useDeckImageExport` carrega as artes pela imagem otimizada same-origin do Next (`/_next/image`), evitando o canvas taint, e desenha cabeçalho (nome/formato/main/egg/total/descrição/cores), capa e decklist com arte+número+nome+quantidade num canvas 1200px (escala 2×); `toBlob('image/png')` → `URL.createObjectURL` → download `deck-<slug>.png`. A View `DeckImageExportButton` expõe os estados (gerando/pronto/falhou) e a prévia; o `DeckExportModal` ganhou a aba "Imagem" via prop opcional `imageExport`.
+- **Arquivos:** `apps/web/src/features/decks/views/deck-detail-view.tsx`, `views/deck-image-export-button.tsx` (novo), `views/deck-export-modal.tsx`, `viewmodels/use-deck-image-export.ts` (novo), `views/index.ts`, `context/modules/{web,decks}/status.md`.
+- **Decisões:** (1) **`/_next/image` como fonte da arte** (same-origin) — desenhar a URL cross-origin quebraria `toBlob`; `w=128`/`w=384` na allowlist padrão do Next. (2) Funções puras de render no arquivo do VM (escopo limita a um VM); View permanece só JSX. (3) **Degradação segura:** capa e miniaturas falham de forma independente → placeholder colorido com o número, sem quebrar o export. (4) Prop `imageExport` **opcional** no modal — `community-deck-detail-view.tsx` (fora do escopo) segue sem tabs. (5) `<img>` nativo só para a prévia `blob:`.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings). `next build` **não** executado (instrução da task).
+- **Fora do escopo:** nenhum. Tasks 85/86/87 (`page.tsx` público/editar, `features/cards/**`) intocadas; `community-deck-detail-view.tsx` intocado.
+
+### Handoff task 86 (gate de dono em `/decks/[slug]/editar`)
+- **Feito (frontend, `apps/web`):** a página de edição do deck passa a ser **só do dono**. Como o `GET /decks/:slug` é público para decks publicados, um não-dono conseguia abrir o form (`/decks/{slug}/editar`) e só era barrado no `PATCH` (403). O `page.tsx` (Server Component sob `(member)`) agora: (1) lê a sessão (`getSession()`); (2) busca o deck via `fetch` SSR **encaminhando o cookie `access_token`** da request (para o dono enxergar o próprio rascunho); (3) `notFound()` se o deck não existir; (4) `redirect('/decks/' + slug)` se `deck.ownerId !== session.userId` (ou sessão ausente).
+- **Arquivo:** `apps/web/src/app/(member)/decks/[slug]/editar/page.tsx` (único). `use-deck-form.ts`/`deck-form-view.tsx` **intocados** (gate é só na página).
+- **Decisões:** (1) padrão da task 85 (`cookies()` + `fetch` SSR com header `cookie`) — o `decksApi.getDeck` é client-side e não encaminha cookie no SSR; o web é frontend puro (ADR-007), então o `fetchDeck` fica local à página. (2) `cache: 'no-store'` + falha → `null` (resiliente). (3) `!session || deck.ownerId !== session.userId` → redirect para a página pública (o layout `(member)` já garante sessão; o `!session` cobre o tipo). (4) `apiBaseUrl` de `@/lib/api-base` (SSR → `API_INTERNAL_URL`).
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` — 2/2 ✅ (0 erros, 0 warnings; `next build` **não** executado). Falha intermediária de typecheck fora do escopo (`card-filters.tsx` — task 87) resolvida pela task concorrente e revalidada.
+- **Fora do escopo (reportar):** tasks ativas 85/84/87 não tocadas.
 
 ### Handoff task 80 (página de editar o deck — `/decks/[slug]/editar`)
 - **Feito (frontend, `apps/web`):** criada a rota `/decks/[slug]/editar` (antes inexistente) e adicionado o **modo edição** ao formulário de deck. `page.tsx` (Server Component, sob `(member)`) usa container largo + cabeçalho "Editar deck" e monta `<DeckFormView mode="edit" slug={slug} />`. O `useDeckForm({ mode, slug, initialDeck? })` carrega o deck por `decksApi.getDeck` e hidrata o formulário (`values` nome/slug/descrição/formato/status + `cardList`/`eggList`/`coverCardId`); `handleSubmit` passa a usar `decksApi.updateDeck` (PATCH). A View ajusta os CTAs ("Salvar alterações"), substitui a edição de slug por um aviso informativo e redireciona para o detalhe após salvar; o painel "Publicar na comunidade" segue disponível para o deck já salvo.

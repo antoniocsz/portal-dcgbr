@@ -5,7 +5,7 @@
 // quando há sets cadastrados (o catálogo pode não ter nenhum ainda).
 'use client'
 
-import type { CardColor, CardType, ListCardsParams } from '../model/types'
+import type { CardColor, CardType } from '../model/types'
 import { CARD_COLOR_LABELS, CARD_TYPE_LABELS } from '../model/types'
 import { useCardSets, type CardFilters } from '../viewmodels'
 
@@ -17,30 +17,27 @@ const SELECT_CLASS =
   'border border-border bg-surface px-3 py-2 text-[13px] font-semibold text-ink focus:outline-none focus:ring-1 focus:ring-primary'
 const LABEL_CLASS = 'text-[12px] font-bold text-ink-faint'
 
-/** Filtros da View: `CardFilters` (ViewModel) + faixa de custo (Model). */
-type FilterState = CardFilters & Pick<ListCardsParams, 'minPlayCost' | 'maxPlayCost'>
-
 export interface CardFiltersProps {
-  filters: FilterState
-  onChange: (filters: FilterState) => void
+  filters: CardFilters
+  onChange: (filters: CardFilters) => void
 }
 
-function setType(filters: FilterState, value: string): FilterState {
-  const next: FilterState = { ...filters }
+function setType(filters: CardFilters, value: string): CardFilters {
+  const next: CardFilters = { ...filters }
   if (value) next.type = value as CardType
   else delete next.type
   return next
 }
 
-function setColor(filters: FilterState, value: string): FilterState {
-  const next: FilterState = { ...filters }
+function setColor(filters: CardFilters, value: string): CardFilters {
+  const next: CardFilters = { ...filters }
   if (value) next.color = value as CardColor
   else delete next.color
   return next
 }
 
 /** Valor do select de custo derivado da faixa (0–6 exatos ou "7+"). */
-function costValue(filters: FilterState): string {
+function costValue(filters: CardFilters): string {
   if (filters.minPlayCost === 7 && filters.maxPlayCost === undefined) return '7+'
   if (filters.minPlayCost !== undefined && filters.minPlayCost === filters.maxPlayCost) {
     return String(filters.minPlayCost)
@@ -52,8 +49,8 @@ function costValue(filters: FilterState): string {
 }
 
 /** "7+" → minPlayCost=7; 0–6 → min=max=<n>; vazio → remove a faixa. */
-function setPlayCost(filters: FilterState, value: string): FilterState {
-  const next: FilterState = { ...filters }
+function setPlayCost(filters: CardFilters, value: string): CardFilters {
+  const next: CardFilters = { ...filters }
   delete next.minPlayCost
   delete next.maxPlayCost
   if (value === '7+') {
@@ -66,8 +63,8 @@ function setPlayCost(filters: FilterState, value: string): FilterState {
   return next
 }
 
-function setSetCode(filters: FilterState, value: string): FilterState {
-  const next: FilterState = { ...filters }
+function setSetCode(filters: CardFilters, value: string): CardFilters {
+  const next: CardFilters = { ...filters }
   if (value) next.setCode = value
   else delete next.setCode
   return next
@@ -84,7 +81,7 @@ export function CardFilters({ filters, onChange }: CardFiltersProps) {
           event.preventDefault()
           const value = new FormData(event.currentTarget).get('search')
           const search = typeof value === 'string' ? value.trim() : ''
-          const next: FilterState = { ...filters }
+          const next: CardFilters = { ...filters }
           if (search) next.search = search
           else delete next.search
           onChange(next)
