@@ -1,9 +1,12 @@
 // Path: apps/web/src/app/(member)/torneios/[slug]/editar/page.tsx
 // Editar dados do torneio (dono OU Admin/Editor). O gate de login vive no
 // layout do grupo `(member)`; o gate de DONO é server-side: busca o torneio com
-// o cookie de sessão (SSR) — inexistente → notFound(); sem permissão →
-// redirect para o detalhe (o GET /tournaments/:slug é 404 sem vazar cancelado
-// de terceiros). Layout largo de trabalho (container full-width + cabeçalho).
+// o cookie de sessão (SSR) e trata um resultado discriminado (ok | not-found |
+// error) — `not-found` (404 da API) → notFound() (404 real); `error`
+// (transitório: 5xx/timeout) → NÃO dá 404, renderiza a View (o client trata o
+// erro de fetch); `ok` → gate canManage; sem permissão → redirect para o detalhe
+// (o GET /tournaments/:slug é 404 sem vazar cancelado de terceiros). Layout
+// largo de trabalho (container full-width + cabeçalho).
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
@@ -19,7 +22,9 @@ export const metadata: Metadata = {
   robots: { index: false }
 }
 
-async function fetchTournament(slug: string): Promise<Tournament | null> {
+type FetchResult<T> = { status: 'ok'; data: T } | { status: 'not-found' } | { status: 'error' }
+
+async function fetchTournament(slug: string): Promise<FetchResult<Tournament>> {
   const store = await cookies()
   const token = store.get(ACCESS_TOKEN_COOKIE)?.value
 
@@ -28,10 +33,11 @@ async function fetchTournament(slug: string): Promise<Tournament | null> {
       cache: 'no-store',
       ...(token ? { headers: { cookie: `${ACCESS_TOKEN_COOKIE}=${token}` } } : {})
     })
-    if (!response.ok) return null
-    return (await response.json()) as Tournament
+    if (response.status === 404) return { status: 'not-found' }
+    if (!response.ok) return { status: 'error' }
+    return { status: 'ok', data: (await response.json()) as Tournament }
   } catch {
-    return null
+    return { status: 'error' }
   }
 }
 
@@ -50,10 +56,12 @@ export default async function EditarTorneioPage({
 }) {
   const { slug } = await params
   const session = await getSession()
-  const tournament = await fetchTournament(slug)
+  const result = await fetchTournament(slug)
 
-  if (!tournament) notFound()
-  if (!session || !canManage(tournament, session)) redirect(`/torneios/${slug}`)
+  if (result.status === 'not-found') notFound()
+  if (result.status === 'ok' && (!session || !canManage(result.data, session))) {
+    redirect(`/torneios/${slug}`)
+  }
 
   return (
     <div className="mx-auto w-full max-w-[760px] px-4 py-10 lg:px-12">
