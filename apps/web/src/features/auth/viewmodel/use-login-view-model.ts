@@ -4,6 +4,8 @@
 // ViewModel: orquestra o login — estado do form, submissão e resultado.
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { refreshSession } from '@/lib/use-session'
 import { authApi } from '../model/auth-api'
 import type { AuthUser, LoginForm } from '../model/types'
 
@@ -17,6 +19,7 @@ export interface LoginViewModel {
 }
 
 export function useLoginViewModel(): LoginViewModel {
+  const router = useRouter()
   const [form, setForm] = useState<LoginForm>({ email: '', password: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +36,8 @@ export function useLoginViewModel(): LoginViewModel {
     try {
       const { user: logged } = await authApi.login(form)
       setUser(logged)
+      refreshSession()
+      router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar')
     } finally {

@@ -4,6 +4,8 @@
 // ViewModel: orquestra o registro — estado do form, submissão e resultado.
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { refreshSession } from '@/lib/use-session'
 import { authApi } from '../model/auth-api'
 import type { AuthUser, RegisterForm } from '../model/types'
 
@@ -17,6 +19,7 @@ export interface RegisterViewModel {
 }
 
 export function useRegisterViewModel(): RegisterViewModel {
+  const router = useRouter()
   const [form, setForm] = useState<RegisterForm>({ email: '', name: '', password: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +36,8 @@ export function useRegisterViewModel(): RegisterViewModel {
     try {
       const { user: created } = await authApi.register(form)
       setUser(created)
+      refreshSession()
+      router.push('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta')
     } finally {
