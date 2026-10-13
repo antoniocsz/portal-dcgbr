@@ -103,6 +103,15 @@ import {
   TrackAdClickUseCase,
   UpdateAdUseCase
 } from '@digimon/ads'
+import {
+  CreateDataRequestUseCase,
+  ListConsentRecordsUseCase,
+  ListDataRequestsUseCase,
+  PrismaConsentRecordRepository,
+  PrismaDataRequestRepository,
+  RecordConsentUseCase,
+  UpdateDataRequestStatusUseCase
+} from '@digimon/privacy'
 import { UserAccountAdapter } from './http/user-account-adapter'
 import { ImportJobRegistry } from './jobs'
 
@@ -413,6 +422,24 @@ export function adsDeps() {
     update: new UpdateAdUseCase(repository, eventBus),
     remove: new DeleteAdUseCase(repository, eventBus),
     trackClick: new TrackAdClickUseCase(repository)
+  }
+}
+
+/**
+ * LGPD (@digimon/privacy): consentimento (auditoria) + solicitações do titular.
+ * Repositórios Prisma expostos para composição nas rotas.
+ */
+export function privacyDeps() {
+  const consentRecords = new PrismaConsentRecordRepository(prisma)
+  const dataRequests = new PrismaDataRequestRepository(prisma)
+  return {
+    consentRecords,
+    dataRequests,
+    recordConsent: new RecordConsentUseCase(consentRecords, eventBus),
+    listConsentRecords: new ListConsentRecordsUseCase(consentRecords),
+    createDataRequest: new CreateDataRequestUseCase(dataRequests, eventBus),
+    listDataRequests: new ListDataRequestsUseCase(dataRequests),
+    updateDataRequestStatus: new UpdateDataRequestStatusUseCase(dataRequests, eventBus)
   }
 }
 

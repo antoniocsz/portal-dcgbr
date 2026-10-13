@@ -97,3 +97,13 @@ export type CommunityDeckReport = Prisma.CommunityDeckReportModel
  * 
  */
 export type Ad = Prisma.AdModel
+/**
+ * Model ConsentRecord
+ * 
+ */
+export type ConsentRecord = Prisma.ConsentRecordModel
+/**
+ * Model DataRequest
+ * 
+ */
+export type DataRequest = Prisma.DataRequestModel

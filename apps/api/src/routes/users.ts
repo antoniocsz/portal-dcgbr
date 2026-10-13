@@ -17,6 +17,7 @@ import {
 import { usersDeps } from '../container'
 import { clearSessionCookies } from '../http/cookies'
 import { authenticate, getAuthContext, requireRoleHook } from '../plugins/auth'
+import { revokeSession } from '../session-revocation'
 
 /** Contexto da sessão: `authenticate` injeta request.auth; fallback lê o token. */
 function authContext(request: FastifyRequest): AuthContext {
@@ -57,10 +58,11 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // DELETE /users/me — LGPD art. 18 (eliminação): anonimiza + desativa o titular,
-  // revoga as sessões e limpa os cookies. 204 sem corpo.
+  // revoga as sessões (refresh + access) e limpa os cookies. 204 sem corpo.
   app.delete('/users/me', { preHandler: authenticate }, async (request, reply) => {
     const actorId = authContext(request).userId
     await new DeleteUserAccountUseCase(usersDeps()).execute(actorId)
+    revokeSession(actorId)
     clearSessionCookies(reply)
     return reply.status(204).send()
   })

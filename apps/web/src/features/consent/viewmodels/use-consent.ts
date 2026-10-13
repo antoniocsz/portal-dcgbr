@@ -6,6 +6,7 @@
 import { useCallback, useSyncExternalStore } from 'react'
 import {
   getConsent,
+  recordConsentOnServer,
   setConsent,
   subscribe,
   type ConsentCategory,
@@ -30,15 +31,18 @@ export function useConsent(): ConsentViewModel {
   const consent = useSyncExternalStore(subscribe, getConsent, getServerSnapshot)
 
   const acceptAll = useCallback((): void => {
-    setConsent({ analytics: true, ads: true })
+    const next = setConsent({ analytics: true, ads: true })
+    void recordConsentOnServer(next)
   }, [])
 
   const rejectNonEssential = useCallback((): void => {
-    setConsent({ analytics: false, ads: false })
+    const next = setConsent({ analytics: false, ads: false })
+    void recordConsentOnServer(next)
   }, [])
 
   const savePreferences = useCallback((preferences: ConsentPreferences): void => {
-    setConsent(preferences)
+    const next = setConsent(preferences)
+    void recordConsentOnServer(next)
   }, [])
 
   // Essenciais (autenticação) são isentos e sempre permitidos.

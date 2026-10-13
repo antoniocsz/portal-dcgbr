@@ -8,8 +8,19 @@
 // consentimento — use `canLoadScript('analytics' | 'ads')` ou o `hasConsent`
 // do ViewModel ANTES de injetar um <script>. Hoje não há scripts de terceiros:
 // este é o gancho pronto para quando existirem.
+//
+// Registro server-side (best-effort): além do localStorage, a decisão é enviada
+// a `POST /consent` com um `subjectKey` opaco (sem PII). A chamada nunca bloqueia
+// nem quebra a UI — falhas são silenciosas (o backend também responde sempre 204).
+import { apiClient } from '@/lib/api-base'
 
 export type ConsentCategory = 'essential' | 'analytics' | 'ads'
+
+/**
+ * Versão da política de privacidade vigente. BUMP quando o texto legal mudar
+ * (mesma constante do backend: `DEFAULT_POLICY_VERSION` em @digimon/privacy).
+ */
+export const CONSENT_POLICY_VERSION = '2026-01'
 
 export interface ConsentPreferences {
   analytics: boolean
@@ -119,4 +130,68 @@ export function subscribe(listener: () => void): () => void {
 export function canLoadScript(category: Exclude<ConsentCategory, 'essential'>): boolean {
   const consent = getConsent()
   return consent ? consent[category] === true : false
+}
+
+// --- Identificador opaco do navegador (subjectKey) --------------------------
+//
+// `subjectKey` identifica o navegador para auditoria de consentimento sem PII.
+// É gerado uma única vez e persistido em localStorage; nunca contém dados do
+// usuário. Em contextos sem localStorage (SSR/privado) cai para um id em memória.
+const SUBJECT_KEY_STORAGE = 'dcgb.subject.v1'
+let subjectKeyCache: string | null = null
+
+function generateSubjectKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `subj_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`
+}
+
+/** Chave opaca e estável do navegador (ou string vazia fora do browser). */
+export function getSubjectKey(): string {
+  if (!isBrowser()) return ''
+  if (subjectKeyCache) return subjectKeyCache
+  try {
+    const existing = window.localStorage.getItem(SUBJECT_KEY_STORAGE)
+    if (existing) {
+      subjectKeyCache = existing
+      return existing
+    }
+    const generated = generateSubjectKey()
+    window.localStorage.setItem(SUBJECT_KEY_STORAGE, generated)
+    subjectKeyCache = generated
+    return generated
+  } catch {
+    // localStorage indisponível: mantém apenas em memória.
+    const fallback = subjectKeyCache ?? generateSubjectKey()
+    subjectKeyCache = fallback
+    return fallback
+  }
+}
+
+export interface ConsentRecordInput {
+  subjectKey: string
+  analytics: boolean
+  ads: boolean
+  policyVersion: string
+}
+
+/**
+ * Registra a decisão no servidor (`POST /consent`) de forma best-effort:
+ * nunca lança e nunca bloqueia a UI; a decisão local já foi persistida.
+ */
+export async function recordConsentOnServer(state: ConsentState): Promise<void> {
+  const subjectKey = getSubjectKey()
+  if (!subjectKey) return
+  const payload: ConsentRecordInput = {
+    subjectKey,
+    analytics: state.analytics,
+    ads: state.ads,
+    policyVersion: CONSENT_POLICY_VERSION
+  }
+  try {
+    await apiClient.post('/consent', payload)
+  } catch {
+    // best-effort: silencioso (o registro local segue valendo).
+  }
 }

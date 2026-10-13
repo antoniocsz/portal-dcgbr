@@ -120,3 +120,25 @@ export const AdKind = {
 } as const
 
 export type AdKind = (typeof AdKind)[keyof typeof AdKind]
+
+
+export const DataRequestType = {
+  ACCESS: 'ACCESS',
+  CORRECTION: 'CORRECTION',
+  DELETION: 'DELETION',
+  PORTABILITY: 'PORTABILITY',
+  CONSENT_REVOCATION: 'CONSENT_REVOCATION',
+  OTHER: 'OTHER'
+} as const
+
+export type DataRequestType = (typeof DataRequestType)[keyof typeof DataRequestType]
+
+
+export const DataRequestStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  DONE: 'DONE',
+  REJECTED: 'REJECTED'
+} as const
+
+export type DataRequestStatus = (typeof DataRequestStatus)[keyof typeof DataRequestStatus]

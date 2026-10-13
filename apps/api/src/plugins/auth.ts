@@ -7,8 +7,10 @@
 import type { FastifyRequest, preHandlerHookHandler } from 'fastify'
 import type { AuthContext } from '@digimon/auth'
 import { ACCESS_TOKEN_COOKIE, extractBearerToken, requireRole, verifyJwt } from '@digimon/auth'
+import { UnauthorizedError } from '@digimon/contracts'
 import { authDeps } from '../container'
 import { readCookie } from '../http/cookies'
+import { isSessionRevoked } from '../session-revocation'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -23,9 +25,13 @@ export function readSessionToken(request: FastifyRequest): string | null {
   return extractBearerToken(request.headers.authorization ?? null)
 }
 
-/** Valida a sessão e retorna o contexto; lança UnauthorizedError se ausente/inválido. */
+/** Valida a sessão e retorna o contexto; lança UnauthorizedError se ausente/inválido/revogada. */
 export function getAuthContext(request: FastifyRequest): AuthContext {
-  return verifyJwt(authDeps().tokens, readSessionToken(request))
+  const context = verifyJwt(authDeps().tokens, readSessionToken(request))
+  if (isSessionRevoked(context.userId)) {
+    throw new UnauthorizedError('Sessão revogada')
+  }
+  return context
 }
 
 /** preHandler: exige sessão válida e injeta request.auth (401 se ausente). */

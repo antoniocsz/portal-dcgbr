@@ -92,6 +92,22 @@ enum AdKind {
   SPONSOR
 }
 
+enum DataRequestType {
+  ACCESS
+  CORRECTION
+  DELETION
+  PORTABILITY
+  CONSENT_REVOCATION
+  OTHER
+}
+
+enum DataRequestStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
 model User {
   id                  String               @id @default(cuid())
   email               String               @unique
@@ -113,6 +129,8 @@ model User {
   publicDeckCopies    PublicDeckCopy[]     @relation("PublicDeckCopies")
   deckReports         CommunityDeckReport[] @relation("DeckReports")
   createdAds          Ad[]                 @relation("AdCreator")
+  consentRecords      ConsentRecord[]      @relation("ConsentRecords")
+  dataRequests        DataRequest[]        @relation("DataRequests")
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
 }
@@ -377,4 +395,42 @@ model Ad {
   @@index([isActive])
   @@index([kind])
   @@map("ads")
+}
+
+// Tratamento de LGPD (@digimon/privacy): auditoria de consentimento de cookies
+// (analytics/ads) e canal de solicitações do titular (art. 18 §3º). `subjectKey`
+// é um identificador opaco do navegador; `userAgent` é truncado — sem PII sensível.
+model ConsentRecord {
+  id            String   @id @default(cuid())
+  subjectKey    String
+  userId        String?
+  user          User?    @relation("ConsentRecords", fields: [userId], references: [id], onDelete: SetNull)
+  analytics     Boolean
+  ads           Boolean
+  policyVersion String
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([subjectKey])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("consent_records")
+}
+
+model DataRequest {
+  id        String            @id @default(cuid())
+  type      DataRequestType
+  name      String
+  email     String
+  message   String
+  userId    String?
+  user      User?             @relation("DataRequests", fields: [userId], references: [id], onDelete: SetNull)
+  status    DataRequestStatus @default(OPEN)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@index([userId])
+  @@map("data_requests")
 }

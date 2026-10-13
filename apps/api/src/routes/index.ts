@@ -15,6 +15,7 @@ import { decksRoutes } from './decks'
 import { communityDecksRoutes } from './community-decks'
 import { tournamentsRoutes } from './tournaments'
 import { adsRoutes } from './ads'
+import { privacyRoutes } from './privacy'
 
 export const routesPlugin: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes)
@@ -27,4 +28,5 @@ export const routesPlugin: FastifyPluginAsync = async (app) => {
   await app.register(communityDecksRoutes)
   await app.register(tournamentsRoutes)
   await app.register(adsRoutes)
+  await app.register(privacyRoutes)
 }

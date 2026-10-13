@@ -20,7 +20,9 @@ export {
   PublicDeckStatus,
   CardType,
   CardColor,
-  AdKind
+  AdKind,
+  DataRequestType,
+  DataRequestStatus
 } from './generated/prisma/client'
 export type {
   User,
@@ -37,5 +39,7 @@ export type {
   CommunityDeckReport,
   Card,
   CardSet,
-  Ad
+  Ad,
+  ConsentRecord,
+  DataRequest
 } from './generated/prisma/client'

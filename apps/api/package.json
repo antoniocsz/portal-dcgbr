@@ -18,6 +18,7 @@
     "@digimon/contracts": "workspace:*",
     "@digimon/database": "workspace:*",
     "@digimon/decks": "workspace:*",
+    "@digimon/privacy": "workspace:*",
     "@digimon/tournaments": "workspace:*",
     "@digimon/users": "workspace:*",
     "@fastify/cors": "^11.3.1",

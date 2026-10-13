@@ -5,6 +5,7 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useConsent } from '@/features/consent/viewmodels'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
@@ -61,6 +62,7 @@ function ToggleSwitch({ id, label, description, checked, disabled, onChange }: T
 }
 
 export function ConsentBanner() {
+  const pathname = usePathname()
   const { consent, hasDecided, acceptAll, rejectNonEssential, savePreferences } = useConsent()
   const [showPreferences, setShowPreferences] = useState(false)
   const [analytics, setAnalytics] = useState(false)
@@ -80,6 +82,8 @@ export function ConsentBanner() {
     savePreferences({ analytics, ads })
     setShowPreferences(false)
   }, [analytics, ads, savePreferences])
+
+  if (pathname.startsWith('/admin')) return null
 
   if (hasDecided) return null
 

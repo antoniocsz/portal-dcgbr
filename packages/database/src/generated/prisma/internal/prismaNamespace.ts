@@ -412,7 +412,9 @@ export const ModelName = {
   PublicDeckLike: 'PublicDeckLike',
   PublicDeckCopy: 'PublicDeckCopy',
   CommunityDeckReport: 'CommunityDeckReport',
-  Ad: 'Ad'
+  Ad: 'Ad',
+  ConsentRecord: 'ConsentRecord',
+  DataRequest: 'DataRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -428,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card" | "publicDeck" | "publicDeckLike" | "publicDeckCopy" | "communityDeckReport" | "ad"
+    modelProps: "user" | "refreshToken" | "passwordResetToken" | "post" | "comment" | "siteSetting" | "tournament" | "deck" | "deckCopy" | "cardSet" | "card" | "publicDeck" | "publicDeckLike" | "publicDeckCopy" | "communityDeckReport" | "ad" | "consentRecord" | "dataRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1616,6 +1618,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ConsentRecord: {
+      payload: Prisma.$ConsentRecordPayload<ExtArgs>
+      fields: Prisma.ConsentRecordFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConsentRecordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConsentRecordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        findFirst: {
+          args: Prisma.ConsentRecordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConsentRecordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        findMany: {
+          args: Prisma.ConsentRecordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>[]
+        }
+        create: {
+          args: Prisma.ConsentRecordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        createMany: {
+          args: Prisma.ConsentRecordCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConsentRecordCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>[]
+        }
+        delete: {
+          args: Prisma.ConsentRecordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        update: {
+          args: Prisma.ConsentRecordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConsentRecordDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConsentRecordUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConsentRecordUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConsentRecordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConsentRecordPayload>
+        }
+        aggregate: {
+          args: Prisma.ConsentRecordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConsentRecord>
+        }
+        groupBy: {
+          args: Prisma.ConsentRecordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConsentRecordGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConsentRecordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConsentRecordCountAggregateOutputType> | number
+        }
+      }
+    }
+    DataRequest: {
+      payload: Prisma.$DataRequestPayload<ExtArgs>
+      fields: Prisma.DataRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DataRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DataRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.DataRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DataRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        findMany: {
+          args: Prisma.DataRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>[]
+        }
+        create: {
+          args: Prisma.DataRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        createMany: {
+          args: Prisma.DataRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DataRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.DataRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        update: {
+          args: Prisma.DataRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.DataRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DataRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DataRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.DataRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DataRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.DataRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDataRequest>
+        }
+        groupBy: {
+          args: Prisma.DataRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DataRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DataRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DataRequestCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1899,6 +2049,35 @@ export const AdScalarFieldEnum = {
 } as const
 
 export type AdScalarFieldEnum = (typeof AdScalarFieldEnum)[keyof typeof AdScalarFieldEnum]
+
+
+export const ConsentRecordScalarFieldEnum = {
+  id: 'id',
+  subjectKey: 'subjectKey',
+  userId: 'userId',
+  analytics: 'analytics',
+  ads: 'ads',
+  policyVersion: 'policyVersion',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+} as const
+
+export type ConsentRecordScalarFieldEnum = (typeof ConsentRecordScalarFieldEnum)[keyof typeof ConsentRecordScalarFieldEnum]
+
+
+export const DataRequestScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  name: 'name',
+  email: 'email',
+  message: 'message',
+  userId: 'userId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DataRequestScalarFieldEnum = (typeof DataRequestScalarFieldEnum)[keyof typeof DataRequestScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2187,6 +2366,34 @@ export type ListEnumAdKindFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
+ * Reference to a field of type 'DataRequestType'
+ */
+export type EnumDataRequestTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DataRequestType'>
+    
+
+
+/**
+ * Reference to a field of type 'DataRequestType[]'
+ */
+export type ListEnumDataRequestTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DataRequestType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DataRequestStatus'
+ */
+export type EnumDataRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DataRequestStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DataRequestStatus[]'
+ */
+export type ListEnumDataRequestStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DataRequestStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2366,6 +2573,8 @@ export type GlobalOmitConfig = {
   publicDeckCopy?: Prisma.PublicDeckCopyOmit
   communityDeckReport?: Prisma.CommunityDeckReportOmit
   ad?: Prisma.AdOmit
+  consentRecord?: Prisma.ConsentRecordOmit
+  dataRequest?: Prisma.DataRequestOmit
 }
 
 /* Types for Logging */

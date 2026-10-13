@@ -66,7 +66,9 @@ export const ModelName = {
   PublicDeckLike: 'PublicDeckLike',
   PublicDeckCopy: 'PublicDeckCopy',
   CommunityDeckReport: 'CommunityDeckReport',
-  Ad: 'Ad'
+  Ad: 'Ad',
+  ConsentRecord: 'ConsentRecord',
+  DataRequest: 'DataRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -329,6 +331,35 @@ export const AdScalarFieldEnum = {
 } as const
 
 export type AdScalarFieldEnum = (typeof AdScalarFieldEnum)[keyof typeof AdScalarFieldEnum]
+
+
+export const ConsentRecordScalarFieldEnum = {
+  id: 'id',
+  subjectKey: 'subjectKey',
+  userId: 'userId',
+  analytics: 'analytics',
+  ads: 'ads',
+  policyVersion: 'policyVersion',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt'
+} as const
+
+export type ConsentRecordScalarFieldEnum = (typeof ConsentRecordScalarFieldEnum)[keyof typeof ConsentRecordScalarFieldEnum]
+
+
+export const DataRequestScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  name: 'name',
+  email: 'email',
+  message: 'message',
+  userId: 'userId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DataRequestScalarFieldEnum = (typeof DataRequestScalarFieldEnum)[keyof typeof DataRequestScalarFieldEnum]
 
 
 export const SortOrder = {

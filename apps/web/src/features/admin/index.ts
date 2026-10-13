@@ -24,6 +24,11 @@ export type {
 } from './model/deck-moderation-api'
 export { fetchSiteGateMode, setSiteGateMode } from './model/site-gate-api'
 export type { SiteGateMode } from './model/site-gate-api'
+export { privacyAdminApi } from './model/privacy-admin-api'
+export type {
+  AdminDataRequestsListParams,
+  UpdateDataRequestStatusResult
+} from './model/privacy-admin-api'
 
 export { AdminPageHeader } from './views/admin-page-header'
 export type { AdminPageHeaderProps } from './views/admin-page-header'
@@ -47,6 +52,7 @@ export { AdminDecksView } from './views/admin-decks-view'
 export { AdminAdsView } from './views/admin-ads-view'
 export { AdminDeckModerationView } from './views/admin-deck-moderation-view'
 export { AdminPostsView, AdminPostFormView } from './views/admin-posts-view'
+export { AdminDataRequestsView } from './views/admin-data-requests-view'
 export { SiteSettingsView } from './views/site-settings-view'
 export type { SiteSettingsViewProps } from './views/site-settings-view'
 
@@ -69,3 +75,5 @@ export type {
 export { useAdminDeckModeration } from './viewmodels/use-admin-deck-moderation'
 export { useSiteGate } from './viewmodels/use-site-gate'
 export type { SiteGateFeedback } from './viewmodels/use-site-gate'
+export { useAdminDataRequests } from './viewmodels/use-admin-data-requests'
+export type { AdminDataRequestsStatusFilter } from './viewmodels/use-admin-data-requests'

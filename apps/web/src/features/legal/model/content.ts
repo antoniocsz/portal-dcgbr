@@ -242,6 +242,14 @@ const PRIVACIDADE: LegalDocument = {
             CONTACT_LINK,
             '. Responderemos à sua solicitação nos prazos previstos na LGPD.'
           ]
+        },
+        {
+          type: 'paragraph',
+          content: [
+            'Você também pode abrir uma solicitação pelo nosso canal dedicado: ',
+            { text: 'Como exercer seus direitos', href: '/privacidade/solicitacao' },
+            ' — o pedido entra na fila de atendimento do encarregado de dados.'
+          ]
         }
       ]
     },
