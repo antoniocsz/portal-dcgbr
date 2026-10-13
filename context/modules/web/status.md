@@ -995,3 +995,19 @@
 - **Decisões:** (1) **Link em botão único** — prompt com o `href` atual; vazio → `unsetLink` (remove), preenchido → `setLink`; estado ativo por `isActive('link')`. (2) **Imagem por URL** (sem endpoint de upload no projeto) — `setImage({ src })` com `inline: false` para o `<img>` ficar em bloco próprio. (3) Agrupamento visual: Parágrafo antes dos títulos; Link logo após os marks; Imagem no fim, após um divisor. (4) Handlers (`handleLink`/`handleImage`) definidos no componente, após o guard `if (!editor)` — `ToolbarButton` continua recebendo `onClick` (a View só dispara comandos do editor; MVVM intacto).
 - **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `pnpm turbo lint --filter=@digimon/app-web` ✅ (0 erros). `next build` **não** executado (instrução da task).
 - **Fora do escopo (reportar):** a sanitização de render (`lib/sanitize.ts`) **já** permite `img` + `src`/`alt` e links (`a`/`href`), então imagens/links persistem e renderizam sem ajuste. Nenhum arquivo além do `## Escopo` foi tocado; slash menu, MVVM do form e demais botões intocados.
+
+## Fase 44 — Limpeza de referências stale a moderação (task 129)
+- [x] `app/admin/page.tsx` (linha 2): comentário passou a `// Painel administrativo — visão geral (métricas + posts).` (sem "moderação")
+- [x] `views/admin-dashboard-view.tsx` (linha 57): subtítulo do `AdminPageHeader` passou a `"Acompanhe o workflow editorial."` (sem "e a moderação")
+- [x] `model/community-types.ts` (linha 7): comentário do `CommunityDeckStatus` passou a `/** Status do snapshot no feed: público, oculto (legado) ou despublicado. */` — espelha o domínio (`packages/modules/decks/src/domain/community/community-types.ts`); o estado `hidden` permanece no tipo
+- [x] Grep em `apps/web/src`: as referências restantes a "moderação" são apenas da **moderação de comentários** (`features/comments/**`, `admin/viewmodels/use-admin-comments-view-model.ts`, `admin/model/admin-api.ts`, `admin/model/types.ts`), dos termos legais (`features/legal`) — nenhuma stale
+- [x] Só texto/comentários; zero mudança de tipo/lógica
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1)
+- [x] `git diff` restrito ao `## Escopo` (3 arquivos, 3 linhas)
+
+## Handoff (task 129)
+- **Feito:** corrigidas as 3 referências textuais desatualizadas que sobraram das remoções da moderação hardcoded de comentários (task 124) e da moderação de decks (tasks 126/127). Comentário do cabeçalho do painel, subtítulo da view do dashboard e comentário do `CommunityDeckStatus` deixaram de citar moderação. Nenhuma lógica, tipo ou comportamento alterado.
+- **Arquivos:** `apps/web/src/app/admin/page.tsx`, `apps/web/src/features/admin/views/admin-dashboard-view.tsx`, `apps/web/src/features/decks/model/community-types.ts` + `context/modules/web/status.md`.
+- **Decisões:** (1) O comentário do `CommunityDeckStatus` foi alinhado **ao texto já usado no domínio do backend** ("público, oculto (legado) ou despublicado") — o estado `hidden` é preservado por limitação do enum do Postgres (HIDDEN mantido), então "(legado)" é a nomenclatura documentada no módulo. (2) Mantidas intocadas as descrições válidas da moderação **de comentários** (`admin/model/types.ts`, `admin/model/admin-api.ts`, `use-admin-comments-view-model.ts`), conforme a task. (3) Os textos #1/#2 seguem exatamente os exemplos da spec.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `git diff` confinado ao `## Escopo` (3 arquivos, 3 inserções / 3 remoções). `next build`/lint não executados (mudança apenas de comentário/rótulo; instrução da task limitou-se ao typecheck).
+- **Fora do escopo (reportar):** nenhum. `apps/api/**`, `packages/**`, `components/**` intocados.

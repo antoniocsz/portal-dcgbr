@@ -4,7 +4,7 @@
 // arrastar @digimon/database para o bundle) — tipos literais em sync com o backend.
 import type { DeckCardEntry } from './types'
 
-/** Status do snapshot no feed: público, oculto pela moderação ou despublicado. */
+/** Status do snapshot no feed: público, oculto (legado) ou despublicado. */
 export type CommunityDeckStatus = 'public' | 'hidden' | 'unpublished'
 
 /** Ordenação do feed: mais curtidos (`top`) ou mais recentes (`new`). */

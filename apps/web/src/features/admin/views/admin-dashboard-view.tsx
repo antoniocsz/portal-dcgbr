@@ -54,7 +54,7 @@ export function AdminDashboardView() {
     <div className="flex flex-col gap-6 p-4 lg:p-8">
       <AdminPageHeader
         title="Visão geral"
-        subtitle="Acompanhe o workflow editorial e a moderação."
+        subtitle="Acompanhe o workflow editorial."
         actions={<Button variant="dark" size="sm">Exportar</Button>}
       />
 
