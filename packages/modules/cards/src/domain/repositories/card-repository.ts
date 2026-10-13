@@ -5,7 +5,7 @@ import type { PaginatedResult } from '@digimon/contracts'
 import type { Card, CardColor, CardType } from '../entities/card'
 
 export interface ListCardsParams {
-  /** Termo de busca full-text (nome/efeito). */
+  /** Termo de busca: nome/efeito (full-text) ou código da carta/coleção (`number`/`setCode`). */
   search?: string
   type?: CardType
   color?: CardColor

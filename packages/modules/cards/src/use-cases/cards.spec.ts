@@ -140,6 +140,38 @@ describe('ListCardsUseCase — leitura pública', () => {
     expect(noMatch.total).toBe(0)
   })
 
+  it('busca por código da carta (number) e da coleção (setCode), normalizado', async () => {
+    const app = setup()
+    await seed(app, [
+      card({ dcgId: 'BT1-001', name: 'Agumon', number: 'BT1-001', setCode: 'BT1', effects: null }),
+      card({ dcgId: 'BT1-002', name: 'Gabumon', number: 'BT1-002', setCode: 'BT1', effects: null }),
+      card({ dcgId: 'BT1-P01', name: 'Promo Agumon', number: 'P-001', setCode: 'BT1', effects: null }),
+      card({ dcgId: 'BT2-001', name: 'Greymon', number: 'BT2-001', setCode: 'BT2', effects: null })
+    ])
+
+    const exact = await app.list.execute({ input: { search: 'BT1-001' } })
+    expect(exact.items.map((c) => c.name)).toEqual(['Agumon'])
+
+    // Hífen/espaço/maiúsculas não importam: "bt1 001" ≡ "BT1-001".
+    const normalized = await app.list.execute({ input: { search: 'bt1 001' } })
+    expect(normalized.items.map((c) => c.name)).toEqual(['Agumon'])
+
+    // setCode: "BT1" casa o set inteiro (inclui a promo P-001, que tem setCode BT1).
+    const bySet = await app.list.execute({ input: { search: 'BT1' } })
+    expect(bySet.items.map((c) => c.name).sort()).toEqual(['Agumon', 'Gabumon', 'Promo Agumon'])
+  })
+
+  it('prioriza match de código sobre o textual', async () => {
+    const app = setup()
+    await seed(app, [
+      card({ dcgId: 'BT1-001', name: 'Agumon', number: 'BT1-001', effects: null }),
+      card({ dcgId: 'X-001', name: 'BT1 Booster', number: 'X-001', effects: null })
+    ])
+
+    const result = await app.list.execute({ input: { search: 'BT1' } })
+    expect(result.items.map((c) => c.name)).toEqual(['Agumon', 'BT1 Booster'])
+  })
+
   it('combina filtros de cor, tipo, custo e set', async () => {
     const app = setup()
     await seed(app, [

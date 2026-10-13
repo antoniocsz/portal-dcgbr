@@ -1,11 +1,35 @@
 // Path: packages/modules/cards/src/test/memory-card-repository.ts
 // Repositórios em memória para testes unitários (L — substitutos intercambiáveis
-// das implementações Prisma). Simulam o full-text por substring em nome/efeitos.
+// das implementações Prisma). Simulam o full-text por substring em nome/efeitos
+// e o match por código da carta (`number`) / da coleção (`setCode`) normalizado —
+// paridade com a semântica e a ordem de prioridade do `PrismaCardRepository`.
 import type { PaginatedResult } from '@digimon/contracts'
 import type { Card } from '../domain/entities/card'
 import type { CardSet } from '../domain/entities/card-set'
 import type { CardRepository, ListCardsParams } from '../domain/repositories/card-repository'
 import type { CardSetRepository } from '../domain/repositories/card-set-repository'
+
+// Normalização de código idêntica à do `PrismaCardRepository` (minúsculas, sem
+// hífen/espaço): "BT1-001" ≡ "BT1 001" ≡ "bt1001". Mantenha as duas em sincronia.
+const CODE_SEPARATORS = /[\s-]+/g
+
+function normalizeCode(value: string): string {
+  return value.toLowerCase().replace(CODE_SEPARATORS, '')
+}
+
+// Prioridade equivalente ao CASE do `PrismaCardRepository.search`:
+// número exato (0) > número por prefixo (1) > setCode exato (2) >
+// setCode por prefixo (3) > apenas textual (4).
+function codePriority(card: Card, normalized: string): number {
+  if (normalized === '') return 4
+  const number = normalizeCode(card.data.number)
+  if (number === normalized) return 0
+  if (number.startsWith(normalized)) return 1
+  const setCode = card.data.setCode ? normalizeCode(card.data.setCode) : ''
+  if (setCode === normalized) return 2
+  if (setCode.startsWith(normalized)) return 3
+  return 4
+}
 
 export class MemoryCardRepository implements CardRepository {
   private readonly cards = new Map<string, Card>()
@@ -40,7 +64,9 @@ export class MemoryCardRepository implements CardRepository {
   async search(params: ListCardsParams): Promise<PaginatedResult<Card>> {
     const page = Math.max(1, params.page ?? 1)
     const pageSize = Math.min(100, Math.max(1, params.pageSize ?? 20))
-    const term = params.search?.trim().toLowerCase()
+    const search = params.search?.trim()
+    const term = search?.toLowerCase()
+    const normalized = search ? normalizeCode(search) : ''
 
     const matching = [...this.cards.values()].filter((card) => {
       const d = card.data
@@ -60,16 +86,24 @@ export class MemoryCardRepository implements CardRepository {
       if (params.setCode && d.setCode !== params.setCode) return false
       if (term) {
         const haystack = `${d.name} ${d.effects ?? ''}`.toLowerCase()
-        if (!haystack.includes(term)) return false
+        const textMatch = haystack.includes(term)
+        const codeMatch =
+          normalized !== '' &&
+          (normalizeCode(d.number).startsWith(normalized) ||
+            (d.setCode !== null && normalizeCode(d.setCode).startsWith(normalized)))
+        if (!textMatch && !codeMatch) return false
       }
       return true
     })
 
     if (term) {
       matching.sort((a, b) => {
+        const priority = codePriority(a, normalized) - codePriority(b, normalized)
+        if (priority !== 0) return priority
         const aName = a.data.name.toLowerCase().includes(term) ? 0 : 1
         const bName = b.data.name.toLowerCase().includes(term) ? 0 : 1
-        return aName - bName
+        if (aName !== bName) return aName - bName
+        return a.data.number < b.data.number ? -1 : a.data.number > b.data.number ? 1 : 0
       })
     }
 
