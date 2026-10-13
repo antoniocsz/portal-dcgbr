@@ -103,6 +103,23 @@
 - [x] Smoke via `app.inject`: 9 casos (422 validação / 401 anônimo) passando
 - [x] `pnpm harness check --barrel --db` ok
 
+## Fase 6 — Comentários do próprio autor (task 130)
+- [x] `CommentRepository.listByAuthor` (interface) + `ListByAuthorParams` (authorId, page?, pageSize?, status?)
+- [x] `PrismaCommentRepository.listByAuthor` — filtro por `authorId`, `status` default `VISIBLE`, join `author.name`
+- [x] `MemoryCommentRepository.listByAuthor` — filtro authorId + status default `visible`
+- [x] `ListMyCommentsUseCase` (`use-cases/list-my-comments/`) — actor obrigatório (UnauthorizedError), filtro default `visible`, paginação
+- [x] Spec: 4 testes (próprios+visíveis, paginação, filtro de status, anônimo bloqueado)
+- [x] Rota `GET /comments?mine=true` — exige sessão (401), delega ao `listMine`, mesmo shape `{ items, total, page, pageSize }`; sem `mine`, inalterado
+- [x] Wire-up `commentsDeps().listMine` no `container.ts` + export no `index.ts` do módulo
+- [x] Testes do módulo: 7 files / 28 testes passando
+- [x] Typecheck (`@digimon/comments` + `@digimon/app-api`) e lint passando
+
+## Handoff (task 130)
+- **Feito:** `GET /comments?mine=true` autenticado retorna os comentários visíveis do próprio autor, paginado e com `authorName`; sem `mine`, a rota pública por target permanece inalterada.
+- **Contrato (task 131 web):** resposta idêntica à listagem existente — `{ items: [{ id, authorId, authorName, targetType, targetId, body, status, createdAt, updatedAt }], total, page, pageSize }`. Default `status=visible`.
+- **Decisões:** use case segue a convenção do módulo (`CommentActor | null` + `UnauthorizedError` — defense in depth além do 401 na rota); `listByAuthor` filtra por `authorId` com default `VISIBLE` no repositório (como `listByTarget`).
+- **Pendências:** nenhuma nova; testes de integração (Prisma/DB real) seguem pendentes (herdado da Fase 1).
+
 ## Handoff (task 39)
 - **Feito:** handlers de comentários portados para Fastify em `apps/api`, reusando `@digimon/comments`
   e o `eventBus` do container da API. Sem tocar em `apps/web/**` (janela do strangler).

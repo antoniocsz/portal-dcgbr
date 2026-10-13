@@ -4,8 +4,8 @@ import type { PostCardData } from '@/components'
 import type { PostCategory, PostSummary } from '../model/types'
 import { CATEGORY_LABELS } from '../model/types'
 
-// A API pública expõe apenas `authorId` (UUID); não há endpoint de perfil público.
-// Até existir, a assinatura editorial usa o byline do portal.
+// A API envia `authorName` quando o autor é resolvível; quando ausente, a
+// assinatura editorial cai no byline do portal.
 export const PORTAL_AUTHOR = 'Equipe DigiTCG'
 
 export function categoryLabel(category: PostCategory | string): string {
@@ -41,7 +41,7 @@ export function toFeaturedPostView(post: PostSummary): FeaturedPostView {
     excerpt: post.excerpt,
     coverImage: post.coverImage,
     categoryLabel: categoryLabel(post.category),
-    authorName: PORTAL_AUTHOR,
+    authorName: post.authorName?.trim() || PORTAL_AUTHOR,
     publishedLabel: formatPostDate(post.publishedAt),
     href: `/noticias/${post.slug}`
   }
@@ -51,7 +51,7 @@ export function toPostCardData(post: PostSummary): PostCardData {
   const data: PostCardData = {
     category: categoryLabel(post.category),
     title: post.title,
-    authorName: PORTAL_AUTHOR,
+    authorName: post.authorName?.trim() || PORTAL_AUTHOR,
     href: `/noticias/${post.slug}`
   }
   if (post.excerpt) data.excerpt = post.excerpt

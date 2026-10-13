@@ -52,6 +52,7 @@ function serializeComment({ comment, authorName }: CommentWithAuthor) {
 interface ListQuery {
   targetType?: string
   targetId?: string
+  mine?: string
   page?: string
   pageSize?: string
 }
@@ -69,8 +70,27 @@ interface IdParams {
 
 export const commentsRoutes: FastifyPluginAsync = async (app) => {
   // GET /comments — listagem pública por target (paginada, apenas visíveis).
+  // Com ?mine=true, lista os comentários visíveis do próprio autor (exige sessão).
   app.get<{ Querystring: ListQuery }>('/comments', async (request, reply) => {
-    const { targetType: rawTargetType, targetId, page, pageSize } = request.query
+    const { targetType: rawTargetType, targetId, mine, page, pageSize } = request.query
+
+    if (mine === 'true') {
+      const actor = getSessionUser(request)
+      if (!actor) throw new UnauthorizedError('Não autenticado')
+
+      const result = await commentsDeps().listMine.execute({
+        actor,
+        page: parsePage(page),
+        pageSize: parsePageSize(pageSize)
+      })
+      return reply.send({
+        items: result.items.map(serializeComment),
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize
+      })
+    }
+
     const targetType = parseCommentTargetType(rawTargetType)
     if (!targetType) throw new ValidationError('targetType inválido: use post, card ou deck')
     if (!targetId) throw new ValidationError('targetId é obrigatório')

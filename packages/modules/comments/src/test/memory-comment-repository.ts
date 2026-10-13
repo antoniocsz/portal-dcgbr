@@ -7,6 +7,7 @@ import type {
   CommentRepository,
   CommentWithAuthor,
   ListAllCommentsParams,
+  ListByAuthorParams,
   ListCommentsParams
 } from '../domain/repositories/comment-repository'
 
@@ -40,6 +41,26 @@ export class MemoryCommentRepository implements CommentRepository {
     const matching = [...this.items.values()].filter(
       (entry) => entry.comment.targetType === params.targetType
         && entry.comment.targetId === params.targetId
+        && (params.status
+          ? entry.comment.status === params.status
+          : entry.comment.status === 'visible')
+    )
+    matching.sort((a, b) => {
+      const byDate = b.comment.createdAt.getTime() - a.comment.createdAt.getTime()
+      return byDate !== 0 ? byDate : b.seq - a.seq
+    })
+    const items = matching
+      .slice((page - 1) * pageSize, page * pageSize)
+      .map((entry) => ({ comment: entry.comment, authorName: 'Autor' }))
+    return { items, total: matching.length, page, pageSize }
+  }
+
+  async listByAuthor(params: ListByAuthorParams): Promise<PaginatedResult<CommentWithAuthor>> {
+    const page = Math.max(1, params.page ?? 1)
+    const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20))
+    const matching = [...this.items.values()].filter(
+      (entry) =>
+        entry.comment.authorId === params.authorId
         && (params.status
           ? entry.comment.status === params.status
           : entry.comment.status === 'visible')

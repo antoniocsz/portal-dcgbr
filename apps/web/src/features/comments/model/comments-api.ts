@@ -49,6 +49,19 @@ export function listComments(params: {
   })
 }
 
+/** Comentários do próprio autor (perfil) — `GET /comments?mine=true`, mesmo shape. */
+export function listMyComments(
+  params: { page?: number; pageSize?: number } = {}
+): Promise<ListCommentsResult> {
+  const search = new URLSearchParams({ mine: 'true' })
+  if (params.page !== undefined) search.set('page', String(params.page))
+  if (params.pageSize !== undefined) search.set('pageSize', String(params.pageSize))
+
+  return apiClient.request<ListCommentsResult>(`/comments?${search.toString()}`, {
+    cache: 'no-store'
+  })
+}
+
 export async function createComment(payload: CreateCommentPayload): Promise<CommentDTO> {
   const { comment } = await apiClient.post<{ comment: CommentDTO }>('/comments', payload)
   return comment

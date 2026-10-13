@@ -3,7 +3,7 @@
 'use client'
 
 import Link from 'next/link'
-import { AdSlot, ArrowRight } from '@/components'
+import { AdSlot, ArrowRight, TournamentCard } from '@/components'
 import { useSession } from '@/lib/use-session'
 import { useHome } from '../viewmodels/use-home'
 import { Hero } from './hero'
@@ -60,11 +60,36 @@ function CommunityCta() {
   )
 }
 
+function TournamentsSkeleton() {
+  return (
+    <div
+      className="grid gap-5 pt-5 lg:grid-cols-3"
+      aria-busy="true"
+      aria-label="Carregando torneios"
+    >
+      {Array.from({ length: 3 }, (_, index) => (
+        <div
+          key={index}
+          className="flex items-center gap-4 border border-border bg-surface p-4 sm:p-5"
+        >
+          <div className="size-14 shrink-0 animate-pulse bg-surface-2 sm:size-16" />
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="h-4 w-1/2 animate-pulse bg-surface-2" />
+            <div className="h-3 w-1/3 animate-pulse bg-surface-2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function HomeView() {
-  const { featured, latest, isLoading, isError, refetch } = useHome()
+  const { featured, latest, tournaments, isLoading, isError, tournamentsLoading, refetch } =
+    useHome()
   const { user, loading: sessionLoading } = useSession()
 
   const showCommunityCta = !sessionLoading && !user
+  const showTournaments = tournamentsLoading || tournaments.length > 0
 
   return (
     <div className="flex flex-col">
@@ -104,6 +129,31 @@ export function HomeView() {
           <NewsGrid posts={latest} isLoading={isLoading} isError={isError} onRetry={refetch} />
         </div>
       </section>
+
+      {showTournaments ? (
+        <section className="mx-auto w-full max-w-[1440px] px-4 pb-10 lg:px-12">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-xl font-bold text-ink lg:text-[26px]">
+              Próximos torneios no Brasil
+            </h2>
+            <Link
+              href="/torneios"
+              className="inline-flex items-center gap-1 text-[13px] font-semibold text-primary transition-opacity hover:opacity-80"
+            >
+              Ver todos <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+          {tournamentsLoading ? (
+            <TournamentsSkeleton />
+          ) : (
+            <div className="grid gap-5 pt-5 lg:grid-cols-3">
+              {tournaments.map((tournament) => (
+                <TournamentCard key={tournament.name} tournament={tournament} />
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <AdSlot
         placement="home-infeed"

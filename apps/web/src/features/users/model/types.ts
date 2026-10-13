@@ -1,5 +1,9 @@
 // Path: apps/web/src/features/users/model/types.ts
 // Tipos do domínio de users consumidos pela UI (espelham os DTOs dos módulos).
+import type { CommentDTO } from '@/features/comments/model/comments-api'
+import type { CommunityPublication } from '@/features/decks/model/community-types'
+import type { DeckSummary } from '@/features/decks/model/types'
+import type { TournamentSummary } from '@/features/tournaments/model/types'
 import type { PaginatedResult, Role } from '@digimon/contracts'
 
 export interface UserView {
@@ -99,4 +103,21 @@ export interface UserListQuery {
   status?: 'active' | 'inactive'
   page?: number
   pageSize?: number
+}
+
+/** Contadores do perfil — somatórios da atividade do titular. */
+export interface ProfileActivityStats {
+  decks: number
+  tournaments: number
+  comments: number
+  publications: number
+}
+
+/** Atividade do titular exibida no perfil (métricas + abas). */
+export interface ProfileActivity {
+  stats: ProfileActivityStats
+  decks: DeckSummary[]
+  tournaments: TournamentSummary[]
+  comments: CommentDTO[]
+  publications: CommunityPublication[]
 }

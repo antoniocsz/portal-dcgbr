@@ -1011,3 +1011,69 @@
 - **Decisões:** (1) O comentário do `CommunityDeckStatus` foi alinhado **ao texto já usado no domínio do backend** ("público, oculto (legado) ou despublicado") — o estado `hidden` é preservado por limitação do enum do Postgres (HIDDEN mantido), então "(legado)" é a nomenclatura documentada no módulo. (2) Mantidas intocadas as descrições válidas da moderação **de comentários** (`admin/model/types.ts`, `admin/model/admin-api.ts`, `use-admin-comments-view-model.ts`), conforme a task. (3) Os textos #1/#2 seguem exatamente os exemplos da spec.
 - **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `git diff` confinado ao `## Escopo` (3 arquivos, 3 inserções / 3 remoções). `next build`/lint não executados (mudança apenas de comentário/rótulo; instrução da task limitou-se ao typecheck).
 - **Fora do escopo (reportar):** nenhum. `apps/api/**`, `packages/**`, `components/**` intocados.
+
+## Fase 45 — Perfil do membro com dados reais (task 131)
+- [x] `comments/model/comments-api.ts`: nova `listMyComments({ page?, pageSize? })` → `GET /comments?mine=true` (mesmo shape `ListCommentsResult` de `/comments`; `cache: 'no-store'`)
+- [x] Novo `users/model/profile-activity-api.ts` (Model): `fetchProfileActivity()` reúne em paralelo `decksApi.listDecks({ mine: true })`, `tournamentsApi.listTournaments({ mine: true })`, `listMyComments(...)` e `communityDecksApi.listPublications()` → `{ stats, decks, tournaments, comments, publications }`
+- [x] `users/model/types.ts`: `ProfileActivityStats` + `ProfileActivity` (tipos de apresentação do perfil)
+- [x] Novo `users/viewmodel/use-profile-activity.ts` (MVVM): expõe `stats`/`decks`/`tournaments`/`comments`/`publications`/`isLoading`/`error` (padrão `useState`+`useEffect` com guarda de desmonte)
+- [x] `users/views/profile-view.tsx`: **removidos** `STATS` e `DECKS` mock; métricas reais (Decks · Torneios · Comentários · Publicações); abas Decks/Torneios/Comentários com dados reais (link `/decks/[slug]` e `/torneios/[slug]`, `StatusBadge`); linha de identidade com contadores reais; **removido** o botão morto "Ver decks"; identidade (`GET /users/me`) e privacidade mantidas
+- [x] Estados de loading/erro/vazio preservados (componente local `ActivityList` → "Carregando…", erro e "Nada por aqui ainda.")
+- [x] MVVM estrito: View só JSX (zero fetch/`useQuery`); orquestração no ViewModel; acesso à API no Model
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1) | lint ✅ (0 erros, 0 warnings)
+- [x] `pnpm harness check --barrel --db` ✅
+
+## Handoff (task 131)
+- **Feito:** a tela de perfil (`/perfil`) deixou de usar dados mockados. Métricas e abas agora vêm da API real: `ProfileActivityApi` reúne decks próprios (`mine=true`), torneios próprios (`mine=true`), comentários do titular (`GET /comments?mine=true`) e publicações na comunidade; o ViewModel `useProfileActivity` entrega tudo pronto à View. Removidos `STATS`, `DECKS` e o botão sem ação "Ver decks". Identidade (`GET /users/me`) e a seção de privacidade (LGPD) seguem intactas.
+- **Arquivos:** `apps/web/src/features/comments/model/comments-api.ts`, `apps/web/src/features/users/model/types.ts`, `apps/web/src/features/users/model/profile-activity-api.ts` (novo), `apps/web/src/features/users/viewmodel/use-profile-activity.ts` (novo), `apps/web/src/features/users/views/profile-view.tsx` + `context/modules/web/status.md`.
+- **Contrato consumido:** `GET /comments?mine=true` (task 130) — mesmo shape de `/comments` (`{ items, total, page, pageSize }`, `CommentDTO` com `authorName`). O front só consome; nenhuma rota de API foi tocada.
+- **Decisões:** (1) Métricas usam os `total` das listas (decks/torneios/comentários) e `publications.length`; o resumo pede `pageSize: 100` (o titular raramente passa disso — sem paginação nas abas). (2) View usa `useState`+`useEffect` (padrão já existente no `use-profile-view-model`), não TanStack Query. (3) Estados de loading/erro/vazio centralizados num componente local `ActivityList` (View), respeitando o design system (`Card`). (4) Reuso de helpers de apresentação existentes: `STATUS_LABELS` (decks, Model), `statusTone`/`statusLabel`/`formatTournamentDate` (tournaments viewmodel) — sem recriar labels. (5) Enquanto a atividade carrega (ou falha), as métricas mostram "—" e a linha de identidade omite os contadores (evita exibir "0" enganoso). (6) Linhas de decks/torneios são `Card` + `next/link` + `StatusBadge` (o `DeckCard`/`TournamentCard` do design system exigiria um formato de grade sem status textual do deck); comentários mostram corpo, alvo e data.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `pnpm turbo lint --filter=@digimon/app-web` ✅ (0 erros, 0 warnings). `pnpm harness check --barrel --db` ✅. `next build`/smoke de runtime não executados (a rota `GET /comments?mine=true` só existe no runtime após a task 130; instrução da task limitou-se ao typecheck).
+- **Fora do escopo (reportar):** nenhum. `features/decks/**`, `features/tournaments/**`, `features/comments/**` (exceto `comments-api.ts`) e `apps/api/**`/`packages/**` apenas consumidos — não editados. A task 130 (backend) alterou `packages/modules/comments/**` e `apps/api/**` em paralelo (escopo dela).
+
+## Fase 46 — Remoção de código morto de posts (task 134)
+- [x] **Removidos:** `apps/web/src/features/content/views/post-list.tsx` (`PostList`) e `apps/web/src/features/content/views/post-card.tsx` (`PostCard` legado) — ambos com tokens de design antigos (`bg-card`/`text-muted-foreground`/`bg-muted`/`destructive`) e fora do barrel `views/index.ts`
+- [x] Confirmado por grep: `PostList` **sem nenhum importador**; `post-card.tsx` (feature) importado **apenas** por `post-list.tsx`
+- [x] **Preservados:** `features/content/viewmodels/use-post-list.ts` (em uso por `use-news-list.ts`) e o `PostCard` do design system (`@/components/post-card`, usado por `components/index.ts` via `NewsGrid`)
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1, `tsc --noEmit` EXIT 0)
+- [x] `git diff` restrito ao `## Escopo` (2 arquivos removidos) + `context/modules/web/status.md`
+
+## Handoff (task 134)
+- **Feito:** removidos dois arquivos de código morto na feature `content`: a View `PostList` (`views/post-list.tsx`) — não importada por ninguém — e a View `PostCard` legada (`views/post-card.tsx`), que só era usada pelo `post-list.tsx`. Ambas usavam tokens de design obsoletos e não estavam no barrel de views. O `PostCard` efetivamente usado é o do design system (`@/components/post-card`), consumido pelo `NewsGrid`.
+- **Arquivos:** **removidos** — `apps/web/src/features/content/views/post-list.tsx`, `apps/web/src/features/content/views/post-card.tsx`. Nenhum arquivo alterado além do `context/modules/web/status.md`.
+- **Decisões:** (1) Remoção total dos 2 arquivos — grep confirmou zero importadores externos de `PostList` e apenas `post-list.tsx` como consumidor de `post-card.tsx` (feature). (2) `use-post-list.ts` (ViewModel) **não** tocado: continua em uso por `use-news-list.ts`. (3) `@/components/post-card` (design system) **não** tocado. (4) Nenhuma atualização de barrel necessária — nenhum dos dois estava exportado.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros, `EXIT 0`). Grep pós-remoção: os únicos matches restantes são `use-news-list.ts → ./use-post-list` (ViewModel preservado) e `components/index.ts → ./post-card` (design system) — nenhum import dos arquivos removidos. `next build`/lint não executados (instrução da task).
+- **Fora do escopo (reportar):** nenhum. `features/content/viewmodels/use-post-list.ts`, `components/**`, `apps/api/**` e `packages/**` intocados.
+
+## Fase 47 — Autor real nos cards/hero de notícia (task 133)
+- [x] `content/model/types.ts`: `PostSummary` ganhou `authorId?: string` e `authorName?: string` (opcionais — a API só os envia quando o nome é resolvível)
+- [x] `content/viewmodels/post-view.ts`: `toFeaturedPostView` (Hero) e `toPostCardData` (cards) usam `post.authorName?.trim() || PORTAL_AUTHOR`
+- [x] `PORTAL_AUTHOR` mantido apenas como fallback (não removido)
+- [x] Layout/design dos cards intocado (`PostCardData` já tinha `authorName`)
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1)
+- [x] `git diff` restrito ao `## Escopo` (2 arquivos)
+
+## Handoff (task 133)
+- **Feito:** os cards de notícia (home, `/noticias`) e o Hero passam a exibir o nome real do autor quando a API o fornece (`GET /posts` → `serializePostSummary` inclui `authorId`/`authorName`). Sem nome resolvível, mantém o byline do portal (`Equipe DigiTCG`).
+- **Arquivos:** `apps/web/src/features/content/model/types.ts`, `apps/web/src/features/content/viewmodels/post-view.ts` + `context/modules/web/status.md`.
+- **Decisões:** (1) Campos `authorId?`/`authorName?` **opcionais** em `PostSummary` — refletem o contrato da API (só presentes quando resolvidos) e não quebram `Post` (que já declara `authorId: string`). (2) Expressão literal `post.authorName?.trim() || PORTAL_AUTHOR` inline nos dois mapeadores (sem helper extra), conforme a spec. (3) `PORTAL_AUTHOR` preservado como fallback único. (4) Comentário de topo do `post-view.ts` atualizado (não mais afirma que a API expõe apenas `authorId`).
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `git diff` confinado ao `## Escopo` (2 arquivos: tipos + viewmodel).
+- **Fora do escopo (reportar):** nenhum. `components/**`, `apps/api/**` e `packages/**` apenas lidos/confirmados — não editados.
+
+## Fase 48 — Home: "Próximos torneios no Brasil" com dados reais (task 132)
+- [x] `content/viewmodels/use-home.ts`: nova query react-query `['tournaments', { home: true }]` chamando `tournamentsApi.listTournaments({ status: 'published', from: new Date().toISOString(), pageSize: 3 })` e mapeando com `toTournamentCardData`
+- [x] `HomeData` ganhou `tournaments: TournamentCardData[]` + `tournamentsLoading` + `tournamentsError` (estado de loading/erro exposto à View)
+- [x] Import de `@/features/tournaments/model/tournaments-api` (Model) e `toTournamentCardData` de `@/features/tournaments/viewmodels` — sem recriar mapeador
+- [x] `content/views/home-view.tsx`: reintroduzida a `<section>` "Próximos torneios no Brasil" (mesmo padrão visual do "Ver todas" das notícias) com `TournamentCard` (`@/components`) em `grid gap-5 lg:grid-cols-3` e link "Ver todos" → `/torneios`
+- [x] Seção **oculta** quando a lista vem vazia ou dá erro (`showTournaments = tournamentsLoading || tournaments.length > 0`); skeleton discreto (3 cards) durante o loading; **nenhum** dado placeholder/fake
+- [x] Demais seções (Hero, categorias, últimas notícias, ads, CTA) intocadas
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1) | lint ✅ (0 erros)
+- [x] `git diff` restrito ao `## Escopo` (2 arquivos) + `context/modules/web/status.md`
+
+## Handoff (task 132)
+- **Feito:** a Home voltou a exibir a seção **"Próximos torneios no Brasil"**, agora com dados **reais** da API (`GET /tournaments?status=published&from=<hoje>&pageSize=3`), revertendo a remoção da seção hardcoded da task 73. O ViewModel `useHome` ganhou uma segunda query react-query (`['tournaments', { home: true }]`) que chama `tournamentsApi.listTournaments` e mapeia o resultado com `toTournamentCardData` (reaproveitado do barrel de viewmodels de tournaments). A View renderiza até 3 `TournamentCard` em grid responsivo (1 col mobile / 3 no desktop), com cabeçalho no mesmo padrão da seção de notícias ("Ver todos" → `/torneios`).
+- **Arquivos:** `apps/web/src/features/content/viewmodels/use-home.ts`, `apps/web/src/features/content/views/home-view.tsx` + `context/modules/web/status.md`.
+- **Contrato consumido:** `GET /tournaments` público (`ListTournamentsInput` aceita `status`/`from`/`pageSize` — confirmado em `apps/api/src/routes/tournaments.ts`); listagem anônima já restringe a `published`. Nenhuma rota de API tocada.
+- **Decisões:** (1) `queryKey` estável `['tournaments', { home: true }]` (conforme spec) — o `from` (hoje ISO) é calculado dentro do `queryFn` para não invalidar o cache a cada render. (2) Reuso de `toTournamentCardData` sem recriar mapeador; tipo retornado é exatamente `TournamentCardData[]`. (3) Seção só aparece quando há torneios (ou durante o loading, com skeleton); em erro ou lista vazia é **ocultada** — sem placeholder falso. (4) Skeleton local discreto (3 cards com `animate-pulse`) espelhando o layout real do `TournamentCard`. (5) Seção inserida após "Últimas notícias" e antes do ad `home-infeed` — mantém as demais seções intactas.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros); `pnpm turbo lint --filter=@digimon/app-web` ✅ (0 erros). `next build`/smoke de runtime não executados (instrução da task limitou-se ao typecheck).
+- **Fora do escopo (reportar):** nenhum. `features/tournaments/**`, `components/**`, `apps/api/**` e `packages/**` apenas consumidos/lidos — não editados.

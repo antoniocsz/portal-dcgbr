@@ -19,6 +19,13 @@ export interface ListAllCommentsParams {
   targetType?: CommentTargetType
 }
 
+export interface ListByAuthorParams {
+  authorId: string
+  page?: number
+  pageSize?: number
+  status?: CommentStatus
+}
+
 /** Comentário com metadados do autor (nome) para listagens (pública e admin). */
 export interface CommentWithAuthor {
   comment: Comment
@@ -32,4 +39,6 @@ export interface CommentRepository {
   listByTarget(params: ListCommentsParams): Promise<PaginatedResult<CommentWithAuthor>>
   /** Listagem global (admin): qualquer status, com nome do autor. */
   listAll(params: ListAllCommentsParams): Promise<PaginatedResult<CommentWithAuthor>>
+  /** Comentários do próprio autor (perfil do titular). */
+  listByAuthor(params: ListByAuthorParams): Promise<PaginatedResult<CommentWithAuthor>>
 }

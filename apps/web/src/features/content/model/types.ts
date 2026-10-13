@@ -16,6 +16,9 @@ export interface PostSummary {
   status: PostStatus
   publishedAt: string | null
   updatedAt: string
+  // A API só envia quando o nome do autor é resolvível (ver serializePostSummary).
+  authorId?: string
+  authorName?: string
 }
 
 export interface Post extends PostSummary {

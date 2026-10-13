@@ -36,6 +36,7 @@ import {
   DeleteCommentUseCase,
   ListAllCommentsUseCase,
   ListCommentsUseCase,
+  ListMyCommentsUseCase,
   ModerateCommentUseCase,
   PrismaCommentRepository,
   UpdateCommentUseCase
@@ -245,6 +246,7 @@ export function commentsDeps() {
     create: new CreateCommentUseCase(repository, eventBus),
     list: new ListCommentsUseCase(repository),
     listAll: new ListAllCommentsUseCase(repository),
+    listMine: new ListMyCommentsUseCase(repository),
     update: new UpdateCommentUseCase(repository),
     delete: new DeleteCommentUseCase(repository, eventBus),
     moderate: new ModerateCommentUseCase(repository, eventBus)

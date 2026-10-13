@@ -1,14 +1,24 @@
 // Path: apps/web/src/features/users/views/profile-view.tsx
-// View do perfil do membro: cabeçalho, cartão de identidade, métricas, abas e
-// lista de decks. Dados de identidade vêm do ViewModel; métricas/decks são
-// placeholders (os módulos de decks/torneios ainda não existem).
+// View do perfil do membro: cabeçalho, cartão de identidade, métricas, abas
+// (decks/torneios/comentários) e privacidade. Identidade vem de `useProfileViewModel`
+// (GET /users/me); métricas e abas vêm de `useProfileActivity` (dados reais).
 'use client'
 
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { Role } from '@digimon/contracts'
 import { Avatar, Button, Card, MetricCard, StatusBadge } from '@/components'
 import type { StatusTone } from '@/components'
+import type { CommentTargetType } from '@/features/comments/model/comments-api'
+import { STATUS_LABELS as DECK_STATUS_LABELS } from '@/features/decks/model/types'
+import type { DeckStatus } from '@/features/decks/model/types'
+import {
+  formatTournamentDate,
+  statusLabel as tournamentStatusLabel,
+  statusTone
+} from '@/features/tournaments/viewmodels/tournament-view'
+import { useProfileActivity } from '../viewmodel/use-profile-activity'
 import { useProfileViewModel } from '../viewmodel/use-profile-view-model'
 import { DeleteAccountModal } from './delete-account-modal'
 
@@ -24,27 +34,67 @@ const ROLE_TONES: Record<Role, StatusTone> = {
   member: 'info'
 }
 
+const DECK_STATUS_TONES: Record<DeckStatus, StatusTone> = {
+  draft: 'warning',
+  published: 'success'
+}
+
+const COMMENT_TARGET_LABELS: Record<CommentTargetType, string> = {
+  post: 'Post',
+  card: 'Carta',
+  deck: 'Deck'
+}
+
 const TABS = ['Decks', 'Torneios', 'Comentários'] as const
 type ProfileTab = (typeof TABS)[number]
-
-const STATS = [
-  { label: 'Posts', value: '12' },
-  { label: 'Decks', value: '8' },
-  { label: 'Torneios', value: '5' },
-  { label: 'Comentários', value: '147' }
-] as const
-
-const DECKS = [
-  { name: 'Royal Knights', meta: 'Azul · 50 cartas · 12 curtidas', colors: ['#2563EB', '#0EA5E9'] },
-  { name: 'Greymon Rush', meta: 'Vermelho · 50 cartas · 8 curtidas', colors: ['#C22B33', '#E5B93B'] },
-  { name: 'Leopardmon', meta: 'Roxo · 50 cartas · 5 curtidas', colors: ['#7C3AED', '#C22B33'] }
-] as const
 
 function formatJoined(value: Date | string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 }
+
+function formatDate(value: string | Date): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+interface ActivityListProps {
+  isLoading: boolean
+  error: string | null
+  isEmpty: boolean
+  children: ReactNode
+}
+
+/** Estados compartilhados das abas: carregando, erro e lista vazia. */
+function ActivityList({ isLoading, error, isEmpty, children }: ActivityListProps) {
+  if (isLoading) {
+    return (
+      <Card className="p-6" aria-busy="true">
+        <p className="text-sm text-ink-soft">Carregando…</p>
+      </Card>
+    )
+  }
+  if (error) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-danger">{error}</p>
+      </Card>
+    )
+  }
+  if (isEmpty) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-ink-faint">Nada por aqui ainda.</p>
+      </Card>
+    )
+  }
+  return <>{children}</>
+}
+
+const LINK_CLASS =
+  'truncate font-display text-base font-bold text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60'
 
 export function ProfileView() {
   const {
@@ -65,8 +115,10 @@ export function ProfileView() {
     closeDeleteModal,
     confirmDeleteAccount
   } = useProfileViewModel()
+  const activity = useProfileActivity()
   const [tab, setTab] = useState<ProfileTab>('Decks')
   const [editing, setEditing] = useState(false)
+
   if (isLoading) {
     return (
       <div className="mx-auto w-full max-w-[1440px] px-4 py-10 lg:px-12">
@@ -82,6 +134,8 @@ export function ProfileView() {
       </div>
     )
   }
+
+  const showStats = !activity.isLoading && !activity.error
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-8 lg:px-12 lg:py-12">
@@ -100,15 +154,18 @@ export function ProfileView() {
           </StatusBadge>
           <h2 className="font-display text-2xl font-bold text-ink">{profile.name}</h2>
           <p className="text-sm text-ink-soft">
-            Membro desde {formatJoined(profile.createdAt)} · {STATS[0].value} posts ·{' '}
-            {STATS[1].value} decks · {STATS[3].value} comentários
+            Membro desde {formatJoined(profile.createdAt)}
+            {showStats ? (
+              <>
+                {' · '}
+                {activity.stats.decks} decks · {activity.stats.tournaments} torneios ·{' '}
+                {activity.stats.comments} comentários
+              </>
+            ) : null}
           </p>
           <div className="flex flex-wrap gap-3">
             <Button size="sm" onClick={() => setEditing((value) => !value)}>
               {editing ? 'Fechar edição' : 'Editar perfil'}
-            </Button>
-            <Button variant="dark" size="sm">
-              Ver decks
             </Button>
           </div>
         </div>
@@ -150,9 +207,10 @@ export function ProfileView() {
       ) : null}
 
       <section className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label="Métricas">
-        {STATS.map((stat) => (
-          <MetricCard key={stat.label} label={stat.label} value={stat.value} />
-        ))}
+        <MetricCard label="Decks" value={showStats ? activity.stats.decks : '—'} />
+        <MetricCard label="Torneios" value={showStats ? activity.stats.tournaments : '—'} />
+        <MetricCard label="Comentários" value={showStats ? activity.stats.comments : '—'} />
+        <MetricCard label="Publicações" value={showStats ? activity.stats.publications : '—'} />
       </section>
 
       <section className="mt-8 flex flex-col gap-4">
@@ -176,27 +234,80 @@ export function ProfileView() {
         </div>
 
         {tab === 'Decks' ? (
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-5">
-            {DECKS.map((deck) => (
-              <Card key={deck.name} className="overflow-hidden">
-                <div
-                  className="flex h-[120px] items-center justify-center lg:h-[150px]"
-                  style={{ backgroundImage: `linear-gradient(135deg, ${deck.colors[0]}, ${deck.colors[1]})` }}
-                  aria-hidden="true"
-                />
-                <div className="flex flex-col gap-2 p-5">
-                  <h3 className="font-display text-lg font-bold text-ink">{deck.name}</h3>
-                  <p className="text-sm text-ink-soft">{deck.meta}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <ActivityList
+            isLoading={activity.isLoading}
+            error={activity.error}
+            isEmpty={activity.decks.length === 0}
+          >
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {activity.decks.map((deck) => (
+                <Card
+                  key={deck.id}
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                >
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <Link href={`/decks/${deck.slug}`} className={LINK_CLASS}>
+                      {deck.name}
+                    </Link>
+                    <span className="text-[13px] text-ink-soft">
+                      {deck.format} · {deck.cardCount} cartas
+                    </span>
+                  </div>
+                  <StatusBadge tone={DECK_STATUS_TONES[deck.status]}>
+                    {DECK_STATUS_LABELS[deck.status]}
+                  </StatusBadge>
+                </Card>
+              ))}
+            </div>
+          </ActivityList>
+        ) : tab === 'Torneios' ? (
+          <ActivityList
+            isLoading={activity.isLoading}
+            error={activity.error}
+            isEmpty={activity.tournaments.length === 0}
+          >
+            <div className="flex flex-col gap-3">
+              {activity.tournaments.map((tournament) => (
+                <Card
+                  key={tournament.id}
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                >
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <Link href={`/torneios/${tournament.slug}`} className={LINK_CLASS}>
+                      {tournament.name}
+                    </Link>
+                    <span className="text-[13px] text-ink-soft">
+                      {tournament.format} · {formatTournamentDate(tournament.dateStart)} ·{' '}
+                      {tournament.location}
+                    </span>
+                  </div>
+                  <StatusBadge tone={statusTone(tournament.status)}>
+                    {tournamentStatusLabel(tournament.status)}
+                  </StatusBadge>
+                </Card>
+              ))}
+            </div>
+          </ActivityList>
         ) : (
-          <Card className="p-6">
-            <p className="text-sm text-ink-faint">
-              Nada por aqui ainda. {tab} do membro aparecerão nesta seção.
-            </p>
-          </Card>
+          <ActivityList
+            isLoading={activity.isLoading}
+            error={activity.error}
+            isEmpty={activity.comments.length === 0}
+          >
+            <div className="flex flex-col gap-3">
+              {activity.comments.map((comment) => (
+                <Card key={comment.id} className="flex flex-col gap-2 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="bg-surface-2 px-2 py-[3px] text-[11px] font-semibold text-ink-soft">
+                      {COMMENT_TARGET_LABELS[comment.targetType]}
+                    </span>
+                    <span className="text-xs text-ink-faint">{formatDate(comment.createdAt)}</span>
+                  </div>
+                  <p className="text-[13px] leading-[19px] text-ink-soft">{comment.body}</p>
+                </Card>
+              ))}
+            </div>
+          </ActivityList>
         )}
       </section>
 

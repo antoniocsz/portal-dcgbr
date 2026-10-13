@@ -11,6 +11,7 @@ import type {
   CommentRepository,
   CommentWithAuthor,
   ListAllCommentsParams,
+  ListByAuthorParams,
   ListCommentsParams
 } from '../../domain/repositories/comment-repository'
 
@@ -96,6 +97,35 @@ export class PrismaCommentRepository implements CommentRepository {
     const where: Prisma.CommentWhereInput = {}
     if (params.status) where.status = STATUS_MAP[params.status]
     if (params.targetType) where.targetType = TARGET_TYPE_MAP[params.targetType]
+
+    const [rows, total] = await Promise.all([
+      this.db.comment.findMany({
+        where,
+        include: { author: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      }),
+      this.db.comment.count({ where })
+    ])
+    return {
+      items: rows.map((row) => ({
+        comment: this.toEntity(row),
+        authorName: row.author?.name ?? 'Autor removido'
+      })),
+      total,
+      page,
+      pageSize
+    }
+  }
+
+  async listByAuthor(params: ListByAuthorParams): Promise<PaginatedResult<CommentWithAuthor>> {
+    const page = Math.max(1, params.page ?? 1)
+    const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20))
+    const where: Prisma.CommentWhereInput = {
+      authorId: params.authorId,
+      status: params.status ? STATUS_MAP[params.status] : 'VISIBLE'
+    }
 
     const [rows, total] = await Promise.all([
       this.db.comment.findMany({
