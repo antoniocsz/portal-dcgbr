@@ -903,3 +903,19 @@
 - **Decisões:** (1) `pnpm install` reconciliou o lockfile sem novas resoluções ("Already up to date" — a dep era apenas um link de workspace, removida do importer `apps/web`). (2) `@digimon/auth`/`@digimon/contracts` permanecem em `transpilePackages` (únicos pacotes do workspace ainda importados pelo web). (3) `pnpm-lock.yaml` ainda lista `@digimon/users` no importer de `apps/api` — correto, não é escopo.
 - **Validação:** `pnpm turbo typecheck lint build --filter=@digimon/app-web` — 3/3 ✅ (build 33 páginas estáticas/rotas, `Proxy (Middleware)` presente). Corte de escopo via `git diff` restrito aos 3 arquivos declarados.
 - **Fora do escopo (reportar):** `apps/web/Dockerfile` ainda inclui `packages/modules/users` no grafo de manifests do estágio `deps` e cita `@digimon/users` em comentário (linha 37). Como a dep saiu do `package.json` do web, esse manifest pode ser removido do Dockerfile numa task futura (não tocado aqui — fora do escopo).
+
+## Fase 39 — Favicon a partir da logo (task 121)
+- [x] `app/icon.png` — **512×512** PNG RGBA, fundo navy sólido `rgb(8,18,58)` + recorte do "DCG" centralizado (mark com 451 px de largura ≈ 88% de 512)
+- [x] `app/apple-icon.png` — **180×180** PNG RGBA, mesma composição
+- [x] `app/favicon.ico` — **32×32** ICO, mesma composição (navegadores legados)
+- [x] Recorte do "DCG" pela bbox `(125,0,838,197)` (remove o "BRASIL"); redimensionamento com `Image.LANCZOS`
+- [x] Composição validada por PIL: mark centralizado em (255,255) no master; cantos no fundo navy `(8,18,58,255)`
+- [x] `next.config.ts`/`layout.tsx` **não** tocados; `public/dcg-logo.png` intacto
+- [x] Build `pnpm turbo build --filter=@digimon/app-web` ✅ — Next registrou `/icon.png` e `/apple-icon.png` (e o `app/favicon.ico` foi emitido em `.next/server/app/favicon.ico`)
+
+## Handoff (task 121)
+- **Feito:** favicons do App Router gerados a partir de `apps/web/public/dcg-logo.png` (937×266 RGBA, fundo transparente) via Python PIL. Recortei o bloco "**DCG**" (bbox `125,0,838,197` — descarta a linha "BRASIL") e montei um master **quadrado** 512×512 com fundo navy sólido `rgb(8,18,58)`, o mark escalado para **~88% da largura** (451 px, aspecto 3.62 preservado) e centralizado (centros H/V = 255). Desse master derivei `apple-icon.png` (180×180) e `favicon.ico` (32×32), sempre com `Image.LANCZOS`, garantindo mark nítido e margem uniforme (6% de cada lado).
+- **Arquivos:** `apps/web/src/app/icon.png` (512×512), `apps/web/src/app/apple-icon.png` (180×180), `apps/web/src/app/favicon.ico` (32×32) — todos novos + `context/modules/web/status.md`.
+- **Decisões:** (1) Opção preferida da task: recorte do "DCG" (não a logo inteira) — remove o "BRASIL" e mantém o mark legível no quadrado. (2) Composição a partir de **um master 512** e downscale para 180/32 (não recompor em cada tamanho) — garante o mesmo enquadramento e nitidez. (3) `Image.alpha_composite` do mark recortado sobre o navy preserva o anti-aliasing das bordas (sem halo). (4) `favicon.ico` gravado a partir do master reduzido (`sizes=[(32,32)]`). Nenhum código/config foi alterado — só assets, como especificado.
+- **Validação:** conferência PIL (dimensões/formato/modo; mark bbox 30..480 × 193..317; centros em 255) + build de produção do Next registrando os ícones.
+- **Fora do escopo (reportar):** nenhum. As 3 imagens são assets novos em `src/app/`; `public/dcg-logo.png`, `next.config.ts` e `layout.tsx` permanecem intactos.
