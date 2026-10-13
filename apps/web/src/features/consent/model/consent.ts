@@ -17,8 +17,10 @@ import { apiClient } from '@/lib/api-base'
 export type ConsentCategory = 'essential' | 'analytics' | 'ads'
 
 /**
- * Versão da política de privacidade vigente. BUMP quando o texto legal mudar
- * (mesma constante do backend: `DEFAULT_POLICY_VERSION` em @digimon/privacy).
+ * Versão da política de privacidade vigente. Bump quando o texto legal mudar —
+ * manter em sincronia com `DEFAULT_POLICY_VERSION` em
+ * `packages/modules/privacy/src/domain/entities/consent-record.ts`
+ * (bump junto com o outro).
  */
 export const CONSENT_POLICY_VERSION = '2026-01'
 

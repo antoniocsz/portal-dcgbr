@@ -38,3 +38,12 @@
 - **Decisões:** `POST /consent` tratado como auditoria best-effort (nunca bloqueia); `subjectKey` sem PII; tipos literais no client (sem importar `@digimon/privacy`); fila com filtro por status e ações Em andamento/Concluído/Rejeitado; item de sidebar visível a administrator **e** editor (o backend revalida).
 - **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2; 0 erros, 0 warnings; `next build` não executado por instrução). Detalhes completos em `context/modules/web/status.md` (Handoff task 115).
 - **Pendências:** nenhuma no frontend. O conteúdo legal segue como documento-modelo sujeito a revisão jurídica; o bump de `policyVersion` deve acompanhar qualquer mudança no texto legal (front em `CONSENT_POLICY_VERSION` + backend em `DEFAULT_POLICY_VERSION`).
+
+## Handoff (task 117 — chore docs)
+- **Feito:** alinhamento de documentação/comentários (sem mudança de comportamento/schema):
+  - `context/modules/privacy/context.md` — doc do `GET /admin/consent` corrigida para paginado (`{ items, total, page, pageSize }`), igual ao retorno real da rota.
+  - `packages/database/prisma/schema.prisma` — newline final adicionado (schema inalterado).
+  - Comentários cruzados de versionamento: `DEFAULT_POLICY_VERSION` (`packages/modules/privacy/src/domain/entities/consent-record.ts`) e `CONSENT_POLICY_VERSION` (`apps/web/src/features/consent/model/consent.ts`) agora apontam um para o outro — "bump junto com o outro" quando o texto legal mudar.
+- **Decisões:** nenhuma nova — task puramente documental.
+- **Validação:** `pnpm turbo typecheck lint --filter=@digimon/privacy --filter=@digimon/app-web` ✅ (4/4; 0 erros, 0 warnings).
+- **Pendências:** nenhuma.

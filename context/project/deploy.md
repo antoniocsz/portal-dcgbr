@@ -9,15 +9,16 @@ aplicativos** (ADR-007), com domínios separados:
 > Resumo da arquitetura de deploy:
 > - **Imagem da API** — `apps/api/Dockerfile` (multi-stage → runtime Node 22). O
 >   **entrypoint aplica as migrations e roda o seed** (`prisma migrate deploy` +
->   `seed --only-if-empty`) **antes** de subir o Fastify. Sobe em `PORT=3001` /
->   `HOST=0.0.0.0`; health check em `GET /health`.
+>   `seed --only-if-empty`) **antes** de subir o Fastify. Sobe em `PORT=3022` /
+>   `HOST=0.0.0.0` (default da imagem; `3001` é o default **local** do código);
+>   health check em `GET /health`.
 > - **Imagem do web** — `apps/web/Dockerfile` (Next standalone, **sem banco**;
 >   `DATABASE_URL` **não** é mais necessária). Sobe em `PORT=3000`.
 > - **Ordem de deploy: API primeiro, web depois** — a API é quem aplica as
 >   migrations/seed; o web só precisa da API no ar.
 > - **Comunicação:** no browser o web fala `https://api.digimoncardgamebrasil.com.br`
 >   (CORS + cookie `Domain=.digimoncardgamebrasil.com.br`); no SSR/middleware fala
->   o endereço **interno** da API na rede do Coolify (ex.: `http://api:3001`).
+>   o endereço **interno** da API na rede do Coolify (ex.: `http://api:3022`).
 
 ---
 
@@ -45,7 +46,7 @@ aplicativos** (ADR-007), com domínios separados:
 3. **Build Pack: `Dockerfile`**
    - Root Directory: `/` (raiz do repo)
    - Dockerfile Location: `apps/api/Dockerfile`
-4. **Ports Exposes:** `3001` (mesma da env `PORT`)
+4. **Ports Exposes:** `3022` (mesma da env `PORT`; `3001` é o default local do código)
 5. **Domains:** `api.digimoncardgamebrasil.com.br` (SSL automático — §6)
 6. **Health Check:** path `/health` (responde `200 {"status":"ok"}`)
 
@@ -58,7 +59,7 @@ aplicativos** (ADR-007), com domínios separados:
 | `CORS_ORIGIN` | sim (produção) | `https://digimoncardgamebrasil.com.br,https://www.digimoncardgamebrasil.com.br` (nunca `*`) |
 | `COOKIE_DOMAIN` | não | `=.digimoncardgamebrasil.com.br` (default em produção; vazio = sem `Domain`) |
 | `SKIP_SEED` | não | `true` pula o seed (default: roda o seed guardado) |
-| `PORT` | não | `3001` (padrão da imagem) |
+| `PORT` | não | `3022` (padrão da imagem; `3001` é o default local do código) |
 | `HOST` | não | `0.0.0.0` (padrão da imagem) |
 
 > `ADMIN_EMAIL` / `ADMIN_PASSWORD` são lidos pelo seed para criar o administrador
@@ -96,7 +97,7 @@ e sai 0 — nunca sobrescreve produção.
 | Variável | Obrigatória | Exemplo / regra |
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | sim | `https://api.digimoncardgamebrasil.com.br` — URL **pública** da API usada no **browser** |
-| `API_INTERNAL_URL` | sim (SSR/middleware) | `http://api:3001` — endereço **interno** da API na rede do Coolify |
+| `API_INTERNAL_URL` | sim (SSR/middleware) | `http://api:3022` — endereço **interno** da API na rede do Coolify |
 | `JWT_SECRET` | sim | **o mesmo** segredo da API (valida a sessão do admin no servidor) |
 | `PORT` | não | `3000` (padrão da imagem) |
 
@@ -107,8 +108,9 @@ e sai 0 — nunca sobrescreve produção.
 
 > ℹ️ `API_INTERNAL_URL` é usada pelo SSR das páginas `[slug]`/`[id]` e pelo
 > middleware de site-gate (`proxy.ts`). O default do código é `http://api:3001`
-> — se o serviço da API não se chamar `api` no Coolify, ajuste a env para o nome
-> interno real do serviço.
+> (fallback **local/legado**); em **produção** a API escuta em `3022` (default da
+> imagem), então defina `API_INTERNAL_URL=http://api:3022` — se o serviço da API
+> não se chamar `api` no Coolify, ajuste a env para o nome interno real do serviço.
 
 ## 5. Ordem de deploy
 
@@ -118,7 +120,7 @@ e sai 0 — nunca sobrescreve produção.
    browser; `API_INTERNAL_URL` no SSR/middleware).
 
 Sucesso esperado nos logs:
-- **API:** migrations aplicadas, seed (ou `Seed ignorado`), Fastify ouvindo em `0.0.0.0:3001`
+- **API:** migrations aplicadas, seed (ou `Seed ignorado`), Fastify ouvindo em `0.0.0.0:3022`
 - **web:** `✓ Compiled successfully` → `✓ Ready` (Next standalone em `0.0.0.0:3000`)
 
 ## 6. Domínios + SSL
@@ -182,13 +184,13 @@ curl -I https://digimoncardgamebrasil.com.br/admin            # 307 → /login
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
-| 502 Bad Gateway | `Ports Exposes` ≠ env `PORT` | alinhar ambos (API 3001, web 3000) |
+| 502 Bad Gateway | `Ports Exposes` ≠ env `PORT` | alinhar ambos (API 3022, web 3000) |
 | API não sobe / reinicia em loop | `DATABASE_URL` inacessível | usar nome do serviço interno / host externo |
 | Erro `JWT_SECRET ausente ou curto` | env ausente/<32 chars | gerar `openssl rand -base64 48` (igual na API e no web) |
 | Login funciona mas admin não abre | web sem `JWT_SECRET` (sessão server-side nula) | definir `JWT_SECRET` (o mesmo da API) no web |
 | Login dá erro de CORS no browser | `CORS_ORIGIN` sem o domínio do web | allowlist exata (`https://digimoncardgamebrasil.com.br,https://www...`), nunca `*` |
 | Cookie não persiste entre web e API | `COOKIE_DOMAIN` errado | `COOKIE_DOMAIN=.digimoncardgamebrasil.com.br` |
-| SSR/`notícias/[slug]` ou site-gate falha | `API_INTERNAL_URL` errada | apontar para o nome interno real da API (ex.: `http://api:3001`) |
+| SSR/`notícias/[slug]` ou site-gate falha | `API_INTERNAL_URL` errada | apontar para o nome interno real da API (ex.: `http://api:3022`) |
 | Browser chama `localhost:3001` | `NEXT_PUBLIC_API_URL` não disponível no build | marcar a env "available at buildtime" e redeployar |
 | Build falha em `pnpm install` | lockfile desatualizado | `pnpm install` local + commit do lockfile |
 | Páginas 200 mas admin 404 | deploy antigo (standalone não regenerado) | Redeploy limpo (sem cache) |

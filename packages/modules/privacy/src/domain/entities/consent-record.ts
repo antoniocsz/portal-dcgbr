@@ -7,7 +7,11 @@ import { ValidationError } from '@digimon/contracts'
 /** Teto do User-Agent persistido (o header pode ser longo). */
 export const MAX_USER_AGENT_LENGTH = 300
 
-/** Versão da política vigente — bump quando o texto legal mudar. */
+/**
+ * Versão da política vigente. Bump quando o texto legal mudar — manter em
+ * sincronia com `CONSENT_POLICY_VERSION` em
+ * `apps/web/src/features/consent/model/consent.ts` (bump junto com o outro).
+ */
 export const DEFAULT_POLICY_VERSION = '2026-01'
 
 export interface ConsentRecordData {

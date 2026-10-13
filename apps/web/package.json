@@ -13,7 +13,6 @@
     "@digimon/api-client": "workspace:*",
     "@digimon/auth": "workspace:*",
     "@digimon/contracts": "workspace:*",
-    "@digimon/users": "workspace:*",
     "@tanstack/react-query": "^5.0.0",
     "@tiptap/extension-link": "^3.31.4",
     "@tiptap/extension-placeholder": "^3.31.4",

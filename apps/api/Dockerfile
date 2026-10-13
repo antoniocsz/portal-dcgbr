@@ -17,7 +17,7 @@
 #                    ex: https://digimoncardgamebrasil.com.br,https://www.digimoncardgamebrasil.com.br
 #   COOKIE_DOMAIN  → domínio do cookie de sessão (default .digimoncardgamebrasil.com.br em produção)
 #   SKIP_SEED      → "true" pula o seed (default: roda `seed.ts --only-if-empty`)
-#   PORT           → porta HTTP (default 3001)
+#   PORT           → porta HTTP (default 3022)
 #   HOST           → interface de bind (default 0.0.0.0)
 #
 # Entrypoint (`docker-entrypoint.sh`):
@@ -57,6 +57,8 @@ COPY packages/modules/comments/package.json ./packages/modules/comments/package.
 COPY packages/modules/cards/package.json ./packages/modules/cards/package.json
 COPY packages/modules/decks/package.json ./packages/modules/decks/package.json
 COPY packages/modules/tournaments/package.json ./packages/modules/tournaments/package.json
+COPY packages/modules/ads/package.json ./packages/modules/ads/package.json
+COPY packages/modules/privacy/package.json ./packages/modules/privacy/package.json
 RUN pnpm install --frozen-lockfile --filter "@digimon/app-api..."
 
 # ---------- Estágio 2: build (bundle esbuild) --------------------------------
@@ -78,7 +80,7 @@ RUN pnpm --filter @digimon/app-api build
 FROM node:22-alpine AS runtime
 
 # Porta HTTP (build: --build-arg PORT=8080 | runtime: env PORT no painel).
-ARG PORT=3001
+ARG PORT=3022
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=$PORT

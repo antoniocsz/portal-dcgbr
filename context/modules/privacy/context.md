@@ -29,7 +29,7 @@ Tratamento de LGPD do lado servidor: **registro de consentimento** (auditoria de
 - `POST /privacy/requests` — público: abre solicitação (`{ type, name, email, message }`).
 - `GET /admin/privacy/requests` — administrator/editor: fila (filtro `status`).
 - `PATCH /admin/privacy/requests/:id` — administrator/editor: atualiza status.
-- `GET /admin/consent` — administrator: registros/resumo.
+- `GET /admin/consent` — administrator: registros/resumo, paginado (`{ items, total, page, pageSize }`).
 
 ## Regras
 - Sem PII desnecessária: `subjectKey` é opaco; `userAgent` truncado.
