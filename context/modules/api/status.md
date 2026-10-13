@@ -163,3 +163,39 @@
   **por requisição** (paridade exata com o `commentsDeps()` local anterior). (3) `PrismaCardReferenceValidator`
   (infra de decks) migrou para o container, junto à composição. (4) `export { eventBus }` mantido.
 - **Fora do escopo (reportar):** `apps/web/**` e `packages/**` intocados.
+
+## Fase 7 — Imagem da API: porta 3022 + manifests de ads/privacy + envs do seed (tasks 118, 120)
+- [x] **[task 118]** `apps/api/Dockerfile` — `ARG PORT` default **3022** (o `ENV PORT=$PORT` e o
+      `EXPOSE $PORT` derivam); comentários do topo atualizados de `3001` → **3022**. O fallback **local**
+      do código segue `3001` (`apps/api/src/index.ts`), e `3001` continua sendo o default local do web.
+- [x] **[task 118]** `apps/api/Dockerfile` estágio `deps` — manifests de `packages/modules/ads` e
+      `packages/modules/privacy` passam a ser copiados antes do
+      `pnpm install --frozen-lockfile --filter "@digimon/app-api..."`. São deps novas de `apps/api`;
+      sem os manifests o grafo do lockfile não fechava e o build da imagem falhava.
+- [x] **[task 120]** `apps/api/Dockerfile` — comentário de envs de runtime passa a citar **`ADMIN_EMAIL`**
+      e **`ADMIN_PASSWORD`** (lidas pelo seed), com aviso de que, sem elas, o seed usa os **defaults
+      inseguros** de dev (`admin@digimoncardgamebrasil.com.br` / `admin12345`) e que só têm efeito com o
+      banco **vazio** (`--only-if-empty`).
+- [x] **[task 120]** `apps/web/Dockerfile` — removida a referência **ociosa** a `@digimon/users` (o `COPY`
+      do manifest + os comentários). Após a task 116 o web não consome o módulo; grafo conferido no
+      `pnpm-lock.yaml` (importer `apps/web` **sem** `@digimon/users`) e nos `package.json`
+      (`@digimon/auth` → `contracts`/`database`; web → `api-client`/`auth`/`contracts` + transitivos).
+      O web já roda `pnpm install --frozen-lockfile` com subconjunto de manifests (cards/comments/content/
+      decks/tournaments também ficam de fora), então omitir `users` é consistente.
+
+## Handoff (tasks 118, 120)
+- **Feito:** alinhamento da imagem da API à **porta default 3022** (comentários + `ARG`/`ENV`/`EXPOSE`),
+  inclusão dos manifests de **ads/privacy** no estágio `deps` (corrige o grafo do lockfile) e documentação
+  das envs **`ADMIN_EMAIL`/`ADMIN_PASSWORD`** do seed no cabeçalho do `apps/api/Dockerfile`. No
+  `apps/web/Dockerfile`, remoção do `COPY`/comentário órfãos de `@digimon/users`.
+- **Arquivos:** `apps/api/Dockerfile`, `apps/web/Dockerfile`, `context/modules/api/status.md`.
+- **Deps:** nenhuma (só comentários/`COPY` + doc).
+- **Decisões:** (1) `ADMIN_EMAIL`/`ADMIN_PASSWORD` documentadas **junto ao seed** (após `SKIP_SEED`) por
+  serem lidas pelo `seed.ts`; o aviso cita os valores default exatos do seed (`packages/database/prisma/seed.ts`).
+  (2) No web, `@digimon/users` tratado como **ocioso** (não intencional para o lockfile): o comentário só o
+  listava como dep real do web, o que deixou de valer na task 116 — mantê-lo confundiria; a remoção segue o
+  mesmo padrão dos demais módulos já fora do grafo web. (3) Nada de entrypoint/CMD/estágios alterados.
+- **Validação:** `git diff` restrito aos 3 arquivos do escopo (sem tocar entrypoint/CMD/estágios além do
+  `COPY` ocioso removido). Typecheck não se aplica (nenhum código TS alterado).
+- **Fora do escopo (reportar):** `apps/api/docker-entrypoint.sh`, `CMD`/`ENTRYPOINT` e demais estágios
+  intocados; `packages/**` e `apps/web/src/**` intocados.

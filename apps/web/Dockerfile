@@ -21,8 +21,8 @@
 #     @digimon/app-web) → runtime (só .next/standalone + static + public).
 #   - Só os manifests do grafo do web entram no install: apps/web + as deps de
 #     workspace que ele realmente consome (api-client, contracts, database,
-#     modules/auth, modules/users). Os demais módulos (cards, comments, content,
-#     decks, tournaments) e a API ficam de fora.
+#     modules/auth). Os demais módulos (users, cards, comments, content, decks,
+#     tournaments) e a API ficam de fora.
 #   - Sem banco no build: as páginas são estáticas e os dados vêm da API no
 #     client-side; `next build` não abre conexão com o Postgres.
 #   - HOSTNAME=0.0.0.0: o standalone do Next escuta em todas as interfaces.
@@ -34,15 +34,14 @@ RUN corepack enable && corepack prepare pnpm@11.16.0 --activate
 WORKDIR /app
 
 # Manifests do grafo do web (raiz + apps/web + workspace deps). `@digimon/database`
-# entra porque `@digimon/auth`/`@digimon/users` o declaram como dependência
-# (usam os tipos do PrismaClient); os demais pacotes não são necessários ao web.
+# entra porque `@digimon/auth` o declara como dependência (usa os tipos do
+# PrismaClient); os demais pacotes não são necessários ao web.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json turbo.json ./
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/api-client/package.json ./packages/api-client/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/database/package.json ./packages/database/package.json
 COPY packages/modules/auth/package.json ./packages/modules/auth/package.json
-COPY packages/modules/users/package.json ./packages/modules/users/package.json
 RUN pnpm install --frozen-lockfile
 
 # ---------- Estágio 2: build -------------------------------------------------

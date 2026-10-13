@@ -17,8 +17,14 @@
 #                    ex: https://digimoncardgamebrasil.com.br,https://www.digimoncardgamebrasil.com.br
 #   COOKIE_DOMAIN  → domínio do cookie de sessão (default .digimoncardgamebrasil.com.br em produção)
 #   SKIP_SEED      → "true" pula o seed (default: roda `seed.ts --only-if-empty`)
+#   ADMIN_EMAIL    → e-mail do admin criado pelo seed (default admin@digimoncardgamebrasil.com.br)
+#   ADMIN_PASSWORD → senha do admin criado pelo seed (default inseguro "admin12345")
 #   PORT           → porta HTTP (default 3022)
 #   HOST           → interface de bind (default 0.0.0.0)
+#
+#   ADMIN_EMAIL/ADMIN_PASSWORD só têm efeito quando o banco está VAZIO
+#   (`--only-if-empty`). SEM elas o seed usa os defaults INSEGUROS de dev acima
+#   — defina AMBAS em produção antes do primeiro start da API.
 #
 # Entrypoint (`docker-entrypoint.sh`):
 #   prisma migrate deploy              → SEMPRE (nunca `migrate dev`)
