@@ -99,6 +99,20 @@ export class User {
     this.data.updatedAt = new Date()
   }
 
+  /**
+   * LGPD (art. 18): eliminação por anonimização + desativação. Remove a PII do
+   * titular (e-mail/nome/avatar) e inativa a conta, preservando a integridade
+   * referencial — comentários/decks/torneios seguem existindo, porém sem autoria
+   * identificável. Não altera o papel.
+   */
+  anonymize(): void {
+    this.data.email = `deleted+${this.data.id}@invalid.local`
+    this.data.name = 'Usuário removido'
+    this.data.avatarUrl = null
+    this.data.status = 'inactive'
+    this.data.updatedAt = new Date()
+  }
+
   /** Troca o hash da senha — usado no reset de senha (módulo auth via DIP). */
   updatePasswordHash(passwordHash: string): void {
     this.data.passwordHash = passwordHash

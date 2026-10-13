@@ -5,6 +5,7 @@
 // nenhuma regra de domínio é duplicada aqui.
 import { InMemoryEventBus, ValidationError } from '@digimon/contracts'
 import { prisma } from '@digimon/database'
+import type { PrismaClient } from '@digimon/database'
 import {
   JwtTokenService,
   PrismaPasswordResetTokenRepository,
@@ -12,6 +13,13 @@ import {
   ScryptPasswordHasher
 } from '@digimon/auth'
 import { PrismaUserRepository } from '@digimon/users'
+import type {
+  UserActivityProvider,
+  UserCommentRecord,
+  UserCommunityDeckRecord,
+  UserDeckRecord,
+  UserTournamentRecord
+} from '@digimon/users'
 import {
   ArchivePostUseCase,
   CreatePostUseCase,
@@ -127,7 +135,87 @@ export function authDeps() {
 
 export function usersDeps() {
   const users = new PrismaUserRepository(prisma)
-  return { users, eventBus }
+  const refreshTokens = new PrismaRefreshTokenRepository(prisma)
+  const activity = new PrismaUserActivityProvider(prisma)
+  return { users, eventBus, refreshTokens, activity }
+}
+
+/**
+ * UserActivityProvider (DIP) sobre Prisma — reúne a atividade do titular para o
+ * export LGPD (portabilidade). Lê comentários, decks, torneios e publicações na
+ * comunidade pelo id do titular; nunca expõe dados de terceiros.
+ */
+class PrismaUserActivityProvider implements UserActivityProvider {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async listComments(authorId: string): Promise<UserCommentRecord[]> {
+    const rows = await this.prisma.comment.findMany({
+      where: { authorId },
+      orderBy: { createdAt: 'desc' }
+    })
+    return rows.map((row) => ({
+      id: row.id,
+      targetType: row.targetType,
+      targetId: row.targetId,
+      body: row.body,
+      status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }))
+  }
+
+  async listDecks(ownerId: string): Promise<UserDeckRecord[]> {
+    const rows = await this.prisma.deck.findMany({
+      where: { ownerId },
+      orderBy: { createdAt: 'desc' }
+    })
+    return rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      description: row.description,
+      format: row.format,
+      status: row.status,
+      isPublic: row.isPublic,
+      cardList: row.cardList,
+      eggList: row.eggList,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }))
+  }
+
+  async listTournaments(organizerId: string): Promise<UserTournamentRecord[]> {
+    const rows = await this.prisma.tournament.findMany({
+      where: { organizerId },
+      orderBy: { dateStart: 'desc' }
+    })
+    return rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      format: row.format,
+      location: row.location,
+      dateStart: row.dateStart,
+      dateEnd: row.dateEnd,
+      status: row.status,
+      createdAt: row.createdAt
+    }))
+  }
+
+  async listCommunityDecks(accountId: string): Promise<UserCommunityDeckRecord[]> {
+    const rows = await this.prisma.publicDeck.findMany({
+      where: { accountId },
+      orderBy: { publishedAt: 'desc' }
+    })
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      likeCount: row.likeCount,
+      copyCount: row.copyCount,
+      publishedAt: row.publishedAt
+    }))
+  }
 }
 
 export function contentDeps() {

@@ -1,9 +1,10 @@
 // Path: apps/web/src/features/users/model/types.ts
 // Tipos do domínio de users consumidos pela UI (espelham os DTOs dos módulos).
 import type { PaginatedResult, Role } from '@digimon/contracts'
-import type { UserView } from '@digimon/users'
+import type { UserDataExport, UserView } from '@digimon/users'
 
 export type { UserView }
+export type { UserDataExport }
 export type { Role }
 
 export interface UpdateProfileForm {

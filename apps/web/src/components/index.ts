@@ -27,6 +27,9 @@ export { SiteFooter } from './site-footer'
 export { SiteChrome } from './site-chrome'
 export type { SiteChromeProps } from './site-chrome'
 
+// Consentimento de cookies (LGPD)
+export { ConsentBanner } from './consent-banner'
+
 // Admin
 export * from './admin'
 

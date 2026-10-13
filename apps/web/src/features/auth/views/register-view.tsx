@@ -67,7 +67,15 @@ export function RegisterView() {
           {isSubmitting ? 'Criando…' : 'Criar conta'}
         </Button>
         <p className="text-center text-xs text-ink-faint lg:text-[13px] lg:font-semibold lg:text-primary">
-          Ao criar a conta você aceita os Termos de Uso e a Política de Privacidade.
+          Ao criar a conta você concorda com os{' '}
+          <Link href="/termos" className="underline underline-offset-2 hover:text-ink">
+            Termos
+          </Link>{' '}
+          e a{' '}
+          <Link href="/privacidade" className="underline underline-offset-2 hover:text-ink">
+            Política de Privacidade
+          </Link>
+          .
         </p>
         <AuthDivider />
         <Link

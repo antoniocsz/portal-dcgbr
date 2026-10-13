@@ -8,11 +8,14 @@ import {
   ActivateUserUseCase,
   AssignRoleUseCase,
   DeactivateUserUseCase,
+  DeleteUserAccountUseCase,
+  ExportUserDataUseCase,
   GetProfileUseCase,
   ListUsersUseCase,
   UpdateProfileUseCase
 } from '@digimon/users'
 import { usersDeps } from '../container'
+import { clearSessionCookies } from '../http/cookies'
 import { authenticate, getAuthContext, requireRoleHook } from '../plugins/auth'
 
 /** Contexto da sessão: `authenticate` injeta request.auth; fallback lê o token. */
@@ -44,6 +47,22 @@ export const usersRoutes: FastifyPluginAsync = async (app) => {
     const actorId = authContext(request).userId
     const user = await new UpdateProfileUseCase(usersDeps()).execute(actorId, request.body)
     return reply.send({ user })
+  })
+
+  // GET /users/me/export — LGPD art. 18 (portabilidade): dados do titular em JSON.
+  app.get('/users/me/export', { preHandler: authenticate }, async (request, reply) => {
+    const actorId = authContext(request).userId
+    const data = await new ExportUserDataUseCase(usersDeps()).execute(actorId)
+    return reply.send(data)
+  })
+
+  // DELETE /users/me — LGPD art. 18 (eliminação): anonimiza + desativa o titular,
+  // revoga as sessões e limpa os cookies. 204 sem corpo.
+  app.delete('/users/me', { preHandler: authenticate }, async (request, reply) => {
+    const actorId = authContext(request).userId
+    await new DeleteUserAccountUseCase(usersDeps()).execute(actorId)
+    clearSessionCookies(reply)
+    return reply.status(204).send()
   })
 
   // PATCH /users/:id/role — atribui papel; somente administrator.

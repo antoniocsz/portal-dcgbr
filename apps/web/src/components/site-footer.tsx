@@ -29,6 +29,14 @@ const COLUMNS = [
       { href: '/registro', label: 'Criar conta' },
       { href: '/esqueci-senha', label: 'Recuperar senha' }
     ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      { href: '/termos', label: 'Termos de Uso' },
+      { href: '/privacidade', label: 'Privacidade' },
+      { href: '/cookies', label: 'Cookies' }
+    ]
   }
 ] as const
 
@@ -52,7 +60,7 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:gap-16">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:gap-16">
           {COLUMNS.map((column) => (
             <div key={column.title} className="flex flex-col gap-2.5">
               <span className="text-[13px] font-bold text-ink">{column.title}</span>

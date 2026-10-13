@@ -5,10 +5,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import type { Role } from '@digimon/contracts'
 import { Avatar, Button, Card, MetricCard, StatusBadge } from '@/components'
 import type { StatusTone } from '@/components'
 import { useProfileViewModel } from '../viewmodel/use-profile-view-model'
+import { DeleteAccountModal } from './delete-account-modal'
 
 const ROLE_LABELS: Record<Role, string> = {
   administrator: 'Administrator',
@@ -45,11 +47,26 @@ function formatJoined(value: Date | string): string {
 }
 
 export function ProfileView() {
-  const { profile, form, isLoading, isSaving, error, saved, updateField, submit } =
-    useProfileViewModel()
+  const {
+    profile,
+    form,
+    isLoading,
+    isSaving,
+    error,
+    saved,
+    updateField,
+    submit,
+    isExportingData,
+    isDeletingAccount,
+    deleteModalOpen,
+    privacyError,
+    downloadMyData,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDeleteAccount
+  } = useProfileViewModel()
   const [tab, setTab] = useState<ProfileTab>('Decks')
   const [editing, setEditing] = useState(false)
-
   if (isLoading) {
     return (
       <div className="mx-auto w-full max-w-[1440px] px-4 py-10 lg:px-12">
@@ -182,6 +199,67 @@ export function ProfileView() {
           </Card>
         )}
       </section>
+
+      <section className="mt-8 flex flex-col gap-4" aria-label="Privacidade e meus dados">
+        <h2 className="font-display text-xl font-bold text-ink">Privacidade e meus dados</h2>
+
+        <Card className="flex flex-col gap-5 p-5 lg:p-7">
+          <div className="flex flex-col gap-1">
+            <h3 className="font-display text-base font-bold text-ink">Baixar meus dados</h3>
+            <p className="text-sm text-ink-soft">
+              Exporta em um arquivo .json tudo o que guardamos sobre você: perfil, comentários,
+              decks, torneios e publicações na comunidade. Direito de portabilidade (LGPD, art. 18).
+            </p>
+          </div>
+          <div>
+            <Button size="sm" onClick={downloadMyData} disabled={isExportingData}>
+              {isExportingData ? 'Preparando…' : 'Baixar meus dados'}
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="flex flex-col gap-5 p-5 lg:p-7">
+          <div className="flex flex-col gap-1">
+            <h3 className="font-display text-base font-bold text-danger">Excluir minha conta</h3>
+            <p className="text-sm text-ink-soft">
+              Desativa a conta e anonimiza seus dados pessoais. O conteúdo que você criou permanece
+              no site como &ldquo;Usuário removido&rdquo;. Ação permanente — direito de eliminação
+              (LGPD, art. 18).
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="dark"
+              size="sm"
+              className="border-danger text-danger hover:border-danger hover:text-danger"
+              onClick={openDeleteModal}
+              disabled={isDeletingAccount}
+            >
+              Excluir conta
+            </Button>
+            <Link
+              href="/privacidade"
+              className="text-[13px] font-semibold text-primary hover:underline"
+            >
+              Ver Política de Privacidade
+            </Link>
+          </div>
+        </Card>
+
+        {privacyError && !deleteModalOpen ? (
+          <p role="alert" className="text-sm text-danger">
+            {privacyError}
+          </p>
+        ) : null}
+      </section>
+
+      <DeleteAccountModal
+        open={deleteModalOpen}
+        isPending={isDeletingAccount}
+        error={privacyError}
+        onConfirm={confirmDeleteAccount}
+        onClose={closeDeleteModal}
+      />
     </div>
   )
 }

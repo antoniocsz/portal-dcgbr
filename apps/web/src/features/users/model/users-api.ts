@@ -2,7 +2,14 @@
 // Repository de users: chamadas à API separada (ADR-007) via @digimon/api-client
 // (envia o cookie httpOnly de sessão). Sem hooks, sem JSX — camada Model.
 import { apiClient } from '@/lib/api-base'
-import type { AssignRoleForm, ListUsersResult, UpdateProfileForm, UserListQuery, UserView } from './types'
+import type {
+  AssignRoleForm,
+  ListUsersResult,
+  UpdateProfileForm,
+  UserDataExport,
+  UserListQuery,
+  UserView
+} from './types'
 
 export const usersApi = {
   getProfile(): Promise<{ user: UserView }> {
@@ -10,6 +17,12 @@ export const usersApi = {
   },
   updateProfile(input: UpdateProfileForm): Promise<{ user: UserView }> {
     return apiClient.patch('/users/me', input)
+  },
+  exportData(): Promise<UserDataExport> {
+    return apiClient.get('/users/me/export')
+  },
+  deleteAccount(): Promise<void> {
+    return apiClient.delete('/users/me')
   },
   listUsers(query: UserListQuery = {}): Promise<ListUsersResult> {
     const params = new URLSearchParams()

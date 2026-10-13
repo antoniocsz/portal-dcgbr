@@ -65,6 +65,7 @@ export class PrismaUserRepository implements UserRepository {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
+        email: user.data.email,
         name: user.data.name,
         avatarUrl: user.data.avatarUrl,
         role: ROLE_TO_PRISMA[user.data.role],

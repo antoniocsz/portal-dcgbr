@@ -12,6 +12,7 @@
 - [x] Rotas API + admin (task 103-backend-ads-routes)
 - [x] Frontend público (`AdSlot` + placements) (task 104-frontend-ads-slot)
 - [x] Admin (CRUD de anúncios) (task 105-frontend-admin-ads)
+- [x] Rota `GET /ads/admin/:id` + impressões anti-bot (task 107-api-ads-get-id-anti-bot)
 
 ## Handoff (task 102)
 - **Feito:** bounded context `@digimon/ads` completo (domínio/use cases/infra/barrel) no padrão de `@digimon/content` e `@digimon/decks`, + schema Prisma e migration.
@@ -79,3 +80,15 @@
   5. **Sem React Hook Form/Zustand**: o projeto (features admin existentes) usa `useState` nos ViewModels — mantida a consistência; validação leve no cliente (o backend revalida com Zod).
 - **Validação:** `pnpm turbo typecheck lint --filter=@digimon/app-web` ✅ (2/2 tasks — 0 erros/0 warnings). `pnpm harness check` ✅. `next build` **não** executado (conforme a task).
 - **Pendências:** nenhuma. `@digimon/ads` **não** foi importado no client (sem mudança de deps).
+
+## Handoff (task 107)
+- **Feito:** pendências 1–2 da revisão do Lote 15 resolvidas em `apps/api/src/routes/ads.ts`.
+  - **`GET /ads/admin/:id`** (administrator) → `AdDTO` (reusa o `serializeAd` existente); **404** se inexistente (via `GetAdUseCase`, que já lança `NotFoundError`), **401** anônimo / **403** sem papel (`requireAdminActor`). Rota estática `/ads/admin` e paramétrica `/ads/admin/:id` coexistem (precedência estática do Fastify). Reusa `GetAdUseCase` que estava composto no container sem rota (use case sem uso → agora exposto).
+  - **Impressões anti-bot:** helper `isBotUserAgent(ua)` (padrão documentado: `bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|preview|headless|curl|wget|python-requests`, case-insensitive) guarda o `incrementImpressions` em `GET /ads` — UA de bot/crawler/preview **não** incrementa; o incremento segue best-effort (try/catch + log, nunca quebra a resposta). Contrato público `GET /ads?placement=` segue `{ ads }`; demais rotas admin inalteradas.
+- **Arquivos:** `apps/api/src/routes/ads.ts` (único arquivo tocado; `apps/api/src/container.ts` estava no escopo mas `get: new GetAdUseCase(repository)` **já** existia desde a task 103 — sem alteração), `context/modules/ads/status.md`.
+- **Decisões:**
+  1. **Helper exportado** (`isBotUserAgent`) com o padrão como constante documentada — testável isoladamente sem DB (o escopo da task não inclui arquivo de teste; a cobertura foi via smoke).
+  2. **Guard só nas impressões** (não no clique): a pendência do Lote 15 é o inflar de `impressions`; `POST /ads/:id/click` exige interação explícita e não é disparado por crawler — mantido como está para não estender escopo.
+  3. **`container.ts` intocado:** o `GetAdUseCase` já era composto (`get`) na task 103; a rota apenas o consome via `adsDeps()`.
+- **Validação:** `pnpm turbo typecheck lint build --filter=@digimon/app-api` ✅ (3/3 tasks — 0 erros/0 warnings). Smoke `app.inject` ✅ (10 asserções): create → 201; `GET /ads/admin/:id` anônimo 401 / member 403 / administrator 200 (`id` confere) / inexistente 404; `GET /ads?placement` 200 `{ ads }`; UA normal incrementa `impressions` (0→1); UA `Googlebot` **não** incrementa (1→1); DELETE 204; contrato público inalterado. Script de smoke temporário removido antes do `harness finish`.
+- **Pendências:** nenhuma neste escopo. Sem mudança de contrato público nem de schema.

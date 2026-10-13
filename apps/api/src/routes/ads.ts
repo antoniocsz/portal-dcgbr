@@ -1,9 +1,10 @@
 // Path: apps/api/src/routes/ads.ts
 // Rotas de anúncios em Fastify — bounded context @digimon/ads (público + admin).
 // Público: serve os anúncios ativos de um placement (janela de datas + rotação por
-// peso) e contabiliza impressões best-effort; o clique é best-effort. Admin: CRUD de
-// curadoria (somente administrator). Erros de domínio (AppError) são traduzidos pelo
-// handler global. Sem `new PrismaClient` aqui — composição no container.
+// peso) e contabiliza impressões best-effort (ignorando bots/crawlers); o clique é
+// best-effort. Admin: leitura por id + CRUD de curadoria (somente administrator).
+// Erros de domínio (AppError) são traduzidos pelo handler global. Sem `new
+// PrismaClient` aqui — composição no container.
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify'
 import type { PaginatedResult } from '@digimon/contracts'
 import { NotFoundError } from '@digimon/contracts'
@@ -19,7 +20,7 @@ import { adsDeps } from '../container'
 import { getAuthContext } from '../plugins/auth'
 
 // --- Composição (DIP): factories centralizadas no container -----------------
-const { repository, list, create, update, remove, trackClick } = adsDeps()
+const { repository, list, get, create, update, remove, trackClick } = adsDeps()
 
 // --- Serialização (Date → ISO) ----------------------------------------------
 interface AdDTO {
@@ -86,6 +87,21 @@ function requireAdminActor(request: FastifyRequest): Actor {
   return { id: context.userId, role: context.role }
 }
 
+// --- Anti-bot (impressões) ---------------------------------------------------
+// Crawlers/previews/prefetch inflariam `impressions` sem exposição real. Padrão
+// documentado: casa User-Agents de bots, previews de redes sociais/mensageiros,
+// clientes de linha de comando e runtimes de automação.
+const BOT_USER_AGENT_PATTERN = new RegExp(
+  'bot|crawl|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegram|' +
+    'preview|headless|curl|wget|python-requests',
+  'i'
+)
+
+/** True quando o User-Agent casa com o padrão de bots/crawlers acima. */
+export function isBotUserAgent(userAgent: string | undefined): boolean {
+  return userAgent !== undefined && BOT_USER_AGENT_PATTERN.test(userAgent)
+}
+
 // --- Query params ------------------------------------------------------------
 /** Teto de anúncios servidos na rotação pública. */
 const MAX_PUBLIC_ADS_LIMIT = 10
@@ -118,10 +134,13 @@ export const adsRoutes: FastifyPluginAsync = async (app) => {
     const ads = result.items
 
     // Best-effort: contabiliza as impressões dos servidos sem falhar a resposta.
-    try {
-      await repository.incrementImpressions(ads.map((ad) => ad.id))
-    } catch (error) {
-      request.log.warn({ err: error }, 'falha ao contabilizar impressões de anúncios')
+    // Bots/crawlers/previews não contam — não houve exposição real.
+    if (!isBotUserAgent(request.headers['user-agent'])) {
+      try {
+        await repository.incrementImpressions(ads.map((ad) => ad.id))
+      } catch (error) {
+        request.log.warn({ err: error }, 'falha ao contabilizar impressões de anúncios')
+      }
     }
 
     return reply.send({ ads: ads.map(serializeAd) })
@@ -144,6 +163,13 @@ export const adsRoutes: FastifyPluginAsync = async (app) => {
     const input = listAdsSchema.parse(raw)
     const result = await list.execute({ input, actor })
     return reply.send(serializeList(result))
+  })
+
+  // GET /ads/admin/:id — curadoria: leitura por id (administrator) → ad; 404 se ausente.
+  app.get<{ Params: { id: string } }>('/ads/admin/:id', async (request, reply) => {
+    const actor = requireAdminActor(request)
+    const ad = await get.execute({ actor, id: request.params.id })
+    return reply.send(serializeAd(ad))
   })
 
   // POST /ads/admin — cria anúncio (administrator) → 201; validação Zod no use case.

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Sora } from 'next/font/google'
+import { ConsentBanner } from '@/components/consent-banner'
 import { SiteChrome } from '@/components/site-chrome'
 import { Providers } from './providers'
 import './globals.css'
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-bg font-body text-ink antialiased">
         <Providers>
           <SiteChrome>{children}</SiteChrome>
+          <ConsentBanner />
         </Providers>
       </body>
     </html>

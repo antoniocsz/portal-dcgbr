@@ -1,7 +1,16 @@
 // Path: packages/modules/users/src/testing/fakes.ts
-// Repositório de usuários in-memory para testes unitários (LSP).
+// Fakes in-memory para testes unitários (LSP): repositório de usuários, provedor
+// de atividade do titular e revogador de sessões.
 import type { PaginatedResult, Role } from '@digimon/contracts'
 import type { UserRepository, ListUsersParams } from '../domain/repositories/user-repository'
+import type {
+  UserActivityProvider,
+  UserCommentRecord,
+  UserCommunityDeckRecord,
+  UserDeckRecord,
+  UserTournamentRecord
+} from '../domain/repositories/user-activity-provider'
+import type { SessionTokenRevoker } from '../domain/repositories/session-token-revoker'
 import type { CreateUserData } from '../domain/entities/user'
 import { User } from '../domain/entities/user'
 
@@ -60,5 +69,38 @@ export class InMemoryUserRepository implements UserRepository {
       page,
       pageSize
     }
+  }
+}
+
+/** Provedor de atividade in-memory — dados por usuário (chave = userId). */
+export class InMemoryUserActivityProvider implements UserActivityProvider {
+  comments = new Map<string, UserCommentRecord[]>()
+  decks = new Map<string, UserDeckRecord[]>()
+  tournaments = new Map<string, UserTournamentRecord[]>()
+  communityDecks = new Map<string, UserCommunityDeckRecord[]>()
+
+  async listComments(authorId: string): Promise<UserCommentRecord[]> {
+    return this.comments.get(authorId) ?? []
+  }
+
+  async listDecks(ownerId: string): Promise<UserDeckRecord[]> {
+    return this.decks.get(ownerId) ?? []
+  }
+
+  async listTournaments(organizerId: string): Promise<UserTournamentRecord[]> {
+    return this.tournaments.get(organizerId) ?? []
+  }
+
+  async listCommunityDecks(accountId: string): Promise<UserCommunityDeckRecord[]> {
+    return this.communityDecks.get(accountId) ?? []
+  }
+}
+
+/** Revogador de sessões in-memory — registra quem teve tokens revogados. */
+export class InMemorySessionTokenRevoker implements SessionTokenRevoker {
+  readonly revoked: string[] = []
+
+  async revokeAllForUser(userId: string): Promise<void> {
+    this.revoked.push(userId)
   }
 }
