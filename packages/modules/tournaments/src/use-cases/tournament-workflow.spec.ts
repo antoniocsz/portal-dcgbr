@@ -320,6 +320,52 @@ describe('ListTournamentsUseCase — agenda', () => {
     expect(other.total).toBe(0)
     expect(await repo.findBySlug('torneio-sp-standard')).not.toBeNull()
   })
+
+  it('público pedindo finished recebe finalizados (some da agenda ao finalizar)', async () => {
+    const { list, addResults } = await seed()
+    await addResults.execute({
+      actor: member,
+      slug: 'torneio-sp-standard',
+      input: { results: [{ position: 1, player: 'Ana' }] }
+    })
+
+    const result = await list.execute({ input: { status: 'finished' } })
+    expect(result.items.map((t) => t.data.name)).toEqual(['Torneio SP Standard'])
+    expect(result.items.map((t) => t.status)).toEqual(['finished'])
+  })
+
+  it('público pedindo cancelled não vaza cancelados (cai no default published)', async () => {
+    const { list, cancel } = await seed()
+    await cancel.execute({ actor: member, slug: 'torneio-sp-standard' })
+
+    const result = await list.execute({ input: { status: 'cancelled' } })
+    expect(result.total).toBe(2)
+    expect(result.items.every((t) => t.status === 'published')).toBe(true)
+    expect(result.items.some((t) => t.status === 'cancelled')).toBe(false)
+  })
+
+  it('público sem status usa default published (cancelled e finished ficam de fora)', async () => {
+    const { list, cancel, addResults } = await seed()
+    await cancel.execute({ actor: member, slug: 'torneio-sp-standard' })
+    await addResults.execute({
+      actor: member,
+      slug: 'torneio-rj-draft',
+      input: { results: [{ position: 1, player: 'Bruno' }] }
+    })
+
+    const result = await list.execute({ input: {} })
+    expect(result.items.map((t) => t.data.name)).toEqual(['Torneio SP Futuro'])
+    expect(result.items.every((t) => t.status === 'published')).toBe(true)
+  })
+
+  it('Admin/Editor filtram por qualquer status (incl. cancelled)', async () => {
+    const { list, cancel } = await seed()
+    await cancel.execute({ actor: member, slug: 'torneio-sp-standard' })
+
+    const result = await list.execute({ input: { status: 'cancelled' }, actor: editor })
+    expect(result.items.map((t) => t.status)).toEqual(['cancelled'])
+    expect(result.items.map((t) => t.data.name)).toEqual(['Torneio SP Standard'])
+  })
 })
 
 describe('GetTournamentUseCase — leitura pública', () => {

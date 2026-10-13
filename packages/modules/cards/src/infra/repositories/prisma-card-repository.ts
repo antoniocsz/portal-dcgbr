@@ -1,7 +1,12 @@
 // Path: packages/modules/cards/src/infra/repositories/prisma-card-repository.ts
 // Implementação Prisma de CardRepository. Mapeia enums do Prisma (UPPER_CASE)
 // para as unions do domínio (lower-case). Busca full-text via to_tsvector/@@
-// plainto_tsquery (ADR-003) — índice GIN "cards_search_idx" criado na migration.
+// plainto_tsquery (ADR-003) — índice GIN "cards_search_idx" criado na migration —
+// combinada com match por código da carta (`number`, ex. "BT1-001") e da coleção
+// (`setCode`, ex. "BT1"). O match de código é normalizado (minúsculas, sem
+// hífen/espaço: "BT1-001" ≡ "BT1 001" ≡ "bt1001") e tem prioridade sobre o rank
+// textual. A expressão do to_tsvector permanece idêntica à do índice (sem
+// migration nova); o match de código é um OR que não usa o índice GIN.
 import {
   PrismaClient,
   Prisma,
@@ -50,6 +55,17 @@ const COLOR_FROM_PRISMA: Record<PrismaCardColor, CardColor> = {
   PURPLE: 'purple',
   BLACK: 'black',
   WHITE: 'white'
+}
+
+// Normaliza códigos (number/setCode) para comparação: minúsculas e sem
+// separadores — "BT1-001" ≡ "BT1 001" ≡ "bt1001". `SQL_CODE_SEPARATORS` é a
+// mesma regra em regex do Postgres (usada nos regexp_replace da query) — mantenha
+// as duas em sincronia.
+const CODE_SEPARATORS = /[\s-]+/g
+const SQL_CODE_SEPARATORS = '[\\s-]'
+
+function normalizeCode(value: string): string {
+  return value.toLowerCase().replace(CODE_SEPARATORS, '')
 }
 
 type CardRow = Prisma.CardGetPayload<object>
@@ -158,14 +174,41 @@ export class PrismaCardRepository implements CardRepository {
       return { items: rows.map(mapToDomain), total, page, pageSize }
     }
 
+    // Match textual (nome/efeito) OU de código (number/setCode) normalizado.
+    // Prioridade: número exato > número por prefixo > setCode exato > setCode por
+    // prefixo > apenas textual (ts_rank). Empate de prioridade: rank textual e,
+    // por fim, número crescente (ordenação determinística).
+    const normalized = normalizeCode(search)
     const matches = await this.db.$queryRaw<{ id: string }[]>`
       SELECT "id" FROM "cards"
-      WHERE to_tsvector('simple', "name" || ' ' || coalesce("effects", ''))
-        @@ plainto_tsquery('simple', ${search})
-      ORDER BY ts_rank(
-        to_tsvector('simple', "name" || ' ' || coalesce("effects", '')),
-        plainto_tsquery('simple', ${search})
-      ) DESC
+      WHERE (
+        to_tsvector('simple', "name" || ' ' || coalesce("effects", ''))
+          @@ plainto_tsquery('simple', ${search})
+        OR (
+          ${normalized} <> ''
+          AND regexp_replace(lower("number"), ${SQL_CODE_SEPARATORS}, '', 'g')
+            LIKE ${normalized} || '%'
+        )
+        OR (
+          ${normalized} <> ''
+          AND regexp_replace(lower(coalesce("setCode", '')), ${SQL_CODE_SEPARATORS}, '', 'g')
+            LIKE ${normalized} || '%'
+        )
+      )
+      ORDER BY
+        CASE
+          WHEN ${normalized} = '' THEN 4
+          WHEN regexp_replace(lower("number"), ${SQL_CODE_SEPARATORS}, '', 'g') = ${normalized} THEN 0
+          WHEN regexp_replace(lower("number"), ${SQL_CODE_SEPARATORS}, '', 'g') LIKE ${normalized} || '%' THEN 1
+          WHEN regexp_replace(lower(coalesce("setCode", '')), ${SQL_CODE_SEPARATORS}, '', 'g') = ${normalized} THEN 2
+          WHEN regexp_replace(lower(coalesce("setCode", '')), ${SQL_CODE_SEPARATORS}, '', 'g') LIKE ${normalized} || '%' THEN 3
+          ELSE 4
+        END ASC,
+        ts_rank(
+          to_tsvector('simple', "name" || ' ' || coalesce("effects", '')),
+          plainto_tsquery('simple', ${search})
+        ) DESC,
+        "number" ASC
       LIMIT 1000
     `
     const ids = matches.map((match) => match.id)

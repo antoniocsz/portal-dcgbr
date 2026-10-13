@@ -1,7 +1,8 @@
 // Path: packages/modules/cards/src/test/cards.integration.spec.ts
 // Testes de INTEGRAÇÃO do @digimon/cards contra um Postgres real: full-text
-// (to_tsvector/plainto_tsquery + índice GIN cards_search_idx), filtros
-// combinados, faixa de custo (task 82) e upsert (dcgId / card_sets).
+// (to_tsvector/plainto_tsquery + índice GIN cards_search_idx), busca por código
+// da carta/coleção (number/setCode, task 137), filtros combinados, faixa de
+// custo (task 82) e upsert (dcgId / card_sets).
 //
 // Gated por TEST_DATABASE_URL — sem a env a suíte é PULADA (CI sem DB segue
 // verde). Ver o cabeçalho de `./integration-db.ts` para o passo a passo.
@@ -110,6 +111,76 @@ describe.skipIf(!hasTestDatabase)('@digimon/cards — integração Postgres', ()
       await seedCatalog()
       const result = await cards.search({ search: 'digivolving' })
       expect(result.items.map((card) => card.dcgId)).toEqual(['DCG-002'])
+    })
+  })
+
+  describe('busca por código (number / setCode)', () => {
+    // Fixtures próprias: além das cartas cujo número começa pelo código do set
+    // (BT1-xxx), há a promo "P-001" com `setCode: 'BT1'` — exercita o match por
+    // setCode isolado do match por prefixo de número.
+    async function seedCodes(): Promise<void> {
+      await cards.create(
+        makeCard('card-bt1-001', 'DCG-101', 'Agumon', 'BT1-001', { setCode: 'BT1', playCost: 3 })
+      )
+      await cards.create(
+        makeCard('card-bt1-002', 'DCG-102', 'Greymon', 'BT1-002', { setCode: 'BT1', playCost: 5 })
+      )
+      await cards.create(
+        makeCard('card-bt2-100', 'DCG-103', 'Hammer Spark', 'BT2-100', {
+          type: 'option',
+          colors: ['blue'],
+          setCode: 'BT2',
+          playCost: 2,
+          effects: 'Return 1 card to the hand.'
+        })
+      )
+      await cards.create(
+        makeCard('card-promo', 'DCG-104', 'Promo Palmon', 'P-001', { setCode: 'BT1' })
+      )
+    }
+
+    it('encontra por número exato (BT1-001)', async () => {
+      await seedCodes()
+      const result = await cards.search({ search: 'BT1-001' })
+      expect(result.items.map((card) => card.dcgId)).toEqual(['DCG-101'])
+      expect(result.total).toBe(1)
+    })
+
+    it('normaliza hífen/espaço e caixa (BT1 001 e bt1001 ≡ BT1-001)', async () => {
+      await seedCodes()
+      const spaced = await cards.search({ search: 'BT1 001' })
+      const compact = await cards.search({ search: 'bt1001' })
+      expect(spaced.items.map((card) => card.dcgId)).toEqual(['DCG-101'])
+      expect(compact.items.map((card) => card.dcgId)).toEqual(['DCG-101'])
+    })
+
+    it('encontra por setCode (BT1 retorna todas as cartas do set)', async () => {
+      await seedCodes()
+      const result = await cards.search({ search: 'BT1' })
+      expect(result.items.map((card) => card.dcgId).sort()).toEqual([
+        'DCG-101',
+        'DCG-102',
+        'DCG-104'
+      ])
+      expect(result.total).toBe(3)
+    })
+
+    it('prioriza o match de código sobre o match textual', async () => {
+      await seedCodes()
+      // O nome desta carta casa textualmente com "BT1001", mas o número é EX9-001.
+      await cards.create(
+        makeCard('card-named', 'DCG-201', 'BT1001 Dragon', 'EX9-001', { setCode: 'EX9' })
+      )
+      const result = await cards.search({ search: 'BT1001' })
+      expect(result.items.map((card) => card.dcgId)).toEqual(['DCG-101', 'DCG-201'])
+    })
+
+    it('não regride a busca textual por nome/efeito', async () => {
+      await seedCodes()
+      const byName = await cards.search({ search: 'greymon' })
+      expect(byName.items.map((card) => card.dcgId)).toEqual(['DCG-102'])
+      const byEffect = await cards.search({ search: 'hand' })
+      expect(byEffect.items.map((card) => card.dcgId)).toEqual(['DCG-103'])
     })
   })
 

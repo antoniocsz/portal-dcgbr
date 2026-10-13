@@ -1,9 +1,9 @@
 // Path: apps/web/src/features/tournaments/views/tournaments-list-view.tsx
-// View da agenda de torneios: filtros por status (Todos/Próximos/Finalizados/
-// Cancelados), lista com date box + status (TournamentCard do design system) e
-// ação opcional no cabeçalho (ex: "+ Publicar torneio"). Estados de
-// loading/erro/vazio. Nota: a API pública só expõe torneios publicados — o
-// filtro por status tem efeito real para Admin/Editor e em "meus torneios".
+// View da agenda de torneios: abas Todos · Próximos · Finalizados (e Cancelados
+// apenas em "meus torneios"), lista com date box + status (TournamentCard do
+// design system) e ação opcional no cabeçalho (ex: "+ Publicar torneio").
+// Cada aba traduz para ListTournamentsParams reais no ViewModel:
+//   Todos → sem status/from; Próximos → published + from=<hoje>; Finalizados → finished.
 'use client'
 
 import Link from 'next/link'
@@ -16,15 +16,47 @@ import { toTournamentCardData } from '../viewmodels/tournament-view'
 import { useTournamentList } from '../viewmodels/use-tournament-list'
 import type { ListTournamentsParams } from '../viewmodels/use-tournament-list'
 
-const STATUS_FILTERS: { value?: TournamentStatus; label: string }[] = [
-  { label: 'Todos' },
-  { value: 'published', label: 'Próximos' },
-  { value: 'finished', label: 'Finalizados' },
-  { value: 'cancelled', label: 'Cancelados' }
-]
+type TournamentTabKey = 'all' | 'upcoming' | 'finished' | 'cancelled'
+
+interface TournamentTab {
+  key: TournamentTabKey
+  label: string
+  href: string
+  active: boolean
+}
+
+function isoToday(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function resolveTabKey(status: TournamentStatus | undefined, mine: boolean): TournamentTabKey {
+  if (status === 'finished') return 'finished'
+  if (status === 'cancelled') return mine ? 'cancelled' : 'all'
+  if (status === 'published') return 'upcoming'
+  return 'all'
+}
+
+function tabParams(
+  key: TournamentTabKey,
+  from: string | undefined,
+  today: string
+): ListTournamentsParams {
+  switch (key) {
+    case 'upcoming':
+      return { status: 'published', from: from ?? today }
+    case 'finished':
+      return { status: 'finished' }
+    case 'cancelled':
+      return { status: 'cancelled' }
+    default:
+      return {}
+  }
+}
 
 export interface TournamentsListViewProps {
   status?: TournamentStatus
+  from?: string
+  today?: string
   mine?: boolean
   title?: string
   description?: string
@@ -35,6 +67,8 @@ export interface TournamentsListViewProps {
 
 export function TournamentsListView({
   status,
+  from,
+  today = isoToday(),
   mine = false,
   title = 'Torneios',
   description =
@@ -44,8 +78,36 @@ export function TournamentsListView({
   headerAction
 }: TournamentsListViewProps) {
   const pathname = usePathname()
-  const params: ListTournamentsParams = { mine, pageSize }
-  if (status) params.status = status
+
+  const tabs: TournamentTab[] = [
+    { key: 'all', label: 'Todos', href: pathname, active: !status },
+    {
+      key: 'upcoming',
+      label: 'Próximos',
+      href: `${pathname}?status=published&from=${today}`,
+      active: status === 'published'
+    },
+    {
+      key: 'finished',
+      label: 'Finalizados',
+      href: `${pathname}?status=finished`,
+      active: status === 'finished'
+    }
+  ]
+  if (mine) {
+    tabs.push({
+      key: 'cancelled',
+      label: 'Cancelados',
+      href: `${pathname}?status=cancelled`,
+      active: status === 'cancelled'
+    })
+  }
+
+  const params: ListTournamentsParams = {
+    mine,
+    pageSize,
+    ...tabParams(resolveTabKey(status, mine), from, today)
+  }
   const { tournaments, total, isLoading, isError, refetch } = useTournamentList(params)
 
   return (
@@ -62,23 +124,19 @@ export function TournamentsListView({
 
       <nav className="flex flex-wrap items-center gap-3 pb-8" aria-label="Filtrar por status">
         <span className="text-[13px] font-bold text-ink">Filtrar:</span>
-        {STATUS_FILTERS.map((filter) => {
-          const active = filter.value === status
-          const href = filter.value ? `${pathname}?status=${filter.value}` : pathname
-          return (
-            <Link
-              key={filter.label}
-              href={href}
-              aria-current={active ? 'page' : undefined}
-              className={cn(
-                'px-3.5 py-2 text-[13px] font-semibold transition-colors',
-                active ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
-              )}
-            >
-              {filter.label}
-            </Link>
-          )
-        })}
+        {tabs.map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.href}
+            aria-current={tab.active ? 'page' : undefined}
+            className={cn(
+              'px-3.5 py-2 text-[13px] font-semibold transition-colors',
+              tab.active ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
+            )}
+          >
+            {tab.label}
+          </Link>
+        ))}
       </nav>
 
       <p className="pb-4 text-[13px] text-ink-faint" aria-live="polite">

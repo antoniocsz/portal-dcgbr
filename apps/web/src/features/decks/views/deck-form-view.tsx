@@ -538,7 +538,7 @@ export function DeckFormView({ mode = 'create', slug, submitLabel, onSuccess }: 
                       applySearch()
                     }
                   }}
-                  placeholder="Nome ou efeito (ex: Agumon, explosão)…"
+                  placeholder="Nome, efeito ou código (ex: Agumon, BT1-001, BT1)…"
                   aria-label="Buscar cartas do catálogo"
                   className="h-9 min-w-0 flex-1 border border-border bg-surface-2 px-3 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-primary"
                 />

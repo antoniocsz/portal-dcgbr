@@ -139,3 +139,32 @@
 ### Pendências/fora do escopo (reportar)
 - Validação SSR/`next build` não executada (a task pediu explicitamente só `typecheck lint`).
 - `(member)/torneios/novo` continua com `AuthShell` (card estreito) — o editor usa container largo; divergência de layout entre criar/editar, aceita por ora.
+
+## Fase 3 — Agenda pública honra status (published/finished), nunca cancelled (task 135)
+- [x] `ListTournamentsUseCase`: público aceita `published` **ou** `finished` quando pedido; qualquer outro (incl. `cancelled`/ausente) → `published`
+- [x] `mine` (dono vê qualquer status) e Admin/Editor (qualquer status) inalterados
+- [x] `cancelled` nunca vaza ao público
+- [x] Testes: `tournament-workflow.spec.ts` — 16 → 20 (finished, cancelled não vaza, default, manager filtra any status)
+- [x] `pnpm --filter @digimon/tournaments test` ✅ 20 passed
+- [x] `pnpm turbo typecheck --filter=@digimon/tournaments --filter=@digimon/app-api` ✅ (2/2); `--concurrency=1` ✅ 14/14
+
+## Handoff (task 135)
+### Feito
+- Corrigido o filtro de status da agenda não-editorial. Antes o branch `else` forçava `status: 'published'`
+  e ignorava o pedido → `?status=finished` não funcionava e torneio sumia da agenda ao virar `finished`.
+  Agora: público pede `published`/`finished` → honra; `cancelled`/ausente/qualquer outro → `published`.
+- Regra do domínio preservada (`Tournament.isPublic` = published || finished); `cancelled` jamais exposto.
+
+### Arquivos
+- `packages/modules/tournaments/src/use-cases/list-tournaments.ts`
+- `packages/modules/tournaments/src/use-cases/tournament-workflow.spec.ts`
+- `context/modules/tournaments/status.md`
+
+### Decisões
+- Default público permanece `published` (sem status pedido não passa a listar `finished`, evitando mudar a
+  semântica das abas "Próximos").
+- Admin/Editor mantêm `parsed.status ?? 'published'` (qualquer status; default published) — comportamento intacto.
+
+### Pendências/fora do escopo (reportar)
+- `pnpm turbo typecheck` completo em paralelo (concorrência default) crashou com exit 134 em `@digimon/decks`/`@digimon/auth` — crash de recurso do V8 no Windows, **pré-existente e não relacionado**; standalone e `--concurrency=1` passam (14/14).
+- UI das abas (task 136) é outro escopo; consome o contrato agora corrigido.

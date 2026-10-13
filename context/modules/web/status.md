@@ -1077,3 +1077,34 @@
 - **Decisões:** (1) `queryKey` estável `['tournaments', { home: true }]` (conforme spec) — o `from` (hoje ISO) é calculado dentro do `queryFn` para não invalidar o cache a cada render. (2) Reuso de `toTournamentCardData` sem recriar mapeador; tipo retornado é exatamente `TournamentCardData[]`. (3) Seção só aparece quando há torneios (ou durante o loading, com skeleton); em erro ou lista vazia é **ocultada** — sem placeholder falso. (4) Skeleton local discreto (3 cards com `animate-pulse`) espelhando o layout real do `TournamentCard`. (5) Seção inserida após "Últimas notícias" e antes do ad `home-infeed` — mantém as demais seções intactas.
 - **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros); `pnpm turbo lint --filter=@digimon/app-web` ✅ (0 erros). `next build`/smoke de runtime não executados (instrução da task limitou-se ao typecheck).
 - **Fora do escopo (reportar):** nenhum. `features/tournaments/**`, `components/**`, `apps/api/**` e `packages/**` apenas consumidos/lidos — não editados.
+
+## Fase 49 — Texto de ajuda da busca de cartas (código da carta/coleção) (task 138)
+- [x] `deck-form-view.tsx`: placeholder do input de busca do deck builder atualizado para `"Nome, efeito ou código (ex: Agumon, BT1-001, BT1)…"` — deixa explícito que aceita nome, efeito, **código da carta** (`BT1-001`) e **código da coleção** (`BT1`)
+- [x] `card-filters.tsx`: placeholder equivalente da listagem `/cartas` alinhado para `"Buscar por nome, efeito ou código (ex: Agumon, BT1-001, BT1)…"` (mesma UX/consistência)
+- [x] `aria-label` preservado nos dois inputs (`"Buscar cartas do catálogo"` / `"Buscar cartas"`); sem mudança de lógica, layout, filtros select ou busca backend (o termo continua indo para `search`)
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1; `tsc --noEmit` EXIT 0)
+- [x] `git diff` restrito ao `## Escopo` (2 arquivos) + `context/modules/web/status.md`
+
+## Handoff (task 138)
+- **Feito:** ajuste de texto/UX nos dois pontos de busca de cartas para comunicar que a busca também aceita **código da carta** (`BT1-001`) e **código da coleção** (`BT1`), além de nome e efeito. A funcionalidade da busca por código é habilitada pela task 137 (backend, concorrente) — aqui é apenas o texto de ajuda.
+- **Arquivos:** `apps/web/src/features/decks/views/deck-form-view.tsx`, `apps/web/src/features/cards/views/card-filters.tsx` + `context/modules/web/status.md`.
+- **Decisões:** (1) Manter os `aria-label` existentes intactos (o placeholder é complementar, não o único rótulo — Nielsen 6). (2) Texto único e simétrico nos dois inputs para consistência (Nielsen 4). (3) Nenhuma alteração de lógica/layout: o valor continua sendo aplicado em `search` (`applySearch`/`onSubmit`).
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `next build`/lint não executados (instrução da task limitou-se ao typecheck).
+- **Fora do escopo (reportar):** nenhum. Views/`use-card-search.ts`/`use-deck-form.ts`/`card-filters` lógica e rotas API intocados; nenhum outro arquivo de código tocado.
+
+## Fase 50 — `/torneios`: filtros funcionais (Todos/Próximos/Finalizados, sem Cancelados) (task 136)
+- [x] `tournaments-list-view.tsx`: abas **Todos · Próximos · Finalizados** (sem Cancelados) e **+ Cancelados só quando `mine`**; cada aba traduz para `ListTournamentsParams` reais via `resolveTabKey`/`tabParams` — Todos → `{}` (sem status/from); Próximos → `{ status: 'published', from: <hoje ISO> }`; Finalizados → `{ status: 'finished' }`; Cancelados (mine) → `{ status: 'cancelled' }`
+- [x] Hrefs das abas carregam a query concreta (`?status=published&from=<hoje>`, `?status=finished`) — Próximos passa a diferir de Todos (antes ambos resolviam para `published` sem `from`)
+- [x] `today` recebido como prop (calculado no server component) para o href/`from` serem determinísticos — evita mismatch de hidratação por fuso
+- [x] `page.tsx`: parse de `searchParams` `status`/`from` para os params do VM; `VALID_STATUSES` agora `['published','finished']` (cancelled nunca aceito no público — cai em Todos)
+- [x] `metadata.description` sem menção a "cancelados" → "próximos e finalizados"; `canonical: '/torneios'` preservado
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1, `tsc --noEmit` EXIT 0) | eslint dos 2 arquivos ✅ (0 erros/warnings)
+- [x] `git diff` restrito ao `## Escopo` + `context/modules/web/status.md`
+
+## Handoff (task 136)
+- **Feito:** as abas da agenda pública `/torneios` passam a produzir parâmetros distintos e reais no ViewModel. **Próximos** agora envia `status: published` + `from: <hoje ISO>` (antes era idêntico a Todos); **Finalizados** envia `status: finished`; **Todos** não envia status/from (o backend default é `published`); **Cancelados** deixou de existir na agenda pública e só aparece quando `mine`. O `from` chega ao `tournamentsApi.listTournaments` porque a View o inclui no objeto de params (o Model `buildQuery` já serializa `from`).
+- **Arquivos:** `apps/web/src/features/tournaments/views/tournaments-list-view.tsx`, `apps/web/src/app/(public)/torneios/page.tsx` + `context/modules/web/status.md`. (`use-tournament-list.ts` estava no escopo mas **não exigiu mudança** — já encaminha `params` intacto ao Model; evitei alteração especulativa.)
+- **Decisões:** (1) Mapeamento aba→params em funções puras (`resolveTabKey`, `tabParams`) — o VM/Model continuam agnósticos; a View é a única fonte do filtro. (2) `today` como prop do server component para o `from`/href não dependerem do relógio do client (hidratação/SEO). (3) `VALID_STATUSES` público reduzido a `published|finished`; `?status=cancelled` cai em Todos (nunca vaza cancelado). (4) Aba ativa derivada do `status` (Todos = sem status; published = Próximos; finished = Finalizados; cancelled = Cancelados quando mine). (5) `from` da URL prevalece sobre o default `hoje` (deep-link), mas a aba Próximos sempre gera `from=<hoje>`.
+- **Contrato consumido:** `GET /tournaments` público aceita `status`/`from`; a task 135 (backend, concorrente) habilita `status=finished` para o público. `cancelled` nunca aparece para o visitante.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1, EXIT 0); eslint dos arquivos tocados ✅ (0 erros/warnings).
+- **Fora do escopo (reportar):** nenhum. Renderização dos cards, demais telas e `components/**` intocados; `from` já suportado pelo Model (`ListTournamentsParams`/`buildQuery`).

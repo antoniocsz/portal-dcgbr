@@ -91,7 +91,7 @@ export function CardFilters({ filters, onChange }: CardFiltersProps) {
           type="search"
           name="search"
           defaultValue={filters.search ?? ''}
-          placeholder="Buscar por nome ou efeito…"
+          placeholder="Buscar por nome, efeito ou código (ex: Agumon, BT1-001, BT1)…"
           className="w-full border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-primary"
           aria-label="Buscar cartas"
         />

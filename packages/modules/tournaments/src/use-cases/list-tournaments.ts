@@ -1,6 +1,7 @@
 // Path: packages/modules/tournaments/src/use-cases/list-tournaments.ts
-// Agenda paginada. Público: força status published (nunca vaza cancelados).
-// Admin/Editor: podem filtrar por qualquer status.
+// Agenda paginada. Público: aceita published ou finished quando pedido; qualquer
+// outro valor (incl. cancelled/ausente) cai no default published — cancelados
+// nunca vazam ao público. Admin/Editor: filtram por qualquer status.
 // `mine`: lista os torneios do próprio ator (qualquer status) — /me/tournaments.
 import type { PaginatedResult } from '@digimon/contracts'
 import { UnauthorizedError } from '@digimon/contracts'
@@ -38,7 +39,12 @@ export class ListTournamentsUseCase {
       if (parsed.status) params.status = parsed.status
     } else {
       const editorial = isManager(command.actor ?? null)
-      params.status = editorial ? parsed.status ?? 'published' : 'published'
+      if (editorial) {
+        params.status = parsed.status ?? 'published'
+      } else {
+        params.status =
+          parsed.status === 'finished' || parsed.status === 'published' ? parsed.status : 'published'
+      }
     }
 
     return this.repo.list(params)
