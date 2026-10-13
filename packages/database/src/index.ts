@@ -36,7 +36,6 @@ export type {
   PublicDeck,
   PublicDeckLike,
   PublicDeckCopy,
-  CommunityDeckReport,
   Card,
   CardSet,
   Ad,

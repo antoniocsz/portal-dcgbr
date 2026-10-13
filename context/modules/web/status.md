@@ -919,3 +919,79 @@
 - **Decisões:** (1) Opção preferida da task: recorte do "DCG" (não a logo inteira) — remove o "BRASIL" e mantém o mark legível no quadrado. (2) Composição a partir de **um master 512** e downscale para 180/32 (não recompor em cada tamanho) — garante o mesmo enquadramento e nitidez. (3) `Image.alpha_composite` do mark recortado sobre o navy preserva o anti-aliasing das bordas (sem halo). (4) `favicon.ico` gravado a partir do master reduzido (`sizes=[(32,32)]`). Nenhum código/config foi alterado — só assets, como especificado.
 - **Validação:** conferência PIL (dimensões/formato/modo; mark bbox 30..480 × 193..317; centros em 255) + build de produção do Next registrando os ícones.
 - **Fora do escopo (reportar):** nenhum. As 3 imagens são assets novos em `src/app/`; `public/dcg-logo.png`, `next.config.ts` e `layout.tsx` permanecem intactos.
+
+## Fase 40 — Padding da tela admin de configurações (task 123)
+- [x] `site-settings-view.tsx`: wrapper raiz com `p-4 lg:p-8` adicionado — `className="flex flex-col gap-6 p-4 lg:p-8"`, idêntico às demais views do painel (users, tournaments, cards, ads, decks, deck-moderation, comments, data-requests, posts, dashboard)
+- [x] Sem mudança de comportamento: `gap-6`, `max-w-2xl` do `<article>` e toda a lógica/estilos preservados (apenas o padding do contêiner raiz)
+- [x] MVVM intacto: View só JSX (nenhum hook/fetch tocado)
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1; `tsc --noEmit` EXIT 0)
+- [x] `git diff` restrito ao `## Escopo` (1 arquivo, 1 inserção / 1 remoção)
+
+## Handoff (task 123)
+- **Feito:** a tela `/admin/configuracoes` (`SiteSettingsView`) deixa de ficar sem padding próprio. O wrapper raiz passou de `flex flex-col gap-6` para `flex flex-col gap-6 p-4 lg:p-8`, igual ao `admin/layout.tsx` (`<main className="flex-1">` sem padding) → cada view aplica seu próprio espaçamento. Agora a tela fica alinhada às demais do painel.
+- **Arquivos:** `apps/web/src/features/admin/views/site-settings-view.tsx` (único arquivo tocado) + `context/modules/web/status.md`.
+- **Decisões:** seguir exatamente o padrão das outras views (`p-4 lg:p-8`) em vez de mover o padding para o layout — consistente com a arquitetura atual (layout sem padding, views com padding próprio), evitando regressão nas demais telas.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `git diff` confinado ao `## Escopo` (1 linha). `next build`/lint não executados (mudança somente de classe utilitária; instrução da task limitou-se ao typecheck).
+- **Fora do escopo (reportar):** nenhum. `apps/web/src/app/admin/layout.tsx`, demais views, `components/**`, `apps/api/**` e `packages/**` intocados.
+
+## Fase 41 — Anúncios (admin): filtros de botões para selects (task 125)
+- [x] `admin-ads-view.tsx`: os 3 filtros (status/tipo/posição) deixam de ser lista de botões e passam a `<select>` rotulados (`htmlFor`/`id`) num container `flex flex-wrap items-end gap-4` (padrão de `card-filters.tsx`)
+- [x] Reaproveitadas as opções `STATUS_FILTERS`/`KIND_FILTERS`/`PLACEMENT_FILTERS`, os callbacks `vm.selectStatus`/`vm.selectKind`/`vm.selectPlacement` e a classe `INPUT_CLASS` já existente
+- [x] Removidos o componente `FilterGroup` e o tipo `FilterGroupProps` (sem uso); ViewModel/formulário/tabela intocados
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1, `--force`)
+- [x] `git diff` restrito ao `## Escopo`
+
+## Handoff (task 125)
+- **Feito:** os filtros de status, tipo e posição da tela `/admin/anuncios` viraram `<select>` acessíveis (rótulo associado via `htmlFor`/`id`), alinhados ao padrão de filtros do catálogo de cartas (`card-filters.tsx`). Sem mudança de lógica: os selects apenas chamam os mesmos callbacks do ViewModel, que seguem resetando a página.
+- **Arquivos:** `apps/web/src/features/admin/views/admin-ads-view.tsx` (único arquivo de código) + `context/modules/web/status.md`.
+- **Decisões:** manter `INPUT_CLASS` (h-10, `surface-2`) e o rótulo `text-[12px] font-bold text-ink-faint` do `card-filters.tsx` para consistência visual; `FilterGroup`/`FilterGroupProps` removidos por ficarem órfãos.
+- **Fora do escopo (reportar):** o `pnpm turbo typecheck` inicial falhou por `TS6053` (3 arquivos "not found") referentes às deleções em andamento da **task 124** (`demo-data.ts`, `use-admin-moderation-view-model.ts`, `moderation-queue.tsx`); a causa era um `apps/web/tsconfig.tsbuildinfo` (cache git-ignored) desatualizado, não o código desta task. Limpei o cache (regenerado) e o typecheck forçado passou 1/1. Nenhum arquivo da task 124 foi tocado.
+
+## Fase 41 — Admin: remover moderação de comentários hardcoded (task 124)
+- [x] `admin-dashboard-view.tsx` (Home): removidos o import de `ModerationQueue`/`useAdminModerationViewModel`, a chamada do VM e o bloco `<ModerationQueue ... />` — mantidos cabeçalho, métricas e tabela de posts (API)
+- [x] `admin-comments-view.tsx`: removidos o import de `ModerationQueue`/`useAdminModerationViewModel`, a chamada do VM e o bloco `<ModerationQueue ... />` — mantidos cabeçalho, métricas e tabela de comentários (API `GET /comments/admin`)
+- [x] Removidos os arquivos mortos: `views/moderation-queue.tsx`, `viewmodels/use-admin-moderation-view-model.ts`, `model/demo-data.ts`
+- [x] Removido o tipo `ModerationItem` de `model/types.ts`
+- [x] Removidos os exports `ModerationQueue` / `ModerationQueueProps` do barrel `features/admin/index.ts`
+- [x] Grep em `apps/web/src`: zero referências a `DEMO_MODERATION`, `DEMO_COMMENTS`, `ModerationItem`, `ModerationQueue`, `useAdminModerationViewModel` ou `moderation-queue`
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1, `tsc --noEmit` EXIT 0)
+- [x] `git diff` restrito ao `## Escopo` (4 alterados + 3 removidos)
+
+## Handoff (task 124)
+- **Feito:** removida a fila de "moderação de comentários" hardcoded das telas `/admin` (Home) e `/admin/comentarios`. O bloco `<ModerationQueue>` era alimentado por `DEMO_MODERATION` (dados de demonstração em `model/demo-data.ts`) porque o domínio **não** tem sinalização/flag de comentário (`CommentStatus` só tem `VISIBLE/HIDDEN/DELETED`) — não há fonte real para a fila. Métricas e tabelas dessas telas continuam vindo da API (`GET /comments/admin`; posts via `useAdminDashboardViewModel`) e ficaram intactas.
+- **Arquivos alterados:** `apps/web/src/features/admin/views/admin-dashboard-view.tsx`, `apps/web/src/features/admin/views/admin-comments-view.tsx`, `apps/web/src/features/admin/model/types.ts`, `apps/web/src/features/admin/index.ts`. **Removidos:** `apps/web/src/features/admin/views/moderation-queue.tsx`, `apps/web/src/features/admin/viewmodels/use-admin-moderation-view-model.ts`, `apps/web/src/features/admin/model/demo-data.ts`. + `context/modules/web/status.md`.
+- **Decisões:** (1) Remoção total do bloco (não esconder/desabilitar) — não existe backend de sinalização; manter a fila exigiria inventar dados. (2) `adminApi.moderateComment` **permanece** no Model (fora do escopo, e ainda é usado por `use-admin-comments-view-model.ts` na coluna de ações Ocultar/Exibir da tabela real). (3) `DEMO_COMMENTS` já era código morto (nenhum consumidor) → removido junto com o arquivo. (4) MVVM preservado: cada View continua consumindo apenas o seu ViewModel real.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `pnpm harness check --barrel` ✅. `git diff` confinado ao `## Escopo`; `next build`/lint não executados (instrução da task).
+- **Fora do escopo (reportar):** nenhum. `apps/api/**`, `packages/**`, `components/**` e demais features intocados. *(Nota: `views/admin-ads-view.tsx` aparece modificado no working tree por ser da task concorrente 125 — não tocado por esta task.)*
+
+## Fase 42 — Web: remover moderação de decks (task 127)
+- [x] `admin-shell.tsx`: removido o item de menu **Moderação de decks** (`/admin/decks/moderacao`) e o import órfão do ícone `ShieldAlert` (a ordem segue Visão geral → Posts → Cartas → Torneios → Decks → Anúncios → Comentários → LGPD → Usuários → Configurações)
+- [x] Removidos: rota `app/admin/decks/moderacao/page.tsx`, View `admin-deck-moderation-view.tsx`, ViewModel `use-admin-deck-moderation.ts`, Model `deck-moderation-api.ts` (e o diretório vazio `moderacao/`)
+- [x] Barrel `features/admin/index.ts`: removidos `deckModerationApi`, os tipos `CommunityDeckReport`/`CommunityModerationAction`/`ReportedCommunityDeck`, `AdminDeckModerationView` e `useAdminDeckModeration` — demais exports mantidos
+- [x] `features/decks/model/community-api.ts`: removido `communityDecksApi.report()` + o import órfão `ReportCommunityDeckInput`
+- [x] `features/decks/model/community-types.ts`: removidos `CommunityReportReason` e `ReportCommunityDeckInput`; feed/like/copy/publicações/legalidade/import/export preservados
+- [x] Grep em `apps/web/src`: zero referências a `deckModerationApi`, `useAdminDeckModeration`, `AdminDeckModerationView`, `DeckModeration`, `CommunityDeckReport`, `ReportedCommunityDeck`, `CommunityModerationAction`, `ReportCommunityDeckInput`, `CommunityReportReason` ou `report(`
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web --force` ✅ (1/1; `tsc --noEmit` EXIT 0) | lint ✅ (0 erros) | build ✅ (rota `/admin/decks/moderacao` ausente do build) | `pnpm harness check --barrel` ✅
+- [x] `git diff` restrito ao `## Escopo` (+ `context/`)
+
+## Handoff (task 127)
+- **Feito:** removida por completo a moderação de decks no web. A tela admin de reportes (menu, rota `/admin/decks/moderacao`, View, ViewModel e Model) foi apagada e o cliente da comunidade perdeu o método `report()` e os tipos de reporte — ambos eram código morto (nenhuma UI chamava). Alinha o web à remoção do backend (task 126, concorrente) e ao princípio "publicação de decks sem moderação".
+- **Arquivos:** **removidos** — `apps/web/src/app/admin/decks/moderacao/page.tsx`, `apps/web/src/features/admin/views/admin-deck-moderation-view.tsx`, `apps/web/src/features/admin/viewmodels/use-admin-deck-moderation.ts`, `apps/web/src/features/admin/model/deck-moderation-api.ts`. **Alterados** — `apps/web/src/features/admin/views/admin-shell.tsx`, `apps/web/src/features/admin/index.ts`, `apps/web/src/features/decks/model/community-api.ts`, `apps/web/src/features/decks/model/community-types.ts`. + `context/modules/web/status.md`.
+- **Decisões:** (1) Remoção total (não desabilitar/esconder) — o backend deixou de expor as rotas admin de reportes. (2) `communityDecksApi.report()` + tipos removidos porque não tinham nenhum consumidor na UI (tela de reporte de deck nunca existiu no web). (3) Preservados `communityDecksApi.checkLegality`/`importDeckList`/`exportDeckList` e todo o feed/like/copy/publicações. (4) `adminDecksApi`/`AdminDecksView` e a tela `/admin/decks` **não** tocadas.
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web --force` — 1/1 ✅ (0 erros). O primeiro typecheck falhou por um artefato de build obsoleto (`apps/web/.next/types/validator.ts` ainda referenciava a rota deletada); o `.next` foi limpo e regenerado com `next build` (artefato git-ignored), após o que o typecheck forçado passou. Lint ✅ (0 erros) e `pnpm harness check --barrel` ✅. `apps/web/next-env.d.ts` (gerado pelo dev/build) foi restaurado ao estado do HEAD por estar fora do escopo.
+- **Fora do escopo (reportar):** nenhum. `apps/api/**`, `packages/**`, `components/**`, a tela `/admin/decks` e o feed/like/copy/publicações da comunidade intocados.
+
+## Fase 43 — Editor: botões de Parágrafo, Link e Imagem no toolbar (task 128)
+- [x] `apps/web/package.json`: adicionada `@tiptap/extension-image@^3.31.4` (mesma linha das demais `@tiptap`) + `pnpm-lock.yaml` reconciliado
+- [x] `post-editor.tsx`: `@tiptap/extension-image` registrada em `extensions` com `Image.configure({ inline: false })` (atributo `src` default)
+- [x] `editor-toolbar.tsx`: botão **Parágrafo** (`Pilcrow`, `setParagraph()`, ativo em `isActive('paragraph')`); **Link** (`Link`, prompt da URL + `extendMarkRange('link').setLink({ href })`; prompt vazio → `unsetLink`; ativo em `isActive('link')`); **Imagem** (`Image`, prompt da URL + `setImage({ src })`)
+- [x] **Citação/blockquote** mantida como estava (`toggleBlockquote()`); demais botões, slash menu e MVVM do form intocados; `onMouseDown` com `preventDefault` e `aria-label`/`title` preservados em todos os botões
+- [x] `pnpm turbo typecheck --filter=@digimon/app-web` ✅ (1/1) | lint ✅ (0 erros)
+- [x] `git diff` restrito ao `## Escopo`
+
+## Handoff (task 128)
+- **Feito:** o toolbar do editor de Post ganhou os botões **Parágrafo**, **Link** e **Imagem** (Blockquote já existia como "Citação" e foi mantido). Parágrafo usa `setParagraph()` e fica ativo quando o cursor está num parágrafo comum; Link usa `window.prompt` (pré-preenchido com o `href` atual) e aplica `extendMarkRange('link').setLink({ href })`, removendo o link (`unsetLink`) quando o prompt volta vazio/cancelado; Imagem usa `window.prompt` e insere via `setImage({ src })`. A extensão `@tiptap/extension-image` foi instalada (`^3.31.4`, mesma linha das demais `@tiptap`) e registrada no `post-editor.tsx` com `inline: false`.
+- **Arquivos:** `apps/web/src/components/editor/editor-toolbar.tsx`, `apps/web/src/components/editor/post-editor.tsx`, `apps/web/package.json`, `pnpm-lock.yaml` + `context/modules/web/status.md`.
+- **Decisões:** (1) **Link em botão único** — prompt com o `href` atual; vazio → `unsetLink` (remove), preenchido → `setLink`; estado ativo por `isActive('link')`. (2) **Imagem por URL** (sem endpoint de upload no projeto) — `setImage({ src })` com `inline: false` para o `<img>` ficar em bloco próprio. (3) Agrupamento visual: Parágrafo antes dos títulos; Link logo após os marks; Imagem no fim, após um divisor. (4) Handlers (`handleLink`/`handleImage`) definidos no componente, após o guard `if (!editor)` — `ToolbarButton` continua recebendo `onClick` (a View só dispara comandos do editor; MVVM intacto).
+- **Validação:** `pnpm turbo typecheck --filter=@digimon/app-web` — 1/1 ✅ (0 erros). `pnpm turbo lint --filter=@digimon/app-web` ✅ (0 erros). `next build` **não** executado (instrução da task).
+- **Fora do escopo (reportar):** a sanitização de render (`lib/sanitize.ts`) **já** permite `img` + `src`/`alt` e links (`a`/`href`), então imagens/links persistem e renderizam sem ajuste. Nenhum arquivo além do `## Escopo` foi tocado; slash menu, MVVM do form e demais botões intocados.

@@ -1,6 +1,6 @@
 // Path: apps/web/src/features/admin/views/admin-comments-view.tsx
-// View de Comentários: cabeçalho, métricas, tabela de comentários recentes e
-// fila de moderação. Só JSX — dados e callbacks vêm dos ViewModels.
+// View de Comentários: cabeçalho, métricas e tabela de comentários recentes.
+// Só JSX — dados e callbacks vêm dos ViewModels.
 'use client'
 
 import { Button, Card } from '@/components'
@@ -9,14 +9,11 @@ import { AdminMetrics } from './admin-metrics'
 import { AdminPageHeader } from './admin-page-header'
 import { AdminTable } from './admin-table'
 import type { AdminTableColumn } from './admin-table'
-import { ModerationQueue } from './moderation-queue'
 import { useAdminCommentsViewModel } from '../viewmodels/use-admin-comments-view-model'
-import { useAdminModerationViewModel } from '../viewmodels/use-admin-moderation-view-model'
 import type { AdminCommentRow } from '../model/types'
 
 export function AdminCommentsView() {
   const vm = useAdminCommentsViewModel()
-  const moderation = useAdminModerationViewModel()
 
   const columns: AdminTableColumn<AdminCommentRow>[] = [
     {
@@ -70,14 +67,6 @@ export function AdminCommentsView() {
         </div>
         <AdminTable columns={columns} rows={vm.comments} rowKey={(row) => row.id} />
       </Card>
-
-      <ModerationQueue
-        title="Fila de moderação"
-        items={moderation.items}
-        onHide={moderation.hide}
-        onKeep={moderation.keep}
-        busyId={moderation.moderatingId}
-      />
     </div>
   )
 }

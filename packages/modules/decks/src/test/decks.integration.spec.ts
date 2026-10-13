@@ -1,7 +1,7 @@
 // Path: packages/modules/decks/src/test/decks.integration.spec.ts
 // Testes de INTEGRAÇÃO do @digimon/decks contra um Postgres real: CRUD de deck
 // com eggList/coverCardId (JSON/null) e os caminhos com SQL/transação da
-// comunidade (snapshot, like/unlike, cópia, reporte e moderação).
+// comunidade (snapshot, like/unlike e cópia).
 //
 // Gated por TEST_DATABASE_URL — sem a env a suíte é PULADA (CI sem DB segue
 // verde). Ver o cabeçalho de `./integration-db.ts` para o passo a passo.
@@ -16,7 +16,6 @@ import { createTestPrisma, hasTestDatabase, truncateTables } from './integration
 const TABLES = [
   'public_deck_likes',
   'public_deck_copies',
-  'community_deck_reports',
   'public_decks',
   'deck_copies',
   'decks',
@@ -219,56 +218,6 @@ describe.skipIf(!hasTestDatabase)('@digimon/decks — integração Postgres', ()
         created: true,
         copyCount: 2
       })
-    })
-
-    it('report: 1 aberto por conta (novo substitui) e alimenta a fila', async () => {
-      const publication = await seedPublication()
-      await makeUser('user-2')
-
-      await publications.report({
-        publicDeckId: publication.id,
-        reporterAccountId: 'user-2',
-        reason: 'spam',
-        details: null
-      })
-      const open = await publications.listReports(publication.id)
-      expect(open).toHaveLength(1)
-      expect(open[0]?.reason).toBe('spam')
-
-      await publications.report({
-        publicDeckId: publication.id,
-        reporterAccountId: 'user-2',
-        reason: 'inappropriate',
-        details: 'x'
-      })
-      const reopened = await publications.listReports(publication.id)
-      expect(reopened).toHaveLength(1)
-      expect(reopened[0]?.reason).toBe('inappropriate')
-
-      const queue = await publications.queueReports()
-      expect(queue).toHaveLength(1)
-      expect(queue[0]?.publicDeckId).toBe(publication.id)
-      expect(queue[0]?.ownerName).toBe('Deck Owner')
-      expect(queue[0]?.reportCount).toBe(1)
-    })
-
-    it('moderate hide: setStatus(hidden) + dismissReports fecha a fila', async () => {
-      const publication = await seedPublication()
-      await makeUser('user-2')
-      await publications.report({
-        publicDeckId: publication.id,
-        reporterAccountId: 'user-2',
-        reason: 'spam',
-        details: null
-      })
-
-      await publications.setStatus(publication.id, 'hidden')
-      expect(await publications.dismissReports(publication.id)).toBe(1)
-
-      expect(await publications.listReports(publication.id)).toHaveLength(0)
-      expect(await publications.queueReports()).toHaveLength(0)
-      const record = await publications.findById(publication.id)
-      expect(record?.deck.status).toBe('hidden')
     })
   })
 })

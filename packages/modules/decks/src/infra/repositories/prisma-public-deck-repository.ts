@@ -1,24 +1,19 @@
 // Path: packages/modules/decks/src/infra/repositories/prisma-public-deck-repository.ts
 // Implementação Prisma de PublicDeckRepository. Mapeia o enum PublicDeckStatus
 // (PUBLIC/HIDDEN/UNPUBLISHED) para a union do domínio e o Json colors/cardList.
-// Contadores (like/unlike/addCopy) e status são mutados por SQL raw para NÃO
-// tocar `updatedAt` — que representa o último congelamento de conteúdo (usado
-// pelo flag `outdated`). O join de autor traz `User.name`.
+// Contadores (like/unlike/addCopy) são mutados por SQL raw para NÃO tocar
+// `updatedAt` — que representa o último congelamento de conteúdo (usado pelo
+// flag `outdated`). O join de autor traz `User.name`.
 import {
   Prisma,
   PrismaClient,
   PublicDeckStatus as PrismaPublicDeckStatus
 } from '@digimon/database'
-import type {
-  CommunityDeckReport,
-  CommunityDeckStatus,
-  ReportedCommunityDeck
-} from '../../domain/community/community-types'
+import type { CommunityDeckStatus } from '../../domain/community/community-types'
 import type { DeckCardEntry } from '../../domain/entities/deck'
 import { PublicDeck, type PublicDeckData } from '../../domain/entities/public-deck'
 import type {
   CopyResult,
-  CreatePublicDeckReportData,
   LikeResult,
   ListPublicDecksQuery,
   PublicDeckPage,
@@ -55,7 +50,6 @@ function toJson(value: unknown): Prisma.InputJsonValue {
 }
 
 type PublicDeckRow = Prisma.PublicDeckGetPayload<Record<string, never>>
-type ReportRow = Prisma.CommunityDeckReportGetPayload<Record<string, never>>
 
 function mapToDomain(row: PublicDeckRow): PublicDeck {
   const data: PublicDeckData = {
@@ -74,18 +68,6 @@ function mapToDomain(row: PublicDeckRow): PublicDeck {
     updatedAt: row.updatedAt
   }
   return PublicDeck.fromData(data)
-}
-
-function mapReport(row: ReportRow): CommunityDeckReport {
-  return {
-    id: row.id,
-    publicDeckId: row.publicDeckId,
-    reporterAccountId: row.reporterAccountId,
-    reason: row.reason,
-    details: row.details,
-    createdAt: row.createdAt,
-    dismissedAt: row.dismissedAt
-  }
 }
 
 function buildWhere(query: ListPublicDecksQuery): Prisma.PublicDeckWhereInput {
@@ -226,13 +208,6 @@ export class PrismaPublicDeckRepository implements PublicDeckRepository {
     `
   }
 
-  async setStatus(id: string, status: CommunityDeckStatus): Promise<void> {
-    const value = STATUS_TO_PRISMA[status]
-    await this.db.$executeRaw`
-      UPDATE "public_decks" SET "status" = ${value}::"PublicDeckStatus" WHERE "id" = ${id}
-    `
-  }
-
   async like(publicDeckId: string, accountId: string): Promise<LikeResult> {
     return this.db.$transaction(async (tx) => {
       const existing = await tx.publicDeckLike.findUnique({
@@ -287,76 +262,6 @@ export class PrismaPublicDeckRepository implements PublicDeckRepository {
       `
       return { created: true, copyCount: rows[0]?.copyCount ?? 0 }
     })
-  }
-
-  async report(data: CreatePublicDeckReportData): Promise<CommunityDeckReport> {
-    return this.db.$transaction(async (tx) => {
-      await tx.communityDeckReport.updateMany({
-        where: {
-          publicDeckId: data.publicDeckId,
-          reporterAccountId: data.reporterAccountId,
-          dismissedAt: null
-        },
-        data: { dismissedAt: new Date() }
-      })
-      const row = await tx.communityDeckReport.create({
-        data: {
-          publicDeckId: data.publicDeckId,
-          reporterAccountId: data.reporterAccountId,
-          reason: data.reason,
-          details: data.details
-        }
-      })
-      return mapReport(row)
-    })
-  }
-
-  async listReports(publicDeckId: string): Promise<CommunityDeckReport[]> {
-    const rows = await this.db.communityDeckReport.findMany({
-      where: { publicDeckId, dismissedAt: null },
-      orderBy: { createdAt: 'asc' }
-    })
-    return rows.map(mapReport)
-  }
-
-  async queueReports(): Promise<ReportedCommunityDeck[]> {
-    const rows = await this.db.communityDeckReport.findMany({
-      where: { dismissedAt: null },
-      include: { publicDeck: { include: { account: { select: { name: true } } } } },
-      orderBy: { createdAt: 'asc' }
-    })
-
-    const grouped = new Map<string, ReportedCommunityDeck>()
-    for (const row of rows) {
-      const deck = row.publicDeck
-      const current = grouped.get(deck.id)
-      if (current) {
-        current.reportCount += 1
-        if (row.createdAt.getTime() > current.lastReportedAt.getTime()) {
-          current.lastReportedAt = row.createdAt
-        }
-        continue
-      }
-      grouped.set(deck.id, {
-        publicDeckId: deck.id,
-        name: deck.name,
-        ownerId: deck.accountId,
-        ownerName: deck.account.name,
-        status: STATUS_FROM_PRISMA[deck.status],
-        likeCount: deck.likeCount,
-        reportCount: 1,
-        lastReportedAt: row.createdAt
-      })
-    }
-    return [...grouped.values()]
-  }
-
-  async dismissReports(publicDeckId: string): Promise<number> {
-    const result = await this.db.communityDeckReport.updateMany({
-      where: { publicDeckId, dismissedAt: null },
-      data: { dismissedAt: new Date() }
-    })
-    return result.count
   }
 
   private async listTopByRecentLikes(query: ListPublicDecksQuery): Promise<PublicDeckPage> {

@@ -276,7 +276,6 @@ export type PublicDeckWhereInput = {
   sourceDeck?: Prisma.XOR<Prisma.DeckScalarRelationFilter, Prisma.DeckWhereInput>
   likes?: Prisma.PublicDeckLikeListRelationFilter
   copies?: Prisma.PublicDeckCopyListRelationFilter
-  reports?: Prisma.CommunityDeckReportListRelationFilter
 }
 
 export type PublicDeckOrderByWithRelationInput = {
@@ -297,7 +296,6 @@ export type PublicDeckOrderByWithRelationInput = {
   sourceDeck?: Prisma.DeckOrderByWithRelationInput
   likes?: Prisma.PublicDeckLikeOrderByRelationAggregateInput
   copies?: Prisma.PublicDeckCopyOrderByRelationAggregateInput
-  reports?: Prisma.CommunityDeckReportOrderByRelationAggregateInput
 }
 
 export type PublicDeckWhereUniqueInput = Prisma.AtLeast<{
@@ -322,7 +320,6 @@ export type PublicDeckWhereUniqueInput = Prisma.AtLeast<{
   sourceDeck?: Prisma.XOR<Prisma.DeckScalarRelationFilter, Prisma.DeckWhereInput>
   likes?: Prisma.PublicDeckLikeListRelationFilter
   copies?: Prisma.PublicDeckCopyListRelationFilter
-  reports?: Prisma.CommunityDeckReportListRelationFilter
 }, "id" | "accountId_sourceDeckId">
 
 export type PublicDeckOrderByWithAggregationInput = {
@@ -381,7 +378,6 @@ export type PublicDeckCreateInput = {
   sourceDeck: Prisma.DeckCreateNestedOneWithoutPublicationsInput
   likes?: Prisma.PublicDeckLikeCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUncheckedCreateInput = {
@@ -400,7 +396,6 @@ export type PublicDeckUncheckedCreateInput = {
   updatedAt?: Date | string
   likes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUpdateInput = {
@@ -419,7 +414,6 @@ export type PublicDeckUpdateInput = {
   sourceDeck?: Prisma.DeckUpdateOneRequiredWithoutPublicationsNestedInput
   likes?: Prisma.PublicDeckLikeUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateInput = {
@@ -438,7 +432,6 @@ export type PublicDeckUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   likes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckCreateManyInput = {
@@ -675,20 +668,6 @@ export type PublicDeckUpdateOneRequiredWithoutCopiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PublicDeckUpdateToOneWithWhereWithoutCopiesInput, Prisma.PublicDeckUpdateWithoutCopiesInput>, Prisma.PublicDeckUncheckedUpdateWithoutCopiesInput>
 }
 
-export type PublicDeckCreateNestedOneWithoutReportsInput = {
-  create?: Prisma.XOR<Prisma.PublicDeckCreateWithoutReportsInput, Prisma.PublicDeckUncheckedCreateWithoutReportsInput>
-  connectOrCreate?: Prisma.PublicDeckCreateOrConnectWithoutReportsInput
-  connect?: Prisma.PublicDeckWhereUniqueInput
-}
-
-export type PublicDeckUpdateOneRequiredWithoutReportsNestedInput = {
-  create?: Prisma.XOR<Prisma.PublicDeckCreateWithoutReportsInput, Prisma.PublicDeckUncheckedCreateWithoutReportsInput>
-  connectOrCreate?: Prisma.PublicDeckCreateOrConnectWithoutReportsInput
-  upsert?: Prisma.PublicDeckUpsertWithoutReportsInput
-  connect?: Prisma.PublicDeckWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PublicDeckUpdateToOneWithWhereWithoutReportsInput, Prisma.PublicDeckUpdateWithoutReportsInput>, Prisma.PublicDeckUncheckedUpdateWithoutReportsInput>
-}
-
 export type PublicDeckCreateWithoutAccountInput = {
   id?: string
   name: string
@@ -704,7 +683,6 @@ export type PublicDeckCreateWithoutAccountInput = {
   sourceDeck: Prisma.DeckCreateNestedOneWithoutPublicationsInput
   likes?: Prisma.PublicDeckLikeCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUncheckedCreateWithoutAccountInput = {
@@ -722,7 +700,6 @@ export type PublicDeckUncheckedCreateWithoutAccountInput = {
   updatedAt?: Date | string
   likes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckCreateOrConnectWithoutAccountInput = {
@@ -785,7 +762,6 @@ export type PublicDeckCreateWithoutSourceDeckInput = {
   account: Prisma.UserCreateNestedOneWithoutPublicDecksInput
   likes?: Prisma.PublicDeckLikeCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUncheckedCreateWithoutSourceDeckInput = {
@@ -803,7 +779,6 @@ export type PublicDeckUncheckedCreateWithoutSourceDeckInput = {
   updatedAt?: Date | string
   likes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutPublicDeckInput
   copies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckCreateOrConnectWithoutSourceDeckInput = {
@@ -847,7 +822,6 @@ export type PublicDeckCreateWithoutLikesInput = {
   account: Prisma.UserCreateNestedOneWithoutPublicDecksInput
   sourceDeck: Prisma.DeckCreateNestedOneWithoutPublicationsInput
   copies?: Prisma.PublicDeckCopyCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUncheckedCreateWithoutLikesInput = {
@@ -865,7 +839,6 @@ export type PublicDeckUncheckedCreateWithoutLikesInput = {
   publishedAt?: Date | string
   updatedAt?: Date | string
   copies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckCreateOrConnectWithoutLikesInput = {
@@ -899,7 +872,6 @@ export type PublicDeckUpdateWithoutLikesInput = {
   account?: Prisma.UserUpdateOneRequiredWithoutPublicDecksNestedInput
   sourceDeck?: Prisma.DeckUpdateOneRequiredWithoutPublicationsNestedInput
   copies?: Prisma.PublicDeckCopyUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateWithoutLikesInput = {
@@ -917,7 +889,6 @@ export type PublicDeckUncheckedUpdateWithoutLikesInput = {
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   copies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckCreateWithoutCopiesInput = {
@@ -935,7 +906,6 @@ export type PublicDeckCreateWithoutCopiesInput = {
   account: Prisma.UserCreateNestedOneWithoutPublicDecksInput
   sourceDeck: Prisma.DeckCreateNestedOneWithoutPublicationsInput
   likes?: Prisma.PublicDeckLikeCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckUncheckedCreateWithoutCopiesInput = {
@@ -953,7 +923,6 @@ export type PublicDeckUncheckedCreateWithoutCopiesInput = {
   publishedAt?: Date | string
   updatedAt?: Date | string
   likes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutPublicDeckInput
-  reports?: Prisma.CommunityDeckReportUncheckedCreateNestedManyWithoutPublicDeckInput
 }
 
 export type PublicDeckCreateOrConnectWithoutCopiesInput = {
@@ -987,7 +956,6 @@ export type PublicDeckUpdateWithoutCopiesInput = {
   account?: Prisma.UserUpdateOneRequiredWithoutPublicDecksNestedInput
   sourceDeck?: Prisma.DeckUpdateOneRequiredWithoutPublicationsNestedInput
   likes?: Prisma.PublicDeckLikeUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateWithoutCopiesInput = {
@@ -1005,95 +973,6 @@ export type PublicDeckUncheckedUpdateWithoutCopiesInput = {
   publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   likes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutPublicDeckNestedInput
-}
-
-export type PublicDeckCreateWithoutReportsInput = {
-  id?: string
-  name: string
-  colors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  coverCardId?: string | null
-  likeCount?: number
-  copyCount?: number
-  status?: $Enums.PublicDeckStatus
-  publishedAt?: Date | string
-  updatedAt?: Date | string
-  account: Prisma.UserCreateNestedOneWithoutPublicDecksInput
-  sourceDeck: Prisma.DeckCreateNestedOneWithoutPublicationsInput
-  likes?: Prisma.PublicDeckLikeCreateNestedManyWithoutPublicDeckInput
-  copies?: Prisma.PublicDeckCopyCreateNestedManyWithoutPublicDeckInput
-}
-
-export type PublicDeckUncheckedCreateWithoutReportsInput = {
-  id?: string
-  accountId: string
-  sourceDeckId: string
-  name: string
-  colors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  cardList: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  coverCardId?: string | null
-  likeCount?: number
-  copyCount?: number
-  status?: $Enums.PublicDeckStatus
-  publishedAt?: Date | string
-  updatedAt?: Date | string
-  likes?: Prisma.PublicDeckLikeUncheckedCreateNestedManyWithoutPublicDeckInput
-  copies?: Prisma.PublicDeckCopyUncheckedCreateNestedManyWithoutPublicDeckInput
-}
-
-export type PublicDeckCreateOrConnectWithoutReportsInput = {
-  where: Prisma.PublicDeckWhereUniqueInput
-  create: Prisma.XOR<Prisma.PublicDeckCreateWithoutReportsInput, Prisma.PublicDeckUncheckedCreateWithoutReportsInput>
-}
-
-export type PublicDeckUpsertWithoutReportsInput = {
-  update: Prisma.XOR<Prisma.PublicDeckUpdateWithoutReportsInput, Prisma.PublicDeckUncheckedUpdateWithoutReportsInput>
-  create: Prisma.XOR<Prisma.PublicDeckCreateWithoutReportsInput, Prisma.PublicDeckUncheckedCreateWithoutReportsInput>
-  where?: Prisma.PublicDeckWhereInput
-}
-
-export type PublicDeckUpdateToOneWithWhereWithoutReportsInput = {
-  where?: Prisma.PublicDeckWhereInput
-  data: Prisma.XOR<Prisma.PublicDeckUpdateWithoutReportsInput, Prisma.PublicDeckUncheckedUpdateWithoutReportsInput>
-}
-
-export type PublicDeckUpdateWithoutReportsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  colors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  likeCount?: Prisma.IntFieldUpdateOperationsInput | number
-  copyCount?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.EnumPublicDeckStatusFieldUpdateOperationsInput | $Enums.PublicDeckStatus
-  publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  account?: Prisma.UserUpdateOneRequiredWithoutPublicDecksNestedInput
-  sourceDeck?: Prisma.DeckUpdateOneRequiredWithoutPublicationsNestedInput
-  likes?: Prisma.PublicDeckLikeUpdateManyWithoutPublicDeckNestedInput
-  copies?: Prisma.PublicDeckCopyUpdateManyWithoutPublicDeckNestedInput
-}
-
-export type PublicDeckUncheckedUpdateWithoutReportsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  accountId?: Prisma.StringFieldUpdateOperationsInput | string
-  sourceDeckId?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  colors?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  cardList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  eggList?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  coverCardId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  likeCount?: Prisma.IntFieldUpdateOperationsInput | number
-  copyCount?: Prisma.IntFieldUpdateOperationsInput | number
-  status?: Prisma.EnumPublicDeckStatusFieldUpdateOperationsInput | $Enums.PublicDeckStatus
-  publishedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  likes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutPublicDeckNestedInput
-  copies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckCreateManyAccountInput = {
@@ -1126,7 +1005,6 @@ export type PublicDeckUpdateWithoutAccountInput = {
   sourceDeck?: Prisma.DeckUpdateOneRequiredWithoutPublicationsNestedInput
   likes?: Prisma.PublicDeckLikeUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateWithoutAccountInput = {
@@ -1144,7 +1022,6 @@ export type PublicDeckUncheckedUpdateWithoutAccountInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   likes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateManyWithoutAccountInput = {
@@ -1192,7 +1069,6 @@ export type PublicDeckUpdateWithoutSourceDeckInput = {
   account?: Prisma.UserUpdateOneRequiredWithoutPublicDecksNestedInput
   likes?: Prisma.PublicDeckLikeUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateWithoutSourceDeckInput = {
@@ -1210,7 +1086,6 @@ export type PublicDeckUncheckedUpdateWithoutSourceDeckInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   likes?: Prisma.PublicDeckLikeUncheckedUpdateManyWithoutPublicDeckNestedInput
   copies?: Prisma.PublicDeckCopyUncheckedUpdateManyWithoutPublicDeckNestedInput
-  reports?: Prisma.CommunityDeckReportUncheckedUpdateManyWithoutPublicDeckNestedInput
 }
 
 export type PublicDeckUncheckedUpdateManyWithoutSourceDeckInput = {
@@ -1236,13 +1111,11 @@ export type PublicDeckUncheckedUpdateManyWithoutSourceDeckInput = {
 export type PublicDeckCountOutputType = {
   likes: number
   copies: number
-  reports: number
 }
 
 export type PublicDeckCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   likes?: boolean | PublicDeckCountOutputTypeCountLikesArgs
   copies?: boolean | PublicDeckCountOutputTypeCountCopiesArgs
-  reports?: boolean | PublicDeckCountOutputTypeCountReportsArgs
 }
 
 /**
@@ -1269,13 +1142,6 @@ export type PublicDeckCountOutputTypeCountCopiesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.PublicDeckCopyWhereInput
 }
 
-/**
- * PublicDeckCountOutputType without action
- */
-export type PublicDeckCountOutputTypeCountReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.CommunityDeckReportWhereInput
-}
-
 
 export type PublicDeckSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1295,7 +1161,6 @@ export type PublicDeckSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   sourceDeck?: boolean | Prisma.DeckDefaultArgs<ExtArgs>
   likes?: boolean | Prisma.PublicDeck$likesArgs<ExtArgs>
   copies?: boolean | Prisma.PublicDeck$copiesArgs<ExtArgs>
-  reports?: boolean | Prisma.PublicDeck$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.PublicDeckCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["publicDeck"]>
 
@@ -1357,7 +1222,6 @@ export type PublicDeckInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   sourceDeck?: boolean | Prisma.DeckDefaultArgs<ExtArgs>
   likes?: boolean | Prisma.PublicDeck$likesArgs<ExtArgs>
   copies?: boolean | Prisma.PublicDeck$copiesArgs<ExtArgs>
-  reports?: boolean | Prisma.PublicDeck$reportsArgs<ExtArgs>
   _count?: boolean | Prisma.PublicDeckCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PublicDeckIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1376,7 +1240,6 @@ export type $PublicDeckPayload<ExtArgs extends runtime.Types.Extensions.Internal
     sourceDeck: Prisma.$DeckPayload<ExtArgs>
     likes: Prisma.$PublicDeckLikePayload<ExtArgs>[]
     copies: Prisma.$PublicDeckCopyPayload<ExtArgs>[]
-    reports: Prisma.$CommunityDeckReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1790,7 +1653,6 @@ export interface Prisma__PublicDeckClient<T, Null = never, ExtArgs extends runti
   sourceDeck<T extends Prisma.DeckDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DeckDefaultArgs<ExtArgs>>): Prisma.Prisma__DeckClient<runtime.Types.Result.GetResult<Prisma.$DeckPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   likes<T extends Prisma.PublicDeck$likesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PublicDeck$likesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicDeckLikePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   copies<T extends Prisma.PublicDeck$copiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PublicDeck$copiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicDeckCopyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  reports<T extends Prisma.PublicDeck$reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PublicDeck$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CommunityDeckReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2279,30 +2141,6 @@ export type PublicDeck$copiesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.PublicDeckCopyScalarFieldEnum | Prisma.PublicDeckCopyScalarFieldEnum[]
-}
-
-/**
- * PublicDeck.reports
- */
-export type PublicDeck$reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the CommunityDeckReport
-   */
-  select?: Prisma.CommunityDeckReportSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the CommunityDeckReport
-   */
-  omit?: Prisma.CommunityDeckReportOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CommunityDeckReportInclude<ExtArgs> | null
-  where?: Prisma.CommunityDeckReportWhereInput
-  orderBy?: Prisma.CommunityDeckReportOrderByWithRelationInput | Prisma.CommunityDeckReportOrderByWithRelationInput[]
-  cursor?: Prisma.CommunityDeckReportWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.CommunityDeckReportScalarFieldEnum | Prisma.CommunityDeckReportScalarFieldEnum[]
 }
 
 /**

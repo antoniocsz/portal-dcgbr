@@ -31,8 +31,6 @@ export type DeckPublicationEventType =
   | 'deck.publication.published'
   | 'deck.publication.unpublished'
   | 'deck.publication.liked'
-  | 'deck.publication.reported'
-  | 'deck.publication.moderated'
 
 export interface DeckPublicationEvent extends DomainEvent {
   type: DeckPublicationEventType

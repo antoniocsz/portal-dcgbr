@@ -1,6 +1,6 @@
 // Path: apps/api/src/routes/community-rate-limit.ts
 // Token bucket em memória por CONTA para os endpoints de engajamento da
-// comunidade (like / publicar / reportar). Complementa o rate limit por IP de
+// comunidade (like / publicar). Complementa o rate limit por IP de
 // plugins/rate-limit.ts: aqui a chave é o usuário autenticado. Sem Redis na v1
 // (ADR-005). Erros delegados ao handler global (AppError → 429 too_many_requests).
 import type { FastifyRequest, preHandlerHookHandler } from 'fastify'
@@ -43,5 +43,3 @@ export function createAccountRateLimit(
 export const likeRateLimit = createAccountRateLimit(30, 2_000)
 /** Publicar/atualizar: 10 ações por 30s. */
 export const publishRateLimit = createAccountRateLimit(10, 30_000)
-/** Reportar: 5 ações por 60s. */
-export const reportRateLimit = createAccountRateLimit(5, 60_000)

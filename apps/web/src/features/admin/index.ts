@@ -16,12 +16,6 @@ export type {
   AdUpsertInput,
   AdUpsertPatch
 } from './model/ads-admin-api'
-export { deckModerationApi } from './model/deck-moderation-api'
-export type {
-  CommunityDeckReport,
-  CommunityModerationAction,
-  ReportedCommunityDeck
-} from './model/deck-moderation-api'
 export { fetchSiteGateMode, setSiteGateMode } from './model/site-gate-api'
 export type { SiteGateMode } from './model/site-gate-api'
 export { privacyAdminApi } from './model/privacy-admin-api'
@@ -42,15 +36,12 @@ export {
   AdminPostBadge,
   AdminCommentBadge
 } from './views/admin-badge'
-export { ModerationQueue } from './views/moderation-queue'
-export type { ModerationQueueProps } from './views/moderation-queue'
 export { AdminShell } from './views/admin-shell'
 export type { AdminShellProps } from './views/admin-shell'
 export { AdminDashboardView } from './views/admin-dashboard-view'
 export { AdminCommentsView } from './views/admin-comments-view'
 export { AdminDecksView } from './views/admin-decks-view'
 export { AdminAdsView } from './views/admin-ads-view'
-export { AdminDeckModerationView } from './views/admin-deck-moderation-view'
 export { AdminPostsView, AdminPostFormView } from './views/admin-posts-view'
 export { AdminDataRequestsView } from './views/admin-data-requests-view'
 export { SiteSettingsView } from './views/site-settings-view'
@@ -72,7 +63,6 @@ export type {
   AdFormValues,
   AdminAdsStatusFilter
 } from './viewmodels/use-admin-ads'
-export { useAdminDeckModeration } from './viewmodels/use-admin-deck-moderation'
 export { useSiteGate } from './viewmodels/use-site-gate'
 export type { SiteGateFeedback } from './viewmodels/use-site-gate'
 export { useAdminDataRequests } from './viewmodels/use-admin-data-requests'

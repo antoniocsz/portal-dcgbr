@@ -13,9 +13,6 @@ export type CommunitySort = 'top' | 'new'
 /** Janela de tempo do ranking `top` (curtidas recentes). */
 export type CommunityPeriod = 'week' | 'month' | 'all'
 
-/** Motivos aceitos num reporte de deck da comunidade. */
-export type CommunityReportReason = 'inappropriate' | 'spam' | 'copyright' | 'other'
-
 /** Item do feed (sem a lista de cartas — payload enxuto). */
 export interface CommunityDeckSummary {
   id: string
@@ -101,11 +98,6 @@ export interface ListCommunityDecksParams {
   search?: string
   page?: number
   pageSize?: number
-}
-
-export interface ReportCommunityDeckInput {
-  reason: CommunityReportReason
-  details?: string | null
 }
 
 export const COMMUNITY_SORT_LABELS: Record<CommunitySort, string> = {

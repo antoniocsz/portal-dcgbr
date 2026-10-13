@@ -12,8 +12,7 @@ import type {
   CommunityPublishResult,
   DeckLegalityResult,
   DeckListParseResult,
-  ListCommunityDecksParams,
-  ReportCommunityDeckInput
+  ListCommunityDecksParams
 } from './community-types'
 
 export { ApiError } from '@digimon/api-client'
@@ -74,10 +73,6 @@ export const communityDecksApi = {
 
   recordCopy(id: string): Promise<void> {
     return apiClient.post(`/decks/community/${encodeURIComponent(id)}/copies`)
-  },
-
-  report(id: string, input: ReportCommunityDeckInput): Promise<void> {
-    return apiClient.post(`/decks/community/${encodeURIComponent(id)}/reports`, input)
   },
 
   checkLegality(input: DeckLegalityInput): Promise<DeckLegalityResult> {

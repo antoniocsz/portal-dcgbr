@@ -109,34 +109,6 @@ function Field({ label, htmlFor, error, hint, children }: FieldProps) {
   )
 }
 
-interface FilterGroupProps<T extends string> {
-  label: string
-  options: { value: T; label: string }[]
-  value: T
-  onChange: (value: T) => void
-}
-
-function FilterGroup<T extends string>({ label, options, value, onChange }: FilterGroupProps<T>) {
-  return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={value === option.value}
-          onClick={() => onChange(option.value)}
-          className={cn(
-            'px-3.5 py-2 text-[13px] font-semibold transition-colors',
-            value === option.value ? 'bg-primary text-white' : 'bg-surface-2 text-ink hover:bg-surface'
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 interface AdFormPanelProps {
   adId?: string | undefined
   initial?: AdFormValues | undefined
@@ -509,24 +481,61 @@ export function AdminAdsView() {
             <span className="text-[13px] text-ink-faint">{vm.total} anúncios</span>
           </div>
 
-          <FilterGroup
-            label="Filtrar por status"
-            options={STATUS_FILTERS}
-            value={vm.status}
-            onChange={vm.selectStatus}
-          />
-          <FilterGroup
-            label="Filtrar por tipo"
-            options={KIND_FILTERS}
-            value={vm.kind}
-            onChange={vm.selectKind}
-          />
-          <FilterGroup
-            label="Filtrar por posição"
-            options={PLACEMENT_FILTERS}
-            value={vm.placement}
-            onChange={vm.selectPlacement}
-          />
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ads-status-filter" className="text-[12px] font-bold text-ink-faint">
+                Status
+              </label>
+              <select
+                id="ads-status-filter"
+                className={INPUT_CLASS}
+                value={vm.status}
+                onChange={(event) => vm.selectStatus(event.target.value as AdminAdsStatusFilter)}
+              >
+                {STATUS_FILTERS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ads-kind-filter" className="text-[12px] font-bold text-ink-faint">
+                Tipo
+              </label>
+              <select
+                id="ads-kind-filter"
+                className={INPUT_CLASS}
+                value={vm.kind}
+                onChange={(event) => vm.selectKind(event.target.value as AdKind | 'all')}
+              >
+                {KIND_FILTERS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ads-placement-filter" className="text-[12px] font-bold text-ink-faint">
+                Posição
+              </label>
+              <select
+                id="ads-placement-filter"
+                className={INPUT_CLASS}
+                value={vm.placement}
+                onChange={(event) => vm.selectPlacement(event.target.value as AdPlacement | 'all')}
+              >
+                {PLACEMENT_FILTERS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <AdminTable

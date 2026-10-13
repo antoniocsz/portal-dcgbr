@@ -9,6 +9,7 @@ import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
 import { EditorToolbar } from './editor-toolbar'
 import { cn } from '@/lib/utils'
 
@@ -116,7 +117,8 @@ export function PostEditor({
         openOnClick: false,
         autolink: true,
         HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
-      })
+      }),
+      Image.configure({ inline: false })
     ],
     [placeholder]
   )

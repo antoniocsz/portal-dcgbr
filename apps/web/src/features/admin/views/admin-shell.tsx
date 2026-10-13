@@ -5,7 +5,7 @@
 
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { Megaphone, Settings, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { Megaphone, Settings, ShieldCheck } from 'lucide-react'
 import {
   AdminNav,
   AdminSidebar,
@@ -28,11 +28,6 @@ const NAV_ITEMS: AdminNavItem[] = [
   { href: '/admin/cartas', label: 'Cartas', icon: <Layers className="size-4.5" /> },
   { href: '/admin/torneios', label: 'Torneios', icon: <Trophy className="size-4.5" /> },
   { href: '/admin/decks', label: 'Decks', icon: <Copy className="size-4.5" /> },
-  {
-    href: '/admin/decks/moderacao',
-    label: 'Moderação de decks',
-    icon: <ShieldAlert className="size-4.5" />
-  },
   { href: '/admin/anuncios', label: 'Anúncios', icon: <Megaphone className="size-4.5" /> },
   { href: '/admin/comentarios', label: 'Comentários', icon: <MessageSquare className="size-4.5" /> },
   {

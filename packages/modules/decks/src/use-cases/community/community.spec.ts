@@ -5,8 +5,6 @@
 // - feed top/new/filtro cor/busca (página sem COUNT total)
 // - like/unlike (autor bloqueado, idempotente)
 // - recordCopy só conta 1x
-// - report (autor bloqueado, 1 aberto por conta)
-// - moderate hide fecha reports e some do feed
 // - publications marca `outdated`
 import { describe, expect, it } from 'vitest'
 import type { PaginatedResult, Role } from '@digimon/contracts'
@@ -20,11 +18,7 @@ import {
 import type { Actor } from '../../domain/actor'
 import type { CardColorInfo, DeckColorResolver } from '../../domain/community/community-colors'
 import { reviewDeckName } from '../../domain/community/deck-name-moderation'
-import type {
-  CommunityDeckReport,
-  CommunityDeckStatus,
-  ReportedCommunityDeck
-} from '../../domain/community/community-types'
+import type { CommunityDeckStatus } from '../../domain/community/community-types'
 import { Deck, type DeckCardEntry, type DeckData } from '../../domain/entities/deck'
 import type { DeckCopyData } from '../../domain/entities/deck-copy'
 import { PublicDeck, type PublicDeckData } from '../../domain/entities/public-deck'
@@ -35,7 +29,6 @@ import type {
 import type { DeckRepository, ListDecksParams } from '../../domain/repositories/deck-repository'
 import type {
   CopyResult,
-  CreatePublicDeckReportData,
   LikeResult,
   ListPublicDecksQuery,
   PublicDeckPage,
@@ -45,17 +38,12 @@ import type {
   UnlikeResult
 } from '../../domain/repositories/public-deck-repository'
 import { CheckDeckLegalityUseCase } from '../check-deck-legality'
-import { DismissDeckReportsUseCase } from './dismiss-deck-reports'
 import { GetCommunityDeckUseCase } from './get-community-deck'
 import { LikeCommunityDeckUseCase } from './like-community-deck'
 import { ListCommunityDecksUseCase } from './list-community-decks'
 import { ListPublicationsUseCase } from './list-publications'
-import { ListReportedDecksUseCase } from './list-reported-decks'
-import { ModerateCommunityDeckUseCase } from './moderate-community-deck'
-import { OpenDeckReportsUseCase } from './open-deck-reports'
 import { PublishDeckToCommunityUseCase } from './publish-deck-to-community'
 import { RecordDeckCopyUseCase } from './record-deck-copy'
-import { ReportCommunityDeckUseCase } from './report-community-deck'
 import { UnlikeCommunityDeckUseCase } from './unlike-community-deck'
 import { UnpublishDeckFromCommunityUseCase } from './unpublish-deck-from-community'
 
@@ -161,8 +149,6 @@ class InMemoryPublicDeckRepository implements PublicDeckRepository {
   private readonly ownerNames = new Map<string, string>()
   private readonly likes = new Map<string, Map<string, Date>>()
   private readonly copies = new Map<string, Set<string>>()
-  private readonly reports: CommunityDeckReport[] = []
-  private reportSeq = 0
   readonly sourceUpdatedAt = new Map<string, Date>()
 
   setOwnerName(accountId: string, name: string): void {
@@ -263,11 +249,6 @@ class InMemoryPublicDeckRepository implements PublicDeckRepository {
     if (deck) deck.data.status = 'unpublished'
   }
 
-  async setStatus(id: string, status: CommunityDeckStatus): Promise<void> {
-    const deck = this.decks.get(id)
-    if (deck) deck.data.status = status
-  }
-
   async like(publicDeckId: string, accountId: string): Promise<LikeResult> {
     const deck = this.decks.get(publicDeckId)
     if (!deck) return { created: false, likeCount: 0 }
@@ -300,75 +281,6 @@ class InMemoryPublicDeckRepository implements PublicDeckRepository {
     return { created: true, copyCount: deck.data.copyCount }
   }
 
-  async report(data: CreatePublicDeckReportData): Promise<CommunityDeckReport> {
-    for (const report of this.reports) {
-      if (
-        report.publicDeckId === data.publicDeckId &&
-        report.reporterAccountId === data.reporterAccountId &&
-        report.dismissedAt === null
-      ) {
-        report.dismissedAt = new Date()
-      }
-    }
-    this.reportSeq += 1
-    const report: CommunityDeckReport = {
-      id: `report-${this.reportSeq}`,
-      publicDeckId: data.publicDeckId,
-      reporterAccountId: data.reporterAccountId,
-      reason: data.reason,
-      details: data.details,
-      createdAt: new Date(),
-      dismissedAt: null
-    }
-    this.reports.push(report)
-    return report
-  }
-
-  async listReports(publicDeckId: string): Promise<CommunityDeckReport[]> {
-    return this.reports.filter(
-      (report) => report.publicDeckId === publicDeckId && report.dismissedAt === null
-    )
-  }
-
-  async queueReports(): Promise<ReportedCommunityDeck[]> {
-    const grouped = new Map<string, ReportedCommunityDeck>()
-    for (const report of this.reports) {
-      if (report.dismissedAt !== null) continue
-      const deck = this.decks.get(report.publicDeckId)
-      if (!deck) continue
-      const current = grouped.get(deck.id)
-      if (current) {
-        current.reportCount += 1
-        if (report.createdAt.getTime() > current.lastReportedAt.getTime()) {
-          current.lastReportedAt = report.createdAt
-        }
-        continue
-      }
-      grouped.set(deck.id, {
-        publicDeckId: deck.id,
-        name: deck.data.name,
-        ownerId: deck.accountId,
-        ownerName: this.ownerName(deck.accountId),
-        status: deck.status,
-        likeCount: deck.data.likeCount,
-        reportCount: 1,
-        lastReportedAt: report.createdAt
-      })
-    }
-    return [...grouped.values()]
-  }
-
-  async dismissReports(publicDeckId: string): Promise<number> {
-    let count = 0
-    for (const report of this.reports) {
-      if (report.publicDeckId === publicDeckId && report.dismissedAt === null) {
-        report.dismissedAt = new Date()
-        count += 1
-      }
-    }
-    return count
-  }
-
   private ownerName(accountId: string): string {
     return this.ownerNames.get(accountId) ?? 'Anônimo'
   }
@@ -398,7 +310,6 @@ function actor(role: Role, id = 'user-1'): Actor {
 const member = actor('member')
 const otherMember = actor('member', 'user-9')
 const editor = actor('editor', 'user-editor')
-const admin = actor('administrator', 'user-admin')
 
 function legalMain(color: 'red' | 'blue'): DeckCardEntry[] {
   return [
@@ -420,9 +331,7 @@ function setup() {
   for (const type of [
     'deck.publication.published',
     'deck.publication.unpublished',
-    'deck.publication.liked',
-    'deck.publication.reported',
-    'deck.publication.moderated'
+    'deck.publication.liked'
   ]) {
     eventBus.subscribe(type, (event) => {
       events.push(event.type)
@@ -432,7 +341,6 @@ function setup() {
   publicRepo.setOwnerName(member.id, 'Ash')
   publicRepo.setOwnerName(otherMember.id, 'Mimi')
   publicRepo.setOwnerName(editor.id, 'Editor')
-  publicRepo.setOwnerName(admin.id, 'Admin')
 
   const legality = new CheckDeckLegalityUseCase(cards)
 
@@ -453,12 +361,7 @@ function setup() {
     getCommunity: new GetCommunityDeckUseCase(publicRepo, legality),
     like: new LikeCommunityDeckUseCase(publicRepo, eventBus),
     unlike: new UnlikeCommunityDeckUseCase(publicRepo),
-    recordCopy: new RecordDeckCopyUseCase(publicRepo),
-    report: new ReportCommunityDeckUseCase(publicRepo, eventBus),
-    moderate: new ModerateCommunityDeckUseCase(publicRepo, eventBus),
-    listReported: new ListReportedDecksUseCase(publicRepo),
-    openReports: new OpenDeckReportsUseCase(publicRepo),
-    dismissReports: new DismissDeckReportsUseCase(publicRepo)
+    recordCopy: new RecordDeckCopyUseCase(publicRepo)
   }
 }
 
@@ -510,13 +413,18 @@ function makePublication(
   accountId: string,
   name: string,
   colors: string[],
-  extra: { likeCount?: number; publishedAt?: Date; status?: CommunityDeckStatus } = {}
+  extra: {
+    likeCount?: number
+    publishedAt?: Date
+    status?: CommunityDeckStatus
+    sourceDeckId?: string
+  } = {}
 ): PublicDeckData {
   const publishedAt = extra.publishedAt ?? new Date('2026-01-01T00:00:00.000Z')
   return {
     id,
     accountId,
-    sourceDeckId: `src-${id}`,
+    sourceDeckId: extra.sourceDeckId ?? `src-${id}`,
     name,
     colors,
     cardList: legalMain('red'),
@@ -629,7 +537,7 @@ describe('PublishDeckToCommunityUseCase', () => {
     expect(again.status).toBe('public')
   })
 
-  it('publicação oculta → ConflictError ao re-publicar', async () => {
+  it('publicação oculta (legado) → ConflictError ao re-publicar', async () => {
     const ctx = setup()
     await seedDeck(ctx.deckRepo, {
       slug: 'agumon-rush',
@@ -637,8 +545,14 @@ describe('PublishDeckToCommunityUseCase', () => {
       ownerId: member.id,
       color: 'red'
     })
-    const created = await ctx.publishToCommunity.execute({ actor: member, slug: 'agumon-rush' })
-    await ctx.moderate.execute({ actor: editor, publicDeckId: created.id, action: 'hide' })
+    // O status HIDDEN só persiste de dados legados (a ação de moderação saiu);
+    // publicar sobre uma publicação oculta segue bloqueado.
+    ctx.publicRepo.seed(
+      makePublication('hidden-1', member.id, 'Agumon Rush', ['RED'], {
+        status: 'hidden',
+        sourceDeckId: 'deck-agumon-rush'
+      })
+    )
 
     await expect(
       ctx.publishToCommunity.execute({ actor: member, slug: 'agumon-rush' })
@@ -748,7 +662,7 @@ describe('GetCommunityDeckUseCase', () => {
     expect(detail.cardList).toEqual(legalMain('red'))
   })
 
-  it('hidden não é visível ao público; moderação com includeHidden vê', async () => {
+  it('hidden (legado) não é visível a ninguém', async () => {
     const ctx = setup()
     ctx.publicRepo.seed(makePublication('p1', member.id, 'Meu Deck', ['RED'], { status: 'hidden' }))
 
@@ -756,13 +670,9 @@ describe('GetCommunityDeckUseCase', () => {
     await expect(
       ctx.getCommunity.execute({ publicDeckId: 'p1', actor: member })
     ).rejects.toBeInstanceOf(NotFoundError)
-
-    const seen = await ctx.getCommunity.execute({
-      publicDeckId: 'p1',
-      actor: editor,
-      includeHidden: true
-    })
-    expect(seen.status).toBe('hidden')
+    await expect(
+      ctx.getCommunity.execute({ publicDeckId: 'p1', actor: editor })
+    ).rejects.toBeInstanceOf(NotFoundError)
   })
 })
 
@@ -817,75 +727,6 @@ describe('RecordDeckCopyUseCase', () => {
       copyCount: 1,
       counted: false
     })
-  })
-})
-
-describe('ReportCommunityDeckUseCase', () => {
-  it('autor não reporta o próprio deck e 1 reporte aberto por conta', async () => {
-    const ctx = setup()
-    ctx.publicRepo.seed(makePublication('p1', member.id, 'Meu Deck', ['RED']))
-
-    await expect(
-      ctx.report.execute({ actor: member, publicDeckId: 'p1', input: { reason: 'spam' } })
-    ).rejects.toBeInstanceOf(ForbiddenError)
-
-    await ctx.report.execute({ actor: otherMember, publicDeckId: 'p1', input: { reason: 'spam' } })
-    const second = await ctx.report.execute({
-      actor: otherMember,
-      publicDeckId: 'p1',
-      input: { reason: 'inappropriate' }
-    })
-    expect(second.target.ownerName).toBe('Ash')
-
-    const open = await ctx.publicRepo.listReports('p1')
-    expect(open).toHaveLength(1)
-    expect(open[0]?.reason).toBe('inappropriate')
-  })
-})
-
-describe('ModerateCommunityDeckUseCase', () => {
-  it('hide fecha reports e some do feed; restore volta', async () => {
-    const ctx = setup()
-    ctx.publicRepo.seed(makePublication('p1', member.id, 'Meu Deck', ['RED']))
-    await ctx.report.execute({ actor: otherMember, publicDeckId: 'p1', input: { reason: 'spam' } })
-
-    await ctx.moderate.execute({ actor: editor, publicDeckId: 'p1', action: 'hide' })
-    expect((await ctx.publicRepo.findById('p1'))?.deck.status).toBe('hidden')
-    expect(await ctx.publicRepo.listReports('p1')).toHaveLength(0)
-    expect((await ctx.listCommunity.execute({ input: {} })).items).toHaveLength(0)
-
-    await ctx.moderate.execute({ actor: admin, publicDeckId: 'p1', action: 'restore' })
-    expect((await ctx.publicRepo.findById('p1'))?.deck.status).toBe('public')
-  })
-
-  it('member não modera (ForbiddenError)', async () => {
-    const ctx = setup()
-    ctx.publicRepo.seed(makePublication('p1', member.id, 'Meu Deck', ['RED']))
-
-    await expect(
-      ctx.moderate.execute({ actor: member, publicDeckId: 'p1', action: 'hide' })
-    ).rejects.toBeInstanceOf(ForbiddenError)
-  })
-
-  it('fila de moderação e reports abertos (administrator|editor)', async () => {
-    const ctx = setup()
-    ctx.publicRepo.seed(makePublication('p1', member.id, 'Meu Deck', ['RED']))
-    await ctx.report.execute({ actor: otherMember, publicDeckId: 'p1', input: { reason: 'spam' } })
-
-    const queue = await ctx.listReported.execute({ actor: editor })
-    expect(queue).toHaveLength(1)
-    expect(queue[0]?.reportCount).toBe(1)
-    expect(queue[0]?.ownerName).toBe('Ash')
-
-    const reports = await ctx.openReports.execute({ actor: editor, publicDeckId: 'p1' })
-    expect(reports).toHaveLength(1)
-
-    expect(await ctx.dismissReports.execute({ actor: editor, publicDeckId: 'p1' })).toEqual({
-      dismissed: 1
-    })
-    expect(await ctx.publicRepo.listReports('p1')).toHaveLength(0)
-
-    await expect(ctx.listReported.execute({ actor: member })).rejects.toBeInstanceOf(ForbiddenError)
   })
 })
 

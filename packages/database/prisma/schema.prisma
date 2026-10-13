@@ -127,7 +127,6 @@ model User {
   publicDecks         PublicDeck[]         @relation("PublicDecks")
   publicDeckLikes     PublicDeckLike[]     @relation("PublicDeckLikes")
   publicDeckCopies    PublicDeckCopy[]     @relation("PublicDeckCopies")
-  deckReports         CommunityDeckReport[] @relation("DeckReports")
   createdAds          Ad[]                 @relation("AdCreator")
   consentRecords      ConsentRecord[]      @relation("ConsentRecords")
   dataRequests        DataRequest[]        @relation("DataRequests")
@@ -299,8 +298,8 @@ model Card {
 }
 
 // Comunidade de decks (@digimon/decks) — snapshot congelado de um deck publicado
-// pelo Member, com engajamento (likes/cópias) e moderação (reportes). O snapshot
-// não acompanha edições do deck de origem; `sourceDeckId` aponta para a origem.
+// pelo Member, com engajamento (likes/cópias). O snapshot não acompanha edições
+// do deck de origem; `sourceDeckId` aponta para a origem.
 model PublicDeck {
   id           String           @id @default(cuid())
   accountId    String
@@ -319,7 +318,6 @@ model PublicDeck {
   updatedAt    DateTime         @updatedAt
   likes        PublicDeckLike[]
   copies       PublicDeckCopy[]
-  reports      CommunityDeckReport[]
 
   @@unique([accountId, sourceDeckId])
   @@index([status, likeCount])
@@ -349,21 +347,6 @@ model PublicDeckCopy {
 
   @@unique([publicDeckId, accountId])
   @@map("public_deck_copies")
-}
-
-model CommunityDeckReport {
-  id                String     @id @default(cuid())
-  publicDeckId      String
-  publicDeck        PublicDeck @relation(fields: [publicDeckId], references: [id], onDelete: Cascade)
-  reporterAccountId String?
-  reporter          User?      @relation("DeckReports", fields: [reporterAccountId], references: [id], onDelete: SetNull)
-  reason            String
-  details           String?
-  createdAt         DateTime   @default(now())
-  dismissedAt       DateTime?
-
-  @@index([publicDeckId, dismissedAt])
-  @@map("community_deck_reports")
 }
 
 // Anúncios/patrocínios do portal (@digimon/ads): house ads, patrocínio direto e

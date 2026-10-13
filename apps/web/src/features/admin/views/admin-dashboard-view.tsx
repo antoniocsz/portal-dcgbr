@@ -1,6 +1,6 @@
 // Path: apps/web/src/features/admin/views/admin-dashboard-view.tsx
-// View do Painel: cabeçalho, métricas, tabela de posts (workflow editorial) e
-// moderação de comentários. Só JSX — dados e callbacks vêm dos ViewModels.
+// View do Painel: cabeçalho, métricas e tabela de posts (workflow editorial).
+// Só JSX — dados e callbacks vêm dos ViewModels.
 'use client'
 
 import { Button, Card } from '@/components'
@@ -9,14 +9,11 @@ import { AdminMetrics } from './admin-metrics'
 import { AdminPageHeader } from './admin-page-header'
 import { AdminTable } from './admin-table'
 import type { AdminTableColumn } from './admin-table'
-import { ModerationQueue } from './moderation-queue'
 import { useAdminDashboardViewModel } from '../viewmodels/use-admin-dashboard-view-model'
-import { useAdminModerationViewModel } from '../viewmodels/use-admin-moderation-view-model'
 import type { AdminPostRow } from '../model/types'
 
 export function AdminDashboardView() {
   const vm = useAdminDashboardViewModel()
-  const moderation = useAdminModerationViewModel()
 
   const columns: AdminTableColumn<AdminPostRow>[] = [
     {
@@ -78,14 +75,6 @@ export function AdminDashboardView() {
           emptyMessage="Nenhum post encontrado."
         />
       </Card>
-
-      <ModerationQueue
-        title="Moderação de comentários"
-        items={moderation.items}
-        onHide={moderation.hide}
-        onKeep={moderation.keep}
-        busyId={moderation.moderatingId}
-      />
     </div>
   )
 }

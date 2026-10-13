@@ -30,11 +30,3 @@ export interface AdminCommentRow {
   authorName: string
   date: string
 }
-
-export interface ModerationItem {
-  id: string
-  authorName: string
-  title: string
-  detail: string
-  tone: 'warning' | 'danger'
-}

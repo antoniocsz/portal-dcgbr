@@ -65,7 +65,6 @@ export const ModelName = {
   PublicDeck: 'PublicDeck',
   PublicDeckLike: 'PublicDeckLike',
   PublicDeckCopy: 'PublicDeckCopy',
-  CommunityDeckReport: 'CommunityDeckReport',
   Ad: 'Ad',
   ConsentRecord: 'ConsentRecord',
   DataRequest: 'DataRequest'
@@ -292,19 +291,6 @@ export const PublicDeckCopyScalarFieldEnum = {
 } as const
 
 export type PublicDeckCopyScalarFieldEnum = (typeof PublicDeckCopyScalarFieldEnum)[keyof typeof PublicDeckCopyScalarFieldEnum]
-
-
-export const CommunityDeckReportScalarFieldEnum = {
-  id: 'id',
-  publicDeckId: 'publicDeckId',
-  reporterAccountId: 'reporterAccountId',
-  reason: 'reason',
-  details: 'details',
-  createdAt: 'createdAt',
-  dismissedAt: 'dismissedAt'
-} as const
-
-export type CommunityDeckReportScalarFieldEnum = (typeof CommunityDeckReportScalarFieldEnum)[keyof typeof CommunityDeckReportScalarFieldEnum]
 
 
 export const AdScalarFieldEnum = {

@@ -5,10 +5,8 @@
 // — preservando `updatedAt` como "último congelamento de conteúdo".
 import type { PublicDeck, PublicDeckData } from '../entities/public-deck'
 import type {
-  CommunityDeckReport,
   CommunityDeckStatus,
-  CommunitySort,
-  ReportedCommunityDeck
+  CommunitySort
 } from '../community/community-types'
 
 /** Publicação + dados de leitura derivados do join com o autor. */
@@ -42,13 +40,6 @@ export interface PublicDeckPage {
   hasMore: boolean
 }
 
-export interface CreatePublicDeckReportData {
-  publicDeckId: string
-  reporterAccountId: string
-  reason: string
-  details: string | null
-}
-
 export interface LikeResult {
   created: boolean
   likeCount: number
@@ -72,12 +63,7 @@ export interface PublicDeckRepository {
   list(query: ListPublicDecksQuery): Promise<PublicDeckPage>
   publications(ownerId: string): Promise<PublicationRecord[]>
   unpublish(id: string): Promise<void>
-  setStatus(id: string, status: CommunityDeckStatus): Promise<void>
   like(publicDeckId: string, accountId: string): Promise<LikeResult>
   unlike(publicDeckId: string, accountId: string): Promise<UnlikeResult>
   addCopy(publicDeckId: string, accountId: string): Promise<CopyResult>
-  report(data: CreatePublicDeckReportData): Promise<CommunityDeckReport>
-  listReports(publicDeckId: string): Promise<CommunityDeckReport[]>
-  queueReports(): Promise<ReportedCommunityDeck[]>
-  dismissReports(publicDeckId: string): Promise<number>
 }

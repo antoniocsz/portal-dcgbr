@@ -32,15 +32,11 @@ export type { DeckNameReview } from './domain/community/deck-name-moderation'
 export type {
   CommunityDeck,
   CommunityDeckPage,
-  CommunityDeckReport,
   CommunityDeckStatus,
   CommunityDeckSummary,
-  CommunityModerationAction,
   CommunityPeriod,
   CommunityPublication,
-  CommunityReportReason,
-  CommunitySort,
-  ReportedCommunityDeck
+  CommunitySort
 } from './domain/community/community-types'
 export { normalizeCardNumber, parseDeckList } from './domain/deck-list/parse-deck-list'
 export { serializeDeckList } from './domain/deck-list/serialize-deck-list'
@@ -67,7 +63,6 @@ export type {
 } from './domain/repositories/card-reference-validator'
 export type {
   CopyResult,
-  CreatePublicDeckReportData,
   LikeResult,
   ListPublicDecksQuery,
   PublicDeckPage,
@@ -144,26 +139,6 @@ export type {
   RecordDeckCopyCommand,
   RecordDeckCopyResult
 } from './use-cases/community/record-deck-copy'
-export { ReportCommunityDeckUseCase } from './use-cases/community/report-community-deck'
-export type {
-  ReportCommunityDeckCommand,
-  ReportCommunityDeckResult,
-  ReportedDeckTarget
-} from './use-cases/community/report-community-deck'
-export { ModerateCommunityDeckUseCase } from './use-cases/community/moderate-community-deck'
-export type {
-  ModerateCommunityDeckCommand,
-  ModerateCommunityDeckResult
-} from './use-cases/community/moderate-community-deck'
-export { ListReportedDecksUseCase } from './use-cases/community/list-reported-decks'
-export type { ListReportedDecksCommand } from './use-cases/community/list-reported-decks'
-export { OpenDeckReportsUseCase } from './use-cases/community/open-deck-reports'
-export type { OpenDeckReportsCommand } from './use-cases/community/open-deck-reports'
-export { DismissDeckReportsUseCase } from './use-cases/community/dismiss-deck-reports'
-export type {
-  DismissDeckReportsCommand,
-  DismissDeckReportsResult
-} from './use-cases/community/dismiss-deck-reports'
 
 // Schemas de entrada (usados pelos route handlers do apps/web)
 export {
@@ -182,17 +157,11 @@ export type {
 // Schemas de entrada — comunidade de decks
 export {
   communityDeckStatusSchema,
-  communityModerationActionSchema,
   communityPeriodSchema,
-  communityReportReasonSchema,
   communitySortSchema,
-  listCommunityDecksSchema,
-  reportCommunityDeckSchema
+  listCommunityDecksSchema
 } from './use-cases/community/schemas'
-export type {
-  ListCommunityDecksInput,
-  ReportCommunityDeckInput
-} from './use-cases/community/schemas'
+export type { ListCommunityDecksInput } from './use-cases/community/schemas'
 
 // Infra
 export { PrismaDeckRepository } from './infra/repositories/prisma-deck-repository'

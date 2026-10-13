@@ -29,7 +29,7 @@ export function SiteSettingsView({ initialMode }: SiteSettingsViewProps) {
   const { selected, dirty, saving, feedback, select, save } = useSiteGate(initialMode)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-4 lg:p-8">
       <AdminPageHeader
         title="Configurações"
         subtitle="Preferências globais do portal."

@@ -1,7 +1,20 @@
 // Path: apps/web/src/components/editor/editor-toolbar.tsx
 // Toolbar de formatação do editor (View pura — botões disparam callbacks).
 import type { Editor } from '@tiptap/react'
-import { Bold, Code, Heading1, Heading2, Italic, List, ListOrdered, Quote, Strikethrough } from 'lucide-react'
+import {
+  Bold,
+  Code,
+  Heading1,
+  Heading2,
+  Image,
+  Italic,
+  Link,
+  List,
+  ListOrdered,
+  Pilcrow,
+  Quote,
+  Strikethrough
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface EditorToolbarProps {
@@ -40,8 +53,33 @@ function ToolbarButton({ label, active, disabled, onClick, children }: ToolbarBu
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null
+
+  const handleLink = () => {
+    const previousUrl = editor.getAttributes('link').href as string | undefined
+    const url = window.prompt('URL do link', previousUrl ?? 'https://')
+    if (url === null) return
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      return
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  }
+
+  const handleImage = () => {
+    const url = window.prompt('URL da imagem')
+    if (!url) return
+    editor.chain().focus().setImage({ src: url }).run()
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-surface px-2 py-1.5">
+      <ToolbarButton
+        label="Parágrafo"
+        active={editor.isActive('paragraph')}
+        onClick={() => editor.chain().focus().setParagraph().run()}
+      >
+        <Pilcrow className="size-4" />
+      </ToolbarButton>
       <ToolbarButton
         label="Título 1"
         active={editor.isActive('heading', { level: 1 })}
@@ -77,6 +115,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       >
         <Strikethrough className="size-4" />
       </ToolbarButton>
+      <ToolbarButton label="Link" active={editor.isActive('link')} onClick={handleLink}>
+        <Link className="size-4" />
+      </ToolbarButton>
       <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
       <ToolbarButton
         label="Lista"
@@ -105,6 +146,10 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         onClick={() => editor.chain().focus().toggleCode().run()}
       >
         <Code className="size-4" />
+      </ToolbarButton>
+      <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
+      <ToolbarButton label="Imagem" onClick={handleImage}>
+        <Image className="size-4" />
       </ToolbarButton>
     </div>
   )
